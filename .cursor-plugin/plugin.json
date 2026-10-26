@@ -1,0 +1,17 @@
+{
+  "name": "static-travel-guide",
+  "version": "1.0.0",
+  "description": "Build and maintain static travel-guide sites (itinerary, map pins, booking flags, dual-currency budget) for GitHub Pages.",
+  "author": {
+    "name": "aladdin0306"
+  },
+  "homepage": "https://aladdin0306.github.io/travel-guides/",
+  "license": "MIT",
+  "keywords": [
+    "travel",
+    "itinerary",
+    "github-pages",
+    "leaflet",
+    "static-site"
+  ]
+}
