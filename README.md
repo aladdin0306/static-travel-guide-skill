@@ -1,8 +1,20 @@
 # static-travel-guide
 
-Cursor / Agent Skill for building and maintaining **static travel-guide sites**: day-by-day itinerary, map pins, reservation flags, dual-currency budget, localStorage + JSON export, deploy on GitHub Pages.
+Cursor / Agent Skill so **anyone** can generate **their own** travel itinerary (and optionally a static GitHub Pages guide site): days, map pins, booking flags, dual-currency budget, localStorage + JSON export.
 
-Reference implementation: [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides) · live [demo](https://aladdin0306.github.io/travel-guides/)
+The bundled **Australia** page under [`demo/`](demo/) is a **sample** of structure and quality — not a fixed destination. Agents should plan whatever trip the user asks for.
+
+Full reference site: [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides) · [live](https://aladdin0306.github.io/travel-guides/)
+
+## Try the Australia demo
+
+```bash
+cd demo && python3 -m http.server 8767 --bind 127.0.0.1
+# http://127.0.0.1:8767/
+```
+
+Or open the GitHub Pages demo after it is enabled on this repo:  
+`https://aladdin0306.github.io/static-travel-guide-skill/demo/`
 
 ## Install
 

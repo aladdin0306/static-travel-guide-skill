@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Demo · 澳洲行程（Skill 示例）</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    :root {
+      --bg: #f4f7f7; --ink: #0f1c1a; --muted: #5c6f6c; --line: #dce6e4;
+      --teal: #0f766e; --teal-soft: #e6f7f4; --paper: #fff;
+      --warn: #c2410c; --warn-soft: #fff7ed;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "PingFang SC", "Helvetica Neue", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    .top {
+      display: flex; flex-wrap: wrap; gap: 8px 16px;
+      justify-content: space-between; align-items: center;
+      padding: 12px 18px;
+      background: var(--paper);
+      border-bottom: 1px solid var(--line);
+      position: sticky; top: 0; z-index: 20;
+    }
+    .top a { color: var(--teal); font-weight: 700; font-size: 13px; text-decoration: none; }
+    .top .note { font-size: 12px; color: var(--muted); max-width: 36em; }
+    .layout {
+      display: grid;
+      gap: 0;
+      min-height: calc(100vh - 52px);
+    }
+    @media (min-width: 960px) {
+      .layout { grid-template-columns: minmax(0, 1fr) 360px; }
+    }
+    .main { padding: 20px 18px 48px; width: min(720px, 100%); margin: 0 auto; }
+    .map-wrap {
+      border-top: 1px solid var(--line);
+      background: #dfe8e6;
+      min-height: 280px;
+    }
+    @media (min-width: 960px) {
+      .map-wrap {
+        border-top: 0; border-left: 1px solid var(--line);
+        position: sticky; top: 52px; height: calc(100vh - 52px);
+      }
+    }
+    #map { width: 100%; height: 100%; min-height: 280px; }
+    .signal {
+      display: grid; gap: 12px; margin-bottom: 16px;
+    }
+    @media (min-width: 640px) {
+      .signal { grid-template-columns: 1.1fr 0.9fr; }
+    }
+    .card {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 16px;
+    }
+    .card.bd {
+      background: linear-gradient(155deg, #0b3d38, #127a6d);
+      color: #f8fffd;
+      border-color: #0b3d38;
+    }
+    .eyebrow {
+      margin: 0 0 8px;
+      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--teal);
+    }
+    .card.bd .eyebrow { color: #99f6e4; }
+    h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.03em; }
+    .meta { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+    .card.bd .meta { color: #a7d4cc; }
+    .hops { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+    .hop {
+      padding: 4px 8px; border-radius: 999px;
+      background: var(--teal-soft); color: var(--teal);
+      font-size: 12px; font-weight: 700;
+    }
+    .summary { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
+    .amt {
+      margin: 0;
+      font-family: ui-monospace, monospace;
+      font-size: 32px; font-weight: 700; color: #5eead4; letter-spacing: -0.04em;
+    }
+    .cny { margin: 4px 0 10px; font-size: 14px; font-weight: 700; }
+    .bars { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 12px; }
+    .bars li { display: flex; justify-content: space-between; gap: 8px; color: #cceae4; }
+    .bars b { color: #fff; font-family: ui-monospace, monospace; }
+    .origins { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
+    .origins button {
+      font: inherit; cursor: pointer;
+      padding: 5px 10px; border-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.25);
+      background: transparent; color: #cceae4; font-size: 12px; font-weight: 600;
+    }
+    .origins button.on {
+      border-color: #5eead4; color: #5eead4;
+      background: rgba(94,234,212,0.15);
+    }
+    .day {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+    .day h2 { margin: 0 0 4px; font-size: 16px; }
+    .day .city { font-size: 12px; font-weight: 700; color: var(--teal); }
+    .stop {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      gap: 8px;
+      padding: 8px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .stop:first-of-type { border-top: 0; }
+    .t { color: var(--muted); font-size: 12px; font-weight: 600; }
+    .n { font-weight: 700; }
+    .n small { display: block; font-weight: 500; color: var(--muted); margin-top: 2px; }
+    .flag {
+      font-size: 11px; font-weight: 700;
+      padding: 2px 6px; border-radius: 6px;
+      background: var(--warn-soft); color: var(--warn);
+      height: fit-content;
+    }
+    .flag.ok { background: var(--teal-soft); color: var(--teal); }
+    .banner {
+      margin-bottom: 14px; padding: 12px 14px;
+      border-radius: 12px; background: var(--warn-soft); border: 1px solid #fed7aa;
+      font-size: 13px;
+    }
+    .banner b { color: var(--warn); }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <a href="https://github.com/aladdin0306/static-travel-guide-skill">← static-travel-guide skill</a>
+    <p class="note">这是 Skill 自带的<strong>澳洲示例</strong>。任何人装了 Skill 后，可以让 Agent 按同样结构生成<strong>自己的</strong>线路。</p>
+  </header>
+  <div class="layout">
+    <main class="main" id="main"></main>
+    <aside class="map-wrap"><div id="map"></div></aside>
+  </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="australia-trip.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

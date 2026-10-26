@@ -1,64 +1,36 @@
 # Examples
 
-## User: “帮我做一个能放 GitHub Pages 的行程站”
+## Anyone: “帮我生成一趟自己的线路”
 
-1. Scaffold `index.html` / `styles.css` / `app.js` / `data.js`.
-2. One seed trip (3–5 days) with map coords and one `required` booking.
-3. Budget block near top; day list below.
-4. README: local server + Pages enable steps.
-5. Ask whether to `git init` / create GitHub repo / push.
+User is not asking for the Australia demo — generate **their** trip.
 
-## User: “给现有站点加一趟北海道”
+1. Ask missing constraints (place, dates, party, departure, currency).
+2. Build one trip object per [reference.md](reference.md).
+3. Deliver JSON (and optionally wire into `data.js` / a new Pages site).
+4. Mention they can open this skill’s `demo/` to see an Australia **sample** of the same shape.
 
-1. Open their `data.js` (or equivalent seed).
-2. Append a trip with `currency: "JPY"`, days, ANA-style transport stops if relevant.
-3. Fill `budget.origins` / `extras` (visa, eSIM, meals).
-4. Local preview; push only if asked.
+## “先看 skill 里的 demo”
 
-## User: “手机上不要一天一条导航路线”
+Point to `demo/index.html` (澳洲开口程示例：悉尼 → 圣灵群岛 → 墨尔本).  
+Serve with `python3 -m http.server` from `demo/`.
 
-1. Detect narrow viewport.
-2. For multi-stop days, open a pin list / sheet; each row opens Maps for that place.
-3. Keep desktop day-route optional if already implemented.
+## “做一个能放 GitHub Pages 的行程站，先用我的日本行程”
 
-## Minimal seed trip
+1. Scaffold vanilla site.
+2. Seed `SEED_TRIPS` with **their Japan trip**, not Australia.
+3. Australia demo stays in the skill repo as reference only.
+
+## Australia sample shape (abbreviated)
+
+Full object: `demo/australia-trip.js` (`window.DEMO_TRIP`).
 
 ```js
 {
-  id: "demo-weekend",
-  title: "示例周末",
-  start: "2027-04-01",
-  end: "2027-04-02",
-  summary: "两天示例，用来验证地图和预算。",
-  budget: {
-    currency: "JPY",
-    party: "一人",
-    cnyRate: 0.05,
-    rateDate: "2026-01-01",
-    extras: [],
-    origins: []
-  },
-  days: [
-    {
-      id: "d1",
-      date: "2027-04-01",
-      city: "东京",
-      title: "抵达",
-      items: [
-        {
-          id: "d1-arrive",
-          time: "15:00",
-          kind: "transport",
-          name: "成田机场",
-          address: "Narita Airport",
-          lat: 35.772,
-          lng: 140.3929,
-          reservation: "none",
-          cost: { amount: 0, note: "" },
-          note: "坐京成或 JR 进城。"
-        }
-      ]
-    }
-  ]
+  id: "australia-2027",
+  title: "澳洲",
+  start: "2027-04-29",
+  end: "2027-05-05",
+  budget: { currency: "AUD", party: "两人同住一间", cnyRate: 4.68, origins: [/* 北京/上海 */], extras: [/* ... */] },
+  days: [ /* 悉尼 → 圣灵群岛 → 墨尔本 */ ]
 }
 ```

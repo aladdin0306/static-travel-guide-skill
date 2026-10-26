@@ -1,89 +1,92 @@
 ---
 name: static-travel-guide
 description: >-
-  Builds and maintains static travel-guide websites: day itineraries, Leaflet map
-  pins, reservation flags, dual-currency budgets, localStorage + JSON export, GitHub
-  Pages deploy. Use when the user wants a travel guide / itinerary site, 行程库-style
-  page, trip planner without a backend, or to extend an existing vanilla HTML travel
-  guide (add trip, budget, stops, photos, mobile Maps behavior).
+  Helps anyone generate their own travel itinerary and optionally a static
+  travel-guide website (days, map pins, booking flags, dual-currency budget,
+  localStorage / JSON, GitHub Pages). Use when the user wants a custom trip
+  plan, 行程/攻略/线路, itinerary JSON, or a no-backend travel site. Includes an
+  Australia demo as the reference sample — not the only destination.
 ---
 
 # Static travel guide
 
-Reusable pattern for a **no-backend** trip planner that runs as static files on GitHub Pages.
+**Primary job:** help **any user** generate **their own** trip (destination, dates, stops, budget, bookings).  
+The bundled Australia demo is only a **sample** of shape and quality — never force Australia unless they ask.
 
-Reference implementation (optional to clone): https://github.com/aladdin0306/travel-guides
+Reference demo (open locally or on Pages if published): `demo/` in this skill repo.  
+Live reference site: https://aladdin0306.github.io/travel-guides/
 
-## Goals
+## Who this is for
 
-- One HTML entry + CSS + JS (+ optional seed data / photos)
-- Trips persist in `localStorage`; share via export/import JSON
-- Map shows stop pins (mobile: open Maps per pin / pin sheet — avoid forcing day driving routes)
-- Surface **overview → budget → days**; mark must-book items clearly
-- Dual currency: local (e.g. AUD/JPY) + approximate CNY (or user’s home currency)
+| User says… | You do… |
+|------------|---------|
+| “帮我规划一趟日本/欧洲/…” | Interview → produce trip JSON (+ optional HTML site) for **their** trip |
+| “按这个 skill 生成线路” | Same; use schema in [reference.md](reference.md) |
+| “看 demo / 澳洲示例” | Point to `demo/` or summarize that sample |
+| “搭一个 GitHub Pages 行程站” | Scaffold site, seed with **their** first trip (demo only if they want a placeholder) |
 
-## Default stack
+## Generate-my-trip workflow (default)
 
-| Piece | Choice |
-|-------|--------|
-| UI | Vanilla HTML/CSS/JS |
-| Map | Leaflet + OSM tiles |
-| Hosting | GitHub Pages |
-| Persistence | `localStorage` + export/import |
-| Photos | Optional static files + credit metadata |
-
-Do **not** introduce React/Vue/Next unless the user asks.
-
-## Project layout (convention)
+Copy and track:
 
 ```text
-travel-guides/           # or any site root
-├── index.html
-├── styles.css
-├── app.js               # render, map, storage, editors
-├── data.js              # SEED_TRIPS + photo credits (optional)
-├── photos/              # optional
-└── README.md
+- [ ] 1. Collect: destination(s), dates, party size, departure city, budget currency, pace
+- [ ] 2. Draft days + stops (time, kind, name, lat/lng or address, reservation, cost, note)
+- [ ] 3. Fill budget (party, FX if needed, extras, optional origins)
+- [ ] 4. Output: trip object JSON and/or drop into data.js / a new site
+- [ ] 5. Preview locally; map pins + 必订 items + budget totals
+- [ ] 6. Push / Pages only if the user asks
 ```
 
-Bump cache-bust query (`styles.css?v=N`) when shipping CSS/JS to Pages.
+### Interview (ask only what’s missing)
 
-## Workflows
+1. Where / which cities, and rough days per city  
+2. Start–end dates (or month + length)  
+3. Who’s going; shared room?  
+4. Fly from where; open-jaw OK?  
+5. Currency for local costs; home currency for FX (e.g. CNY)  
+6. Must-book items they already know (flights, hotels, popular restaurants)
 
-### A. Scaffold a new site
+Then **curate** stops (local/quiet when possible; respect season and transit). Do not invent a fake scoring model.
 
-1. Create the layout above.
-2. Seed one sample trip using the schema in [reference.md](reference.md).
-3. Implement: trip list, trip overview, budget summary, day tabs, stop list, Leaflet map, export/import.
-4. Add `README` with local `python3 -m http.server` and Pages notes.
-5. Init git → push → enable GitHub Pages from `main` / root (or `/docs`).
+### Output quality bar
 
-### B. Add or edit a trip (existing site)
+- Clear modules: **overview → budget → days**
+- Budget early; dual currency when FX is known
+- `reservation`: `none` | `recommended` | `required` + links when useful
+- Map: real coords; on mobile prefer **per-stop pins**, not one driving route for the whole day
 
-1. Find seed data (`data.js` / `SEED_TRIPS`) or instruct user that UI-only edits stay in their browser until export.
-2. Fill trip meta, `budget`, `days[]`, `items[]` per [reference.md](reference.md).
-3. Verify: map pins, 必订/建议订 flags, budget totals, mobile pin behavior.
-4. Commit & push only when the user asks.
+Schema: [reference.md](reference.md). Prompts/samples: [examples.md](examples.md).
 
-### C. Budget
+## Australia demo (sample only)
 
-- Trip-level: `currency`, party note, FX rate, `extras[]`, optional `origins[]` (e.g. fly from city A vs B).
-- Stop-level: `cost.amount` + category; support `optional` costs excluded from totals.
-- UI: show per-person (or stated party) total early; category breakdown default-visible or one click away.
+Path: `demo/index.html` + `demo/australia-trip.js`  
+Serve from skill repo root or `demo/`:
 
-### D. Maps & booking
+```bash
+cd demo && python3 -m http.server 8767 --bind 127.0.0.1
+# open http://127.0.0.1:8767/
+```
 
-- Prefer `lat`/`lng` + name/address for pins and Google/Apple Maps deep links.
-- `reservation`: `none` | `recommended` | `required` + optional `bookingUrl`.
-- On narrow screens, multi-stop “directions” routes are often wrong — use per-stop open / a pin picker sheet.
+Use it to show structure. When generating for a user, **replace** with their destination.
 
-## UX principles
+## Optional: scaffold a full site
 
-1. Clear modules: overview, budget, itinerary (and booking alerts).
-2. Budget near the top, not only after scrolling the whole plan.
-3. Hand-curated stops; no fake “AI scoring” unless requested.
-4. Keep copy in the user’s language (often zh-CN for 行程库-style sites).
+Vanilla HTML/CSS/JS + Leaflet + `localStorage` + export/import. Layout:
 
-## Examples
+```text
+site/
+├── index.html
+├── styles.css
+├── app.js
+├── data.js          # SEED_TRIPS = [ theirTrip ]
+└── photos/          # optional
+```
 
-See [examples.md](examples.md). Full field list: [reference.md](reference.md).
+Do not add React/Vue/Next unless asked. Prefer GitHub Pages for hosting.
+
+## Don’t
+
+- Don’t assume every user wants the Australia sample as their trip  
+- Don’t put secrets in the repo  
+- Don’t require a backend for the default pattern  
