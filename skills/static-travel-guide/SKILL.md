@@ -1,72 +1,87 @@
 ---
 name: static-travel-guide
 description: >-
-  Generates a mobile-friendly static travel-guide website matching the 行程库
-  reference app: photos, booking/official links, Google Maps pins, budget,
-  reservations, localStorage export. Use when the user wants their own trip
-  webpage like aladdin0306.github.io/travel-guides, or installs this skill to
-  produce a full frontend site (not JSON-only).
+  After the user installs this skill and describes a trip, automatically builds
+  a mobile webpage like 行程库: copy template, write data.js, serve, and open the
+  site. Photos, booking links, Google Maps pins, budget. Use when they want their
+  own travel guide page, not JSON-only.
 ---
 
-# Static travel guide（产出 = 同款网页）
+# Static travel guide
 
-## Primary deliverable
+## User experience (what they should feel)
 
-**Always produce a working frontend site** the user can open on phone and desktop — same product shape as:
+1. Install this skill once.  
+2. Say their trip + preferences in chat (destination, dates, party, budget, pace…).  
+3. **You** do the rest — they do **not** manually copy folders or edit `data.js`.  
+4. You return a **frontend webpage** they can open (local URL; phone on same Wi‑Fi; Pages if they ask).
 
-https://aladdin0306.github.io/travel-guides/
+Never stop at “here is JSON, paste it into data.js yourself.”
 
-Not JSON-only (JSON may accompany the site). Not the old green Signal experiment as the product UI.
-
-### Must include (parity checklist)
-
-- [ ] Day-by-day itinerary UI (trip list + day detail)
-- [ ] **Photos** on stops when available (`photos/` + `PHOTOS` credits)
-- [ ] **Booking / official links** (`bookingUrl`, reservation flags)
-- [ ] **Map pins** (Leaflet); mobile: per-stop Google Maps / pin sheet — no forced day driving route
-- [ ] Budget (local currency + optional CNY), origins if relevant
-- [ ] Import / export JSON; `localStorage` persistence
-- [ ] Responsive layout (usable on phone)
-
-## How to build the site
-
-1. **Copy the bundled template** from this skill repo:
-   - `template/` (canonical) or `demo/` (Australia-seeded live sample of the same app)
-2. Or clone https://github.com/aladdin0306/travel-guides.git and replace seed data.
-3. Replace `data.js` → `window.SEED_TRIPS` with **the user’s** trip(s).
-4. Add images under `photos/{id}.jpg` and register each id in `PHOTOS` (credit + Wikimedia filename when applicable).
-5. Fill every stop that needs it: `lat`/`lng`, `bookingUrl`, `reservation`, `cost`, `note`, `photo`.
-6. Preview: `python3 -m http.server 8766 --bind 0.0.0.0` — open from phone on same network.
-7. Deploy to **user’s** GitHub Pages when they ask (do not overwrite the reference repo unless they own it and ask).
-
-Core files: `index.html`, `styles.css`, `app.js`, `data.js`, `photos/`.
-
-Bump `?v=` on CSS/JS in `index.html` when shipping asset changes.
-
-## Generate-my-trip workflow
+## Agent must-do pipeline (every time)
 
 ```text
-- [ ] Collect destination, dates, party, departure, currency, known bookings
-- [ ] Curate days/stops (season, transit, quieter picks when possible)
-- [ ] Copy template/ → new folder or repo
-- [ ] Write SEED_TRIPS + PHOTOS; download/compress photos
-- [ ] Verify on desktop + narrow viewport: map pins, 去预约 links, images
-- [ ] Push Pages if requested
+- [ ] 1. Ask only for missing trip facts / preferences
+- [ ] 2. Create a new site folder by copying the skill template
+- [ ] 3. Write complete data.js (SEED_TRIPS + PHOTOS) into that folder
+- [ ] 4. Add photos under photos/ when possible (with credits)
+- [ ] 5. Start a local static server
+- [ ] 6. Open / give the user the URL (and say phone can use LAN IP)
+- [ ] 7. Deploy to their GitHub Pages only if they ask
 ```
 
-Interview only for missing info. Schema: [reference.md](reference.md).
+### Step 2 — copy template (you run this)
 
-## Demo vs user’s site
+From the skill repo root (cloned or known path), prefer:
 
-| Path | Role |
-|------|------|
-| Skill `demo/` / `template/` | Same **app** as 行程库; demo ships with Australia seed + photos |
-| https://aladdin0306.github.io/travel-guides/ | Author’s live multi-trip site (reference) |
-| Site you generate | **User’s** trips inside this same frontend |
+```bash
+bash scripts/new-site.sh /absolute/path/to/OUTPUT_SITE
+```
+
+Or: `cp -R template OUTPUT_SITE`  
+(`demo/` is the same app with Australia sample — use `template/` for new users.)
+
+If the skill was installed without the repo, clone first:
+
+```bash
+git clone https://github.com/aladdin0306/static-travel-guide-skill.git
+bash static-travel-guide-skill/scripts/new-site.sh /path/to/OUTPUT_SITE
+```
+
+### Step 3 — write `OUTPUT_SITE/data.js` yourself
+
+Generate full `window.SEED_TRIPS` for **their** trip. Include:
+
+- `bookingUrl` + `reservation` for bookable stops  
+- `lat` / `lng` for map + Google pins  
+- `cost`, `note`, optional `photo`  
+- `budget` (currency, extras, origins, FX if known)  
+
+Schema: [reference.md](reference.md).
+
+### Step 5–6 — serve and hand them the page
+
+```bash
+cd OUTPUT_SITE && python3 -m http.server 8766 --bind 0.0.0.0
+```
+
+Tell the user:
+
+- Computer: `http://127.0.0.1:8766/`  
+- Phone (same Wi‑Fi): `http://<LAN-IP>:8766/`  
+
+Open the URL in the browser when you can.
+
+## Product parity
+
+Same frontend as https://aladdin0306.github.io/travel-guides/ :
+
+- Day itinerary, photos, booking/official links  
+- Leaflet + mobile per-stop Google Maps (not forced day driving routes)  
+- Budget, import/export, mobile layout  
 
 ## Don’t
 
-- Don’t ship “JSON only” when the user asked for a webpage  
-- Don’t use the green Signal mock as the final product UI  
-- Don’t skip photos/booking/maps if the stop has data for them  
-- Don’t force Australia when the user named another destination  
+- Don’t ask the user to “复制模板改 data.js”  
+- Don’t deliver JSON-only when they want a webpage  
+- Don’t use Australia unless they asked for that sample / that destination  

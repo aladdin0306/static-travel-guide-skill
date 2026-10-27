@@ -1,29 +1,20 @@
 # static-travel-guide
 
-一个 **Agent Skill**：用户装上之后，用自然语言描述旅行，AI 会生成 **和「行程库」同款的前端网页**（手机能打开），而不是只给一段文字或 JSON。
+装上这个 Skill 之后：**你只要说出行程和偏好**，AI 会自动生成 **和「行程库」同款的前端网页**（手机能开），并给你打开链接。
 
-参考成品（作者的站）：https://aladdin0306.github.io/travel-guides/  
-Skill 仓库：https://github.com/aladdin0306/static-travel-guide-skill
+你不需要自己复制文件夹，也不需要会改 `data.js`——那些由 Agent 在后台完成。
 
-## 一句话：Skill 产出什么？
-
-| 产出 | 说明 |
-|------|------|
-| ✅ 完整静态网页 | 与行程库同一套前端：`index.html` + `app.js` + `styles.css` + `data.js` + `photos/` |
-| ✅ 手机可开 | 响应式；地图在手机上按站打点 / 打开谷歌地图，不强制整天导航折线 |
-| ✅ 图片 | 景点图 + 署名（`PHOTOS`） |
-| ✅ 订票 / 官网 | `bookingUrl` + 必须预约 / 建议预约 |
-| ✅ 预算 | 当地货币 + 可选人民币；可切换出发城市 |
-| ✅ 导入导出 | 浏览器 `localStorage` + JSON |
-
-仓库里的 **澳洲 Demo** = 同款网页 + 澳洲种子数据，用来演示效果。  
-用户说去日本 / 欧洲，就生成 **他的** 线路数据塞进同一套网页，不强制澳洲。
+| | |
+|---|---|
+| 仓库 | https://github.com/aladdin0306/static-travel-guide-skill |
+| 作者参考站 | https://aladdin0306.github.io/travel-guides/ |
+| 在线 Demo（同款网页 + 澳洲样例） | https://aladdin0306.github.io/static-travel-guide-skill/demo/ |
 
 ---
 
-## 用户怎么用
+## 用户怎么用（推荐流程）
 
-### 1. 安装（Cursor 或其他支持 Skill 的 Agent）
+### 1. 安装一次
 
 **Cursor：**
 
@@ -31,126 +22,100 @@ Skill 仓库：https://github.com/aladdin0306/static-travel-guide-skill
 /add-plugin https://github.com/aladdin0306/static-travel-guide-skill
 ```
 
-或：
-
-```bash
-git clone https://github.com/aladdin0306/static-travel-guide-skill.git
-cp -R static-travel-guide-skill/skills/static-travel-guide ~/.cursor/skills/
-```
-
-**其他 Agent（`gh skill`）：**
+或其他方式：
 
 ```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent cursor --scope user
-# 把 cursor 换成 claude-code / github-copilot 等，见 gh skill install --help
 ```
 
-不必只用 Cursor。
+（也可用 Claude Code 等：把 `--agent` 换成对应值。不必只用 Cursor。）
 
-### 2. 在对话里说你的旅行
+### 2. 直接说你的旅行
 
 例如：
 
-- 「用 static-travel-guide 给我做一趟北海道网页，5 天，两人，上海出发，要能订票跳转和地图打点」
-- 「生成一个和行程库一样的站点，行程是西班牙两周」
-- 「先看 demo，再按同样网页风格做我的泰国线」
+> 帮我做一趟 2027 年 5 月北海道 5 天网页，两人，上海出发，节奏轻松，要能跳转订票、地图打点，手机能打开。
 
-Agent 应：
+### 3. 等 Agent 自动完成并给你网页
 
-1. 问清缺的信息（日期、人数、出发地、货币等）  
-2. **复制本仓库的 `template/`（或 `demo/`）** 作为站点骨架  
-3. 改写 `data.js` 里的行程，补图片、预约链接、坐标  
-4. 本地起静态服务，方便你用手机预览  
-5. 若你要求，再推到你的 GitHub Pages  
+Agent 应自动：
 
-### 3. 自己先打开 Demo（同款网页 + 澳洲样例）
+1. 复制网页模板  
+2. 把你的行程写进数据文件  
+3. 尽量配上图片、预约链接、地图坐标  
+4. 启动本地网页服务  
+5. **把链接发给你**（电脑 `http://127.0.0.1:端口/`；手机用同一 Wi‑Fi 下电脑的 IP）
 
-**在线：**  
-https://aladdin0306.github.io/static-travel-guide-skill/demo/
+你打开链接就是成品页。若要挂到自己的 GitHub Pages，再说一声即可。
 
-**本地：**
+---
+
+## 网页里有什么
+
+与 https://aladdin0306.github.io/travel-guides/ 同类：
+
+- 按天行程、总览与预算  
+- 景点图  
+- 订票 / 官网跳转（必须预约、建议预约）  
+- 地图打点；手机可逐站开谷歌地图  
+- 导入 / 导出 JSON  
+
+澳洲 Demo 只是样例；你说去哪，就生成哪。
+
+---
+
+## 自己先看 Demo（可选）
 
 ```bash
 git clone https://github.com/aladdin0306/static-travel-guide-skill.git
 cd static-travel-guide-skill/demo
 python3 -m http.server 8767 --bind 0.0.0.0
-# 电脑: http://127.0.0.1:8767/
-# 手机: http://<电脑局域网IP>:8767/
+# http://127.0.0.1:8767/
 ```
 
----
-
-## 网页能力（与正式站对齐）
-
-生成站应具备与 https://aladdin0306.github.io/travel-guides/ 同类能力：
-
-1. **行程总览** — 日期、城市、说明  
-2. **预算** — 分类、出发地切换、人民币估算  
-3. **预约** — 必须 / 建议预约列表，跳转订票或官网  
-4. **按天行程** — 时间、地点、费用、备注  
-5. **图片** — 站点配图与版权说明  
-6. **地图** — Leaflet 打点；手机上可逐站打开谷歌地图  
-7. **导入 / 导出** — 换设备不丢数据  
-
-字段规范：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)  
-Agent 细则：[`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)
+或：https://aladdin0306.github.io/static-travel-guide-skill/demo/
 
 ---
 
-## 仓库结构
+## 给 Agent 的约定（开发者）
+
+用户侧话术：**不要**说「请复制模板改 data.js」。
+
+Agent 侧必须执行（详见 [`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)）：
+
+```bash
+bash scripts/new-site.sh /path/to/用户的站点目录
+# 写入该目录的 data.js（及 photos/）
+cd /path/to/用户的站点目录 && python3 -m http.server 8766 --bind 0.0.0.0
+# 打开 URL 交给用户
+```
+
+字段规范：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
+
+### 仓库结构
 
 ```text
-static-travel-guide-skill/
-├── README.md
-├── LICENSE
-├── .cursor-plugin/plugin.json
-├── skills/static-travel-guide/     ← Skill（给 Agent 读）
-│   ├── SKILL.md
-│   ├── reference.md
-│   └── examples.md
-├── template/                       ← 生成站时复制这一份（同款前端）
-│   ├── index.html
-│   ├── app.js
-│   ├── styles.css
-│   ├── data.js                     ← 示例：澳洲 SEED_TRIPS
-│   ├── photos/                     ← 澳洲示例图
-│   └── README.md
-└── demo/                           ← 与 template 同款，供 Pages / 本地演示
-    └── （同上）
+skills/static-travel-guide/   Skill 说明
+template/                     网页模板（生成时复制）
+demo/                         同款模板 + 澳洲样例
+scripts/new-site.sh           一键复制模板
 ```
-
-旧的「绿色 Signal」实验页已替换为 **正式行程库同款前端**。
-
----
-
-## 给 Agent / 二次开发的要点
-
-- **默认交付物 = 可打开的网站目录**，不是只有 JSON。  
-- 骨架优先复制本仓库 `template/`，不要从零手写另一套 UI（除非用户明确要求换视觉）。  
-- 用户目的地任意；仅当用户要「看例子」时用澳洲种子。  
-- 图片：放入 `photos/`，在 `PHOTOS` 登记署名；维基共享资源需保留许可信息。  
-- 部署到 **用户自己的** GitHub 仓库 / Pages；不要未经允许改作者的 `travel-guides` 仓库。
 
 ---
 
 ## 常见问题
 
-**和作者网页是同一个站吗？**  
-不是同一个 URL。Skill 提供的是 **同一套前端模板**；生成结果是用户自己的站点（自己的域名或 `用户名.github.io/...`）。
+**我要自己改代码吗？**  
+不用。说话描述行程即可。
 
-**必须 Cursor 吗？**  
-不必。支持 Agent Skills / `gh skill install` 的客户端都可以。
+**必须用 Cursor 吗？**  
+不必，支持 Agent Skills 的客户端即可。
 
-**只会聊天、不会部署怎么办？**  
-先让 Agent 在本地生成文件夹并起 `http.server`，手机连同一 Wi‑Fi 打开即可；上 Pages 可再请 Agent 一步步做。
-
-**Demo 还是绿的？**  
-不是。现在 Demo / Template 已是行程库同款界面 + 澳洲数据。
+**和作者网页是同一个网址吗？**  
+不是。你得到的是自己的一份网页（本地或你的 Pages）。
 
 ---
 
 ## License
 
-Skill 与模板代码：MIT，见 [LICENSE](LICENSE)。
-
-`photos/` 中维基共享资源图片按各自许可使用，**不在** MIT 范围内；生成新站时请为每张图保留署名。
+MIT（见 [LICENSE](LICENSE)）。`photos/` 中第三方图片按原许可署名，不在 MIT 内。
