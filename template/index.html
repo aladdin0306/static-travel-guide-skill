@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>行程库</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css?v=13" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <span class="brand-mark"><span data-icon="compass"></span></span>
+      <h1>行程库</h1>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn" id="import-btn"><span data-icon="upload"></span>导入</button>
+      <button type="button" class="btn" id="export-btn"><span data-icon="download"></span>导出</button>
+      <input id="import-file" type="file" accept="application/json" hidden />
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="rail">
+      <div class="rail-head">
+        <h2>我的行程</h2>
+        <button type="button" id="new-trip" class="btn btn-sm"><span data-icon="plus"></span>新建</button>
+      </div>
+      <div id="trip-list"></div>
+      <p class="rail-note">改动只存在这台浏览器里。换电脑或发给别人，用右上角的导出。</p>
+    </aside>
+
+    <main id="main"></main>
+
+    <aside class="map-panel">
+      <div class="map-bar">
+        <h2 id="map-title">地图</h2>
+        <button type="button" id="fit-all" class="btn btn-sm"><span data-icon="map"></span>看全程</button>
+      </div>
+      <div id="map"></div>
+      <p id="map-legend">数字和左边每一站的编号对应，虚线是先后顺序。</p>
+    </aside>
+  </div>
+
+  <dialog id="editor">
+    <form id="editor-form" method="dialog">
+      <h3 id="editor-title">添加地点</h3>
+      <label>时间 <input name="time" placeholder="10:30" /></label>
+      <label>名称 <input name="name" required placeholder="餐厅或景点" /></label>
+      <label>类型
+        <select name="kind">
+          <option value="sight">景点</option>
+          <option value="food">餐厅</option>
+          <option value="transport">交通</option>
+          <option value="stay">住宿</option>
+        </select>
+      </label>
+      <label>地址 <input name="address" placeholder="用来在谷歌上搜索" /></label>
+      <div class="pair">
+        <label>纬度 <input name="lat" inputmode="decimal" /></label>
+        <label>经度 <input name="lng" inputmode="decimal" /></label>
+      </div>
+      <button type="button" id="geocode-btn" class="btn"><span data-icon="pin"></span><span class="label">按名称查找坐标并打点</span></button>
+      <label>要不要提前订
+        <select name="reservation">
+          <option value="none">不用预约</option>
+          <option value="recommended">建议预约</option>
+          <option value="required">必须预约</option>
+        </select>
+      </label>
+      <label>预约说明 <input name="reservationNote" placeholder="为什么要订，订晚了会怎样" /></label>
+      <label>预约链接 <input name="bookingUrl" placeholder="https://" /></label>
+      <div class="pair">
+        <label>每人费用（当地货币） <input name="costAmount" inputmode="decimal" placeholder="免费填 0" /></label>
+        <label>费用说明 <input name="costNote" placeholder="含什么，怎么算的" /></label>
+      </div>
+      <label>怎么走 <textarea name="note" rows="4"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="editor-cancel" class="btn">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <dialog id="pin-sheet" class="pin-sheet">
+    <form method="dialog">
+      <h3 id="pin-sheet-title">在谷歌地图打点</h3>
+      <p class="pin-sheet-note">手机上会打开谷歌地图 App。点哪一站，就在地图里打哪个点；暂不连成路线。</p>
+      <div id="pin-sheet-list" class="pin-sheet-list"></div>
+      <div class="dialog-actions">
+        <button type="submit" class="btn" value="cancel">关闭</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="data.js?v=13"></script>
+  <script src="app.js?v=13"></script>
+</body>
+</html>

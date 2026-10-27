@@ -1,92 +1,72 @@
 ---
 name: static-travel-guide
 description: >-
-  Helps anyone generate their own travel itinerary and optionally a static
-  travel-guide website (days, map pins, booking flags, dual-currency budget,
-  localStorage / JSON, GitHub Pages). Use when the user wants a custom trip
-  plan, 行程/攻略/线路, itinerary JSON, or a no-backend travel site. Includes an
-  Australia demo as the reference sample — not the only destination.
+  Generates a mobile-friendly static travel-guide website matching the 行程库
+  reference app: photos, booking/official links, Google Maps pins, budget,
+  reservations, localStorage export. Use when the user wants their own trip
+  webpage like aladdin0306.github.io/travel-guides, or installs this skill to
+  produce a full frontend site (not JSON-only).
 ---
 
-# Static travel guide
+# Static travel guide（产出 = 同款网页）
 
-**Primary job:** help **any user** generate **their own** trip (destination, dates, stops, budget, bookings).  
-The bundled Australia demo is only a **sample** of shape and quality — never force Australia unless they ask.
+## Primary deliverable
 
-Reference demo (open locally or on Pages if published): `demo/` in this skill repo.  
-Live reference site: https://aladdin0306.github.io/travel-guides/
+**Always produce a working frontend site** the user can open on phone and desktop — same product shape as:
 
-## Who this is for
+https://aladdin0306.github.io/travel-guides/
 
-| User says… | You do… |
-|------------|---------|
-| “帮我规划一趟日本/欧洲/…” | Interview → produce trip JSON (+ optional HTML site) for **their** trip |
-| “按这个 skill 生成线路” | Same; use schema in [reference.md](reference.md) |
-| “看 demo / 澳洲示例” | Point to `demo/` or summarize that sample |
-| “搭一个 GitHub Pages 行程站” | Scaffold site, seed with **their** first trip (demo only if they want a placeholder) |
+Not JSON-only (JSON may accompany the site). Not the old green Signal experiment as the product UI.
 
-## Generate-my-trip workflow (default)
+### Must include (parity checklist)
 
-Copy and track:
+- [ ] Day-by-day itinerary UI (trip list + day detail)
+- [ ] **Photos** on stops when available (`photos/` + `PHOTOS` credits)
+- [ ] **Booking / official links** (`bookingUrl`, reservation flags)
+- [ ] **Map pins** (Leaflet); mobile: per-stop Google Maps / pin sheet — no forced day driving route
+- [ ] Budget (local currency + optional CNY), origins if relevant
+- [ ] Import / export JSON; `localStorage` persistence
+- [ ] Responsive layout (usable on phone)
 
-```text
-- [ ] 1. Collect: destination(s), dates, party size, departure city, budget currency, pace
-- [ ] 2. Draft days + stops (time, kind, name, lat/lng or address, reservation, cost, note)
-- [ ] 3. Fill budget (party, FX if needed, extras, optional origins)
-- [ ] 4. Output: trip object JSON and/or drop into data.js / a new site
-- [ ] 5. Preview locally; map pins + 必订 items + budget totals
-- [ ] 6. Push / Pages only if the user asks
-```
+## How to build the site
 
-### Interview (ask only what’s missing)
+1. **Copy the bundled template** from this skill repo:
+   - `template/` (canonical) or `demo/` (Australia-seeded live sample of the same app)
+2. Or clone https://github.com/aladdin0306/travel-guides.git and replace seed data.
+3. Replace `data.js` → `window.SEED_TRIPS` with **the user’s** trip(s).
+4. Add images under `photos/{id}.jpg` and register each id in `PHOTOS` (credit + Wikimedia filename when applicable).
+5. Fill every stop that needs it: `lat`/`lng`, `bookingUrl`, `reservation`, `cost`, `note`, `photo`.
+6. Preview: `python3 -m http.server 8766 --bind 0.0.0.0` — open from phone on same network.
+7. Deploy to **user’s** GitHub Pages when they ask (do not overwrite the reference repo unless they own it and ask).
 
-1. Where / which cities, and rough days per city  
-2. Start–end dates (or month + length)  
-3. Who’s going; shared room?  
-4. Fly from where; open-jaw OK?  
-5. Currency for local costs; home currency for FX (e.g. CNY)  
-6. Must-book items they already know (flights, hotels, popular restaurants)
+Core files: `index.html`, `styles.css`, `app.js`, `data.js`, `photos/`.
 
-Then **curate** stops (local/quiet when possible; respect season and transit). Do not invent a fake scoring model.
+Bump `?v=` on CSS/JS in `index.html` when shipping asset changes.
 
-### Output quality bar
-
-- Clear modules: **overview → budget → days**
-- Budget early; dual currency when FX is known
-- `reservation`: `none` | `recommended` | `required` + links when useful
-- Map: real coords; on mobile prefer **per-stop pins**, not one driving route for the whole day
-
-Schema: [reference.md](reference.md). Prompts/samples: [examples.md](examples.md).
-
-## Australia demo (sample only)
-
-Path: `demo/index.html` + `demo/australia-trip.js`  
-Serve from skill repo root or `demo/`:
-
-```bash
-cd demo && python3 -m http.server 8767 --bind 127.0.0.1
-# open http://127.0.0.1:8767/
-```
-
-Use it to show structure. When generating for a user, **replace** with their destination.
-
-## Optional: scaffold a full site
-
-Vanilla HTML/CSS/JS + Leaflet + `localStorage` + export/import. Layout:
+## Generate-my-trip workflow
 
 ```text
-site/
-├── index.html
-├── styles.css
-├── app.js
-├── data.js          # SEED_TRIPS = [ theirTrip ]
-└── photos/          # optional
+- [ ] Collect destination, dates, party, departure, currency, known bookings
+- [ ] Curate days/stops (season, transit, quieter picks when possible)
+- [ ] Copy template/ → new folder or repo
+- [ ] Write SEED_TRIPS + PHOTOS; download/compress photos
+- [ ] Verify on desktop + narrow viewport: map pins, 去预约 links, images
+- [ ] Push Pages if requested
 ```
 
-Do not add React/Vue/Next unless asked. Prefer GitHub Pages for hosting.
+Interview only for missing info. Schema: [reference.md](reference.md).
+
+## Demo vs user’s site
+
+| Path | Role |
+|------|------|
+| Skill `demo/` / `template/` | Same **app** as 行程库; demo ships with Australia seed + photos |
+| https://aladdin0306.github.io/travel-guides/ | Author’s live multi-trip site (reference) |
+| Site you generate | **User’s** trips inside this same frontend |
 
 ## Don’t
 
-- Don’t assume every user wants the Australia sample as their trip  
-- Don’t put secrets in the repo  
-- Don’t require a backend for the default pattern  
+- Don’t ship “JSON only” when the user asked for a webpage  
+- Don’t use the green Signal mock as the final product UI  
+- Don’t skip photos/booking/maps if the stop has data for them  
+- Don’t force Australia when the user named another destination  

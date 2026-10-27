@@ -1,5 +1,26 @@
-// Demo seed: Australia 2027 open-jaw (from reference implementation)
-window.DEMO_TRIP = {
+const PHOTOS = {
+  "au-d1-opera": ["Bernard Spragg · CC0", "Sydney_Australia._(21339175489).jpg"],
+  "au-d1-tour": ["Nick-D · CC BY-SA 3.0", "Sydney_Opera_House_concert_hall_October_2018.jpg"],
+  "au-d2-gap": ["Dietmar Rabich · CC BY-SA 4.0", "Sydney_(AU),_Watsons_Bay_--_2019_--_2295.jpg"],
+  "au-d3-manly": ["J Bar · CC BY-SA 3.0", "Shelly_Beach_Manly.JPG"],
+  "au-d3-northhead": ["ColonelLight · CC0", "Burragula_Lookout_North_Head_02.jpg"],
+  "au-d4-lagoon": ["Niki Gango · CC BY-SA 3.0", "Airlie_Beach_Lagoon.JPG"],
+  "au-d5-sand": ["Slug69 · CC BY-SA 2.0", "Whitehaven_Beach,_Whitsunday_Island,_Queensland.jpg"],
+  "au-d5-hill": ["Isderion · CC BY-SA 3.0 DE", "Hill_Inlet_at_the_end_of_Whitehaven_Beach_in_the_Whitsundays.JPG"],
+  "au-d7-lanes": ["Ashton 29 · CC BY-SA 4.0", "Melbourne_laneway.jpg"],
+  "au-d8-reb": ["Diliff, Ian Fieggen · CC BY 2.5", "Royal_exhibition_building_tulips_straight.jpg"],
+  "au-d8-fitzroy": ["Nick-D · CC BY-SA 4.0", "Buildings_on_Gertrude_Street_December_2020.jpg"],
+  "au-d8-convent": ["Redtree21 · CC BY-SA 4.0", "Abbotsford_Convent_Looking_North.jpg"],
+  "au-d8-ngv": ["Shkuru Afshar · CC BY-SA 4.0", "National_Gallery_of_Victoria_2024.jpg"]
+};
+
+function photo(id) {
+  const [credit, file] = PHOTOS[id];
+  return { src: `photos/${id}.jpg`, credit, link: `https://commons.wikimedia.org/wiki/File:${file}` };
+}
+
+window.SEED_TRIPS = [
+{
     id: "australia-2027",
     title: "澳洲",
     start: "2027-04-29",
@@ -83,6 +104,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 14.7, note: "来回渡轮各 A$7.35。" },
             why: "港湾这边是小渔村，翻过小坡就是外海悬崖。来回都是渡轮，不用走长路，适合落地第一天。",
+            photo: photo("au-d2-gap"),
             note: "放下行李后到环形码头 2 号码头，坐 F9 到 Watsons Bay，大约 25 分钟。下船穿过码头对面的草地，走上 Gap Park，看外海那一侧的悬崖，来回二十分钟。F9 有时一小时才一班，到码头先看回程时间，16:30 前往回坐。上海航班早上到，先在酒店寄存行李、吃早饭，再来这一站；北京航班下午三点到，直接去下面的歌剧院。"
           },
           {
@@ -98,6 +120,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "室外免费。" },
             why: "坐了一夜飞机，这里走路就到，不用转车。外面看不要票。",
+            photo: photo("au-d1-opera"),
             note: "从环形码头沿着海走过去。先看壳，再绕到海岬一侧。还有力气就继续往东走进皇家植物园，大约 20 分钟到麦考利夫人椅子，那里能把歌剧院和大桥拍在一起。"
           },
           {
@@ -113,6 +136,7 @@ window.DEMO_TRIP = {
             bookingUrl: "https://www.sydneyoperahouse.com/tours/sydney-opera-house-tour",
             cost: { amount: 52, note: "提前订每人 A$50，2027年4月起预计 A$52；当天买再贵 A$5。" },
             why: "只有想看音乐厅内部才去。每场限人数，里面不挤。",
+            photo: photo("au-d1-tour"),
             note: "到了再决定。订的话选傍晚前的最后一场，提前15分钟到下层的 Welcome Centre。不订也不影响这天。"
           },
           {
@@ -164,6 +188,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。午饭算在每天的餐费里。" },
             why: "曼利主滩人多，不停留。Shelly Beach 是朝北的小湾，水平静。",
+            photo: photo("au-d3-manly"),
             note: "下船穿过 The Corso 商业街，在这条街上买好午饭和水带走，北角上面没有店。到海滩右转，沿海边步道走大约 1 公里到 Shelly Beach。"
           },
           {
@@ -179,6 +204,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。" },
             why: "站在悬崖上看整个悉尼港口和外海，5月开始有机会看到鲸鱼。来的人比曼利海滩少得多。",
+            photo: photo("au-d3-northhead"),
             note: "从 Shelly Beach 停车场后面的步道往上爬，大约 80 米高，这是唯一累的一段。上去以后看牌子 Fairfax Lookout，在观景台附近吃带上来的午饭。从曼利码头算起单程大约 5 公里，两到三小时。出发前看一眼国家公园网站有没有封路通知。南边没有厕所，在曼利海滩上厕所、装水。"
           },
           {
@@ -272,6 +298,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。" },
             why: "5月还是水母季，这是镇上不用穿防刺服就能下水的地方。",
+            photo: photo("au-d4-lagoon"),
             note: "主街走到海边就看见。泻湖有防护，可以直接游。外海游泳要穿防刺服。晚饭在主街吃，长周末热门的馆子早点去。"
           }
         ]
@@ -325,6 +352,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "含在船票里。" },
             why: "白沙和蓝水搅在一起的那张照片就是从这里拍的，只能从高处看。",
+            photo: photo("au-d5-hill"),
             note: "大多数船停在 Tongue Bay，上岸走一段林间路和台阶到观景台。花纹好不好看取决于潮水，订船时问一句他们当天几点上观景台。穿船方要求的鞋。"
           },
           {
@@ -340,6 +368,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "含在船票里。" },
             why: "7 公里长的白沙滩，大船都停在南端，往北走一段人就少了。",
+            photo: photo("au-d5-sand"),
             note: "岛上没有路，也没有店。沙子细，会粘鞋。不要把沙子带走，公园在管。回程晚饭回艾尔利主街，晚上把行李收好，明天上午飞墨尔本。"
           }
         ]
@@ -405,6 +434,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。" },
             why: "本地人说 Hosier Lane 这几年又挤又乱。旁边这几条巷子一样有涂鸦和小店，傍晚人少一些。",
+            photo: photo("au-d7-lanes"),
             note: "从弗林德斯街车站对面开始，先走 Degraves Street 和 Centre Place，再沿 Flinders Lane 往东走到 AC/DC Lane。整段走路二十分钟，最后正好到下面的晚饭。"
           },
           {
@@ -442,6 +472,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 17.4, note: "电车、公交、火车全天封顶 A$11.40（维州半价优惠到 2027年1月1日结束）。第一次买 myki 卡另付 A$6。", cat: "transport" },
             why: "世界遗产建筑，周二上午人很少。从这里走路就进 Fitzroy。",
+            photo: photo("au-d8-reb"),
             note: "走到 Bourke Street 坐 86 或 96 路电车往东，到 11 号站 Melbourne Museum 下，走五分钟。绕建筑和喷泉走一圈就够。"
           },
           {
@@ -457,6 +488,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。午饭算在每天的餐费里。" },
             why: "本地人推荐的老街区。主街后面的 Rose Street、Kerr Street 一带是老排屋、小画廊和涂鸦，游客少。",
+            photo: photo("au-d8-fitzroy"),
             note: "从花园东边过 Nicholson Street 就是 Gertrude Street。顺着往东走，看到喜欢的就拐进北边的小街。午饭在 Gertrude Street 或 Smith Street 吃，不用订。"
           },
           {
@@ -472,6 +504,7 @@ window.DEMO_TRIP = {
             bookingUrl: "",
             cost: { amount: 0, note: "免费。来回的公交和火车已含在当天封顶里。" },
             why: "旧修道院改成的艺术园区，有草地、咖啡馆和亚拉河边步道，几乎没有旅行团。",
+            photo: photo("au-d8-convent"),
             note: "从 Fitzroy 往北走到 Johnston Street，坐 200 或 207 路公交往东，Clarke Street 站下，走三到五分钟。不想等车就打车，十分钟左右。回城走 10 到 15 分钟到 Victoria Park 火车站，坐 Mernda 或 Hurstbridge 线进城。晚饭在城里随便吃。"
           },
           {
@@ -487,6 +520,7 @@ window.DEMO_TRIP = {
             bookingUrl: "https://www.ngv.vic.gov.au/whats-on/",
             cost: { amount: 0, note: "常设展免费。" },
             why: "下雨的备选。周二白天人不多，常设展免费。",
+            photo: photo("au-d8-ngv"),
             note: "下雨就把 Fitzroy 和修道院换成这里。从弗林德斯街沿圣基尔达路往南坐电车，有 Arts Precinct 或 NGV 字样的站下。"
           }
         ]
@@ -529,4 +563,5 @@ window.DEMO_TRIP = {
         ]
       }
     ]
-  };
+  }
+];

@@ -3,152 +3,98 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Demo · 澳洲行程（Skill 示例）</title>
+  <title>行程库</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <style>
-    :root {
-      --bg: #f4f7f7; --ink: #0f1c1a; --muted: #5c6f6c; --line: #dce6e4;
-      --teal: #0f766e; --teal-soft: #e6f7f4; --paper: #fff;
-      --warn: #c2410c; --warn-soft: #fff7ed;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: "PingFang SC", "Helvetica Neue", sans-serif;
-      color: var(--ink);
-      background: var(--bg);
-    }
-    .top {
-      display: flex; flex-wrap: wrap; gap: 8px 16px;
-      justify-content: space-between; align-items: center;
-      padding: 12px 18px;
-      background: var(--paper);
-      border-bottom: 1px solid var(--line);
-      position: sticky; top: 0; z-index: 20;
-    }
-    .top a { color: var(--teal); font-weight: 700; font-size: 13px; text-decoration: none; }
-    .top .note { font-size: 12px; color: var(--muted); max-width: 36em; }
-    .layout {
-      display: grid;
-      gap: 0;
-      min-height: calc(100vh - 52px);
-    }
-    @media (min-width: 960px) {
-      .layout { grid-template-columns: minmax(0, 1fr) 360px; }
-    }
-    .main { padding: 20px 18px 48px; width: min(720px, 100%); margin: 0 auto; }
-    .map-wrap {
-      border-top: 1px solid var(--line);
-      background: #dfe8e6;
-      min-height: 280px;
-    }
-    @media (min-width: 960px) {
-      .map-wrap {
-        border-top: 0; border-left: 1px solid var(--line);
-        position: sticky; top: 52px; height: calc(100vh - 52px);
-      }
-    }
-    #map { width: 100%; height: 100%; min-height: 280px; }
-    .signal {
-      display: grid; gap: 12px; margin-bottom: 16px;
-    }
-    @media (min-width: 640px) {
-      .signal { grid-template-columns: 1.1fr 0.9fr; }
-    }
-    .card {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      padding: 16px;
-    }
-    .card.bd {
-      background: linear-gradient(155deg, #0b3d38, #127a6d);
-      color: #f8fffd;
-      border-color: #0b3d38;
-    }
-    .eyebrow {
-      margin: 0 0 8px;
-      font-size: 11px; font-weight: 700; letter-spacing: 0.08em;
-      text-transform: uppercase; color: var(--teal);
-    }
-    .card.bd .eyebrow { color: #99f6e4; }
-    h1 { margin: 0 0 4px; font-size: 28px; letter-spacing: -0.03em; }
-    .meta { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
-    .card.bd .meta { color: #a7d4cc; }
-    .hops { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-    .hop {
-      padding: 4px 8px; border-radius: 999px;
-      background: var(--teal-soft); color: var(--teal);
-      font-size: 12px; font-weight: 700;
-    }
-    .summary { margin: 0; font-size: 13px; line-height: 1.5; color: var(--muted); }
-    .amt {
-      margin: 0;
-      font-family: ui-monospace, monospace;
-      font-size: 32px; font-weight: 700; color: #5eead4; letter-spacing: -0.04em;
-    }
-    .cny { margin: 4px 0 10px; font-size: 14px; font-weight: 700; }
-    .bars { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 12px; }
-    .bars li { display: flex; justify-content: space-between; gap: 8px; color: #cceae4; }
-    .bars b { color: #fff; font-family: ui-monospace, monospace; }
-    .origins { display: flex; gap: 6px; margin: 0 0 10px; flex-wrap: wrap; }
-    .origins button {
-      font: inherit; cursor: pointer;
-      padding: 5px 10px; border-radius: 8px;
-      border: 1px solid rgba(255,255,255,0.25);
-      background: transparent; color: #cceae4; font-size: 12px; font-weight: 600;
-    }
-    .origins button.on {
-      border-color: #5eead4; color: #5eead4;
-      background: rgba(94,234,212,0.15);
-    }
-    .day {
-      background: var(--paper);
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 10px;
-    }
-    .day h2 { margin: 0 0 4px; font-size: 16px; }
-    .day .city { font-size: 12px; font-weight: 700; color: var(--teal); }
-    .stop {
-      display: grid;
-      grid-template-columns: 56px 1fr auto;
-      gap: 8px;
-      padding: 8px 0;
-      border-top: 1px solid var(--line);
-      font-size: 13px;
-    }
-    .stop:first-of-type { border-top: 0; }
-    .t { color: var(--muted); font-size: 12px; font-weight: 600; }
-    .n { font-weight: 700; }
-    .n small { display: block; font-weight: 500; color: var(--muted); margin-top: 2px; }
-    .flag {
-      font-size: 11px; font-weight: 700;
-      padding: 2px 6px; border-radius: 6px;
-      background: var(--warn-soft); color: var(--warn);
-      height: fit-content;
-    }
-    .flag.ok { background: var(--teal-soft); color: var(--teal); }
-    .banner {
-      margin-bottom: 14px; padding: 12px 14px;
-      border-radius: 12px; background: var(--warn-soft); border: 1px solid #fed7aa;
-      font-size: 13px;
-    }
-    .banner b { color: var(--warn); }
-  </style>
+  <link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
   <header class="top">
-    <a href="https://github.com/aladdin0306/static-travel-guide-skill">← static-travel-guide skill</a>
-    <p class="note">这是 Skill 自带的<strong>澳洲示例</strong>。任何人装了 Skill 后，可以让 Agent 按同样结构生成<strong>自己的</strong>线路。</p>
+    <div class="brand">
+      <span class="brand-mark"><span data-icon="compass"></span></span>
+      <h1>行程库</h1>
+    </div>
+    <div class="top-actions">
+      <button type="button" class="btn" id="import-btn"><span data-icon="upload"></span>导入</button>
+      <button type="button" class="btn" id="export-btn"><span data-icon="download"></span>导出</button>
+      <input id="import-file" type="file" accept="application/json" hidden />
+    </div>
   </header>
+
   <div class="layout">
-    <main class="main" id="main"></main>
-    <aside class="map-wrap"><div id="map"></div></aside>
+    <aside class="rail">
+      <div class="rail-head">
+        <h2>我的行程</h2>
+        <button type="button" id="new-trip" class="btn btn-sm"><span data-icon="plus"></span>新建</button>
+      </div>
+      <div id="trip-list"></div>
+      <p class="rail-note">改动只存在这台浏览器里。换电脑或发给别人，用右上角的导出。</p>
+    </aside>
+
+    <main id="main"></main>
+
+    <aside class="map-panel">
+      <div class="map-bar">
+        <h2 id="map-title">地图</h2>
+        <button type="button" id="fit-all" class="btn btn-sm"><span data-icon="map"></span>看全程</button>
+      </div>
+      <div id="map"></div>
+      <p id="map-legend">数字和左边每一站的编号对应，虚线是先后顺序。</p>
+    </aside>
   </div>
+
+  <dialog id="editor">
+    <form id="editor-form" method="dialog">
+      <h3 id="editor-title">添加地点</h3>
+      <label>时间 <input name="time" placeholder="10:30" /></label>
+      <label>名称 <input name="name" required placeholder="餐厅或景点" /></label>
+      <label>类型
+        <select name="kind">
+          <option value="sight">景点</option>
+          <option value="food">餐厅</option>
+          <option value="transport">交通</option>
+          <option value="stay">住宿</option>
+        </select>
+      </label>
+      <label>地址 <input name="address" placeholder="用来在谷歌上搜索" /></label>
+      <div class="pair">
+        <label>纬度 <input name="lat" inputmode="decimal" /></label>
+        <label>经度 <input name="lng" inputmode="decimal" /></label>
+      </div>
+      <button type="button" id="geocode-btn" class="btn"><span data-icon="pin"></span><span class="label">按名称查找坐标并打点</span></button>
+      <label>要不要提前订
+        <select name="reservation">
+          <option value="none">不用预约</option>
+          <option value="recommended">建议预约</option>
+          <option value="required">必须预约</option>
+        </select>
+      </label>
+      <label>预约说明 <input name="reservationNote" placeholder="为什么要订，订晚了会怎样" /></label>
+      <label>预约链接 <input name="bookingUrl" placeholder="https://" /></label>
+      <div class="pair">
+        <label>每人费用（当地货币） <input name="costAmount" inputmode="decimal" placeholder="免费填 0" /></label>
+        <label>费用说明 <input name="costNote" placeholder="含什么，怎么算的" /></label>
+      </div>
+      <label>怎么走 <textarea name="note" rows="4"></textarea></label>
+      <div class="dialog-actions">
+        <button type="button" id="editor-cancel" class="btn">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="australia-trip.js"></script>
-  <script src="app.js"></script>
+  <dialog id="pin-sheet" class="pin-sheet">
+    <form method="dialog">
+      <h3 id="pin-sheet-title">在谷歌地图打点</h3>
+      <p class="pin-sheet-note">手机上会打开谷歌地图 App。点哪一站，就在地图里打哪个点；暂不连成路线。</p>
+      <div id="pin-sheet-list" class="pin-sheet-list"></div>
+      <div class="dialog-actions">
+        <button type="submit" class="btn" value="cancel">关闭</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="data.js?v=13"></script>
+  <script src="app.js?v=13"></script>
 </body>
 </html>

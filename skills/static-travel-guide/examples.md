@@ -1,36 +1,38 @@
 # Examples
 
-## Anyone: “帮我生成一趟自己的线路”
+## 「给我做一个和行程库一样的网页，行程是××」
 
-User is not asking for the Australia demo — generate **their** trip.
+1. Copy `template/` (or `demo/`) to a new folder / repo.  
+2. Replace `SEED_TRIPS` with the user’s trip.  
+3. Add `photos/` + `PHOTOS`, `bookingUrl`, `lat`/`lng`.  
+4. `python3 -m http.server` — verify on phone.  
+5. Push to the user’s Pages if asked.
 
-1. Ask missing constraints (place, dates, party, departure, currency).
-2. Build one trip object per [reference.md](reference.md).
-3. Deliver JSON (and optionally wire into `data.js` / a new Pages site).
-4. Mention they can open this skill’s `demo/` to see an Australia **sample** of the same shape.
+Deliverable = the folder that opens in a browser, not JSON alone.
 
-## “先看 skill 里的 demo”
+## 「先看 demo」
 
-Point to `demo/index.html` (澳洲开口程示例：悉尼 → 圣灵群岛 → 墨尔本).  
-Serve with `python3 -m http.server` from `demo/`.
+Open skill `demo/` (same UI as 行程库, Australia seed) or  
+https://aladdin0306.github.io/static-travel-guide-skill/demo/
 
-## “做一个能放 GitHub Pages 的行程站，先用我的日本行程”
+## 「只要 JSON」
 
-1. Scaffold vanilla site.
-2. Seed `SEED_TRIPS` with **their Japan trip**, not Australia.
-3. Australia demo stays in the skill repo as reference only.
+Only if the user explicitly wants data-only. Prefer offering the full site anyway.
 
-## Australia sample shape (abbreviated)
+## Minimal new trip inside the template
 
-Full object: `demo/australia-trip.js` (`window.DEMO_TRIP`).
+Keep `app.js` / `styles.css` / `index.html` unchanged. Edit `data.js`:
 
 ```js
-{
-  id: "australia-2027",
-  title: "澳洲",
-  start: "2027-04-29",
-  end: "2027-05-05",
-  budget: { currency: "AUD", party: "两人同住一间", cnyRate: 4.68, origins: [/* 北京/上海 */], extras: [/* ... */] },
-  days: [ /* 悉尼 → 圣灵群岛 → 墨尔本 */ ]
-}
+window.SEED_TRIPS = [
+  {
+    id: "user-trip",
+    title: "用户的目的地",
+    start: "2027-06-01",
+    end: "2027-06-05",
+    summary: "…",
+    budget: { currency: "JPY", party: "两人", cnyRate: 0.05, rateDate: "2026-10-01", extras: [], origins: [] },
+    days: [ /* … with bookingUrl, lat, lng, photo, reservation … */ ]
+  }
+];
 ```
