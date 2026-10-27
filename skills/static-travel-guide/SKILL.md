@@ -2,86 +2,108 @@
 name: static-travel-guide
 description: >-
   After the user installs this skill and describes a trip, automatically builds
-  a mobile webpage like 行程库: copy template, write data.js, serve, and open the
-  site. Photos, booking links, Google Maps pins, budget. Use when they want their
-  own travel guide page, not JSON-only.
+  a mobile webpage like 行程库: copy template, write data.js with photos/booking/maps,
+  serve, and return a URL (not folder-only). Use for custom travel guide pages.
 ---
 
 # Static travel guide
 
-## User experience (what they should feel)
+## User experience
 
-1. Install this skill once.  
-2. Say their trip + preferences in chat (destination, dates, party, budget, pace…).  
-3. **You** do the rest — they do **not** manually copy folders or edit `data.js`.  
-4. You return a **frontend webpage** they can open (local URL; phone on same Wi‑Fi; Pages if they ask).
+1. Install once → describe trip + preferences in chat.  
+2. **You** build the site — user never copies folders or edits `data.js`.  
+3. You **must** return openable **URLs** (desktop + phone hint). Never end with only a folder path.
 
-Never stop at “here is JSON, paste it into data.js yourself.”
+## Interview checklist (ask what’s missing)
 
-## Agent must-do pipeline (every time)
+- [ ] Destinations / cities and days per city  
+- [ ] Dates (or month + length)  
+- [ ] Party size; shared room?  
+- [ ] Departure city; open-jaw OK?  
+- [ ] Pace: 轻松 / 适中 / 赶景  
+- [ ] Budget ceiling (optional) and local currency + home FX (e.g. CNY)  
+- [ ] Diet / accessibility / kids / hiking preferences  
+- [ ] Known must-books (flights, hotels, popular restaurants)
+
+## Agent pipeline (every time)
 
 ```text
-- [ ] 1. Ask only for missing trip facts / preferences
-- [ ] 2. Create a new site folder by copying the skill template
-- [ ] 3. Write complete data.js (SEED_TRIPS + PHOTOS) into that folder
-- [ ] 4. Add photos under photos/ when possible (with credits)
-- [ ] 5. Start a local static server
-- [ ] 6. Open / give the user the URL (and say phone can use LAN IP)
-- [ ] 7. Deploy to their GitHub Pages only if they ask
+- [ ] 1. Interview (checklist above)
+- [ ] 2. bash scripts/new-site.sh /abs/OUTPUT_SITE
+- [ ] 3. Write OUTPUT_SITE/data.js (full SEED_TRIPS)
+- [ ] 4. Photos: Commons → photos/ + PHOTOS credits (or 暂无图, no broken imgs)
+- [ ] 5. bash scripts/serve.sh /abs/OUTPUT_SITE [port]
+- [ ] 6. Give user Desktop URL + phone LAN tip; open browser if possible
+- [ ] 7. Run acceptance checklist
+- [ ] 8. GitHub Pages only if user asks
 ```
 
-### Step 2 — copy template (you run this)
+Clone skill repo if scripts/template missing:
 
-From the skill repo root (cloned or known path), prefer:
+`git clone https://github.com/aladdin0306/static-travel-guide-skill.git`
+
+### Photos (required practice)
+
+1. Prefer **Wikimedia Commons** for public places.  
+2. Download + compress into `OUTPUT_SITE/photos/{id}.jpg`:
 
 ```bash
-bash scripts/new-site.sh /absolute/path/to/OUTPUT_SITE
+bash scripts/fetch-commons-photo.sh OUTPUT_SITE PHOTO_ID "Exact_File_On_Commons.jpg"
 ```
 
-Or: `cp -R template OUTPUT_SITE`  
-(`demo/` is the same app with Australia sample — use `template/` for new users.)
+3. Add the printed line into `PHOTOS` in `data.js`; set stop `photo: photo("PHOTO_ID")`.  
+4. If no suitable image: **omit** `photo` on that stop; optionally note `暂无图` in `note`. **Never** leave `photo: photo("…")` without a file (broken image).
 
-If the skill was installed without the repo, clone first:
+### Serve (required)
 
 ```bash
-git clone https://github.com/aladdin0306/static-travel-guide-skill.git
-bash static-travel-guide-skill/scripts/new-site.sh /path/to/OUTPUT_SITE
+bash scripts/serve.sh /abs/OUTPUT_SITE 8766
 ```
 
-### Step 3 — write `OUTPUT_SITE/data.js` yourself
+Reply with:
 
-Generate full `window.SEED_TRIPS` for **their** trip. Include:
-
-- `bookingUrl` + `reservation` for bookable stops  
-- `lat` / `lng` for map + Google pins  
-- `cost`, `note`, optional `photo`  
-- `budget` (currency, extras, origins, FX if known)  
-
-Schema: [reference.md](reference.md).
-
-### Step 5–6 — serve and hand them the page
-
-```bash
-cd OUTPUT_SITE && python3 -m http.server 8766 --bind 0.0.0.0
-```
-
-Tell the user:
-
-- Computer: `http://127.0.0.1:8766/`  
+- Desktop: `http://127.0.0.1:8766/`  
 - Phone (same Wi‑Fi): `http://<LAN-IP>:8766/`  
 
-Open the URL in the browser when you can.
+**Do not** finish with only “站点在 /path/to/folder”.
 
-## Product parity
+### Acceptance checklist (before saying done)
 
-Same frontend as https://aladdin0306.github.io/travel-guides/ :
+- [ ] 预约 / 订票链接可打开（至少一个 required 或 recommended）  
+- [ ] 地图有坐标点  
+- [ ] 窄屏（~390px）布局不乱  
+- [ ] 若有多个 `origins`，切换出发地预算会变  
+- [ ] 导出 JSON 后再导入不报错  
 
-- Day itinerary, photos, booking/official links  
-- Leaflet + mobile per-stop Google Maps (not forced day driving routes)  
-- Budget, import/export, mobile layout  
+### Disclaimer
+
+Keep the template rail note (prices / FX / schedules are estimates). Also mention once in chat when handing over the URL.
+
+Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
+
+## Template sync (maintainers)
+
+`template/` tracks [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides). See `template/SYNC.txt` after sync.
+
+```bash
+# from skill repo root — sibling ../travel-guides or clone
+bash scripts/sync-template.sh
+# or pin a ref:
+TRAVEL_GUIDES_REF=main bash scripts/sync-template.sh
+```
+
+Does not overwrite carefully curated `data.js` / demo Australia photos unless you replace them separately.
+
+## Publish (maintainers)
+
+- Keep Demo Pages green: https://aladdin0306.github.io/static-travel-guide-skill/demo/  
+- Optional: `gh skill publish --tag v1.x.0`  
+- Optional: Cursor Marketplace https://cursor.com/marketplace/publish  
 
 ## Don’t
 
-- Don’t ask the user to “复制模板改 data.js”  
+- Don’t ask users to edit `data.js`  
 - Don’t deliver JSON-only when they want a webpage  
-- Don’t use Australia unless they asked for that sample / that destination  
+- Don’t force Australia  
+- Don’t leave broken photo refs  
+- Don’t stop at a folder path without a URL  

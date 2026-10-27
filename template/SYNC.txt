@@ -1,0 +1,4 @@
+source=https://github.com/aladdin0306/travel-guides
+ref=bundled-with-skill
+synced_at=2026-10-27T13:00:00Z
+note=Run scripts/sync-template.sh to refresh index.html/app.js/styles.css from upstream.

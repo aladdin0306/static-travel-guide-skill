@@ -1,38 +1,34 @@
 # Examples
 
-## 「给我做一个和行程库一样的网页，行程是××」
+## Happy path — user only talks
 
-1. Copy `template/` (or `demo/`) to a new folder / repo.  
-2. Replace `SEED_TRIPS` with the user’s trip.  
-3. Add `photos/` + `PHOTOS`, `bookingUrl`, `lat`/`lng`.  
-4. `python3 -m http.server` — verify on phone.  
-5. Push to the user’s Pages if asked.
+User: 「帮我做一趟京都 4 天网页，两人，轻松点，上海出发。」
 
-Deliverable = the folder that opens in a browser, not JSON alone.
+Agent:
 
-## 「先看 demo」
+1. Ask diet / budget if needed.  
+2. `bash scripts/new-site.sh ~/Sites/kyoto-2027`  
+3. Write `data.js` with bookings + coords.  
+4. Fetch Commons photos where possible; else 暂无图.  
+5. `bash scripts/serve.sh ~/Sites/kyoto-2027 8766`  
+6. Reply with `http://127.0.0.1:8766/` (+ phone tip).  
+7. Tick acceptance checklist.
 
-Open skill `demo/` (same UI as 行程库, Australia seed) or  
-https://aladdin0306.github.io/static-travel-guide-skill/demo/
+## Wrong — don’t do this
 
-## 「只要 JSON」
+「站点已生成，在 `/Users/…/kyoto-2027`，请自行 `python3 -m http.server` 并改 data.js。」
 
-Only if the user explicitly wants data-only. Prefer offering the full site anyway.
+## Photos
 
-## Minimal new trip inside the template
+```bash
+bash scripts/fetch-commons-photo.sh ~/Sites/kyoto-2027 kyo-fushimi "Fushimi_Inari_Shrine_Sembon_Torii_1.jpg"
+# paste PHOTOS line into data.js; photo: photo("kyo-fushimi")
+```
 
-Keep `app.js` / `styles.css` / `index.html` unchanged. Edit `data.js`:
+No file found → omit `photo`, note `暂无图`.
 
-```js
-window.SEED_TRIPS = [
-  {
-    id: "user-trip",
-    title: "用户的目的地",
-    start: "2027-06-01",
-    end: "2027-06-05",
-    summary: "…",
-    budget: { currency: "JPY", party: "两人", cnyRate: 0.05, rateDate: "2026-10-01", extras: [], origins: [] },
-    days: [ /* … with bookingUrl, lat, lng, photo, reservation … */ ]
-  }
-];
+## Sync template from upstream
+
+```bash
+bash scripts/sync-template.sh
 ```

@@ -1,121 +1,113 @@
 # static-travel-guide
 
-装上这个 Skill 之后：**你只要说出行程和偏好**，AI 会自动生成 **和「行程库」同款的前端网页**（手机能开），并给你打开链接。
+装上 Skill → **说出行程和偏好** → Agent **自动生成同款前端网页** 并把 **链接** 发给你（手机也能开）。
 
-你不需要自己复制文件夹，也不需要会改 `data.js`——那些由 Agent 在后台完成。
+你不用自己复制文件夹，也不用改 `data.js`。
 
 | | |
 |---|---|
 | 仓库 | https://github.com/aladdin0306/static-travel-guide-skill |
 | 作者参考站 | https://aladdin0306.github.io/travel-guides/ |
-| 在线 Demo（同款网页 + 澳洲样例） | https://aladdin0306.github.io/static-travel-guide-skill/demo/ |
+| Demo（同款 UI + 澳洲样例） | https://aladdin0306.github.io/static-travel-guide-skill/demo/ |
+
+**声明：** 票价、汇率、班期多为估算，出行前请再核对官网。
 
 ---
 
-## 用户怎么用（推荐流程）
+## 用户怎么用
 
 ### 1. 安装一次
-
-**Cursor：**
 
 ```text
 /add-plugin https://github.com/aladdin0306/static-travel-guide-skill
 ```
 
-或其他方式：
+或：
 
 ```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent cursor --scope user
 ```
 
-（也可用 Claude Code 等：把 `--agent` 换成对应值。不必只用 Cursor。）
+也可用其他支持 Skill 的 Agent（改 `--agent`）。不必只用 Cursor。
 
-### 2. 直接说你的旅行
+### 2. 描述行程（可一次说清偏好）
 
 例如：
 
-> 帮我做一趟 2027 年 5 月北海道 5 天网页，两人，上海出发，节奏轻松，要能跳转订票、地图打点，手机能打开。
+> 2027 年 5 月北海道 5 天，两人，上海出发，节奏轻松，预算别太猛，不要太多购物店，要能订票跳转和地图打点，手机能打开。
 
-### 3. 等 Agent 自动完成并给你网页
+Agent 缺信息时会问：日期、人数、出发地、节奏（轻松/赶）、预算上限、忌口/亲子/徒步等。
 
-Agent 应自动：
+### 3. 拿到网页链接
 
-1. 复制网页模板  
-2. 把你的行程写进数据文件  
-3. 尽量配上图片、预约链接、地图坐标  
-4. 启动本地网页服务  
-5. **把链接发给你**（电脑 `http://127.0.0.1:端口/`；手机用同一 Wi‑Fi 下电脑的 IP）
+Agent 应自动：拷模板 → 写入行程 → 尽量配图（维基共享资源）→ 起服务 → **给你 URL**。
 
-你打开链接就是成品页。若要挂到自己的 GitHub Pages，再说一声即可。
+- 电脑：`http://127.0.0.1:端口/`  
+- 手机：同一 Wi‑Fi 下电脑的局域网 IP  
 
----
-
-## 网页里有什么
-
-与 https://aladdin0306.github.io/travel-guides/ 同类：
-
-- 按天行程、总览与预算  
-- 景点图  
-- 订票 / 官网跳转（必须预约、建议预约）  
-- 地图打点；手机可逐站开谷歌地图  
-- 导入 / 导出 JSON  
-
-澳洲 Demo 只是样例；你说去哪，就生成哪。
+若只要文件夹路径、没有链接，那是 Agent 没按 Skill 做完——提醒它「把预览链接发我」。
 
 ---
 
-## 自己先看 Demo（可选）
+## 网页能力
+
+与行程库对齐：按天行程、图片、订票/官网、地图打点（手机逐站谷歌）、预算、导入导出。
+
+澳洲 Demo 只是样例；你说去哪就生成哪。
+
+本地看 Demo：
 
 ```bash
 git clone https://github.com/aladdin0306/static-travel-guide-skill.git
 cd static-travel-guide-skill/demo
 python3 -m http.server 8767 --bind 0.0.0.0
-# http://127.0.0.1:8767/
 ```
-
-或：https://aladdin0306.github.io/static-travel-guide-skill/demo/
 
 ---
 
-## 给 Agent 的约定（开发者）
+## Agent / 维护者
 
-用户侧话术：**不要**说「请复制模板改 data.js」。
+细则：[`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)  
+字段：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
 
-Agent 侧必须执行（详见 [`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)）：
+| 脚本 | 作用 |
+|------|------|
+| `scripts/new-site.sh OUT` | 复制 `template/` → 新站点 |
+| `scripts/serve.sh OUT [port]` | 起服务并打印电脑/手机 URL（**必须把链接交给用户**） |
+| `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 从 Commons 下图、压缩、打印 `PHOTOS` 行 |
+| `scripts/sync-template.sh [path]` | 从正式 [travel-guides](https://github.com/aladdin0306/travel-guides) 同步 `index.html` / `app.js` / `styles.css` |
+
+模板基准：上游 `travel-guides`（见 `template/SYNC.txt`）。同步示例：
 
 ```bash
-bash scripts/new-site.sh /path/to/用户的站点目录
-# 写入该目录的 data.js（及 photos/）
-cd /path/to/用户的站点目录 && python3 -m http.server 8766 --bind 0.0.0.0
-# 打开 URL 交给用户
+TRAVEL_GUIDES_REF=main bash scripts/sync-template.sh
+# 或传入本地路径
+bash scripts/sync-template.sh ../travel-guides
 ```
 
-字段规范：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
+发布：保持 Demo Pages 可用；可选 `gh skill publish --tag v1.x.0`；可选 [Cursor Marketplace](https://cursor.com/marketplace/publish)。
 
-### 仓库结构
+### 验收清单（Agent 交活前）
+
+1. 预约链接能打开  
+2. 地图有点  
+3. 手机宽度不乱  
+4. 多出发地时切换预算会变  
+5. 导出 JSON 能再导入  
+
+无图时写「暂无图」并省略 `photo`，禁止破图。
+
+### 结构
 
 ```text
-skills/static-travel-guide/   Skill 说明
-template/                     网页模板（生成时复制）
-demo/                         同款模板 + 澳洲样例
-scripts/new-site.sh           一键复制模板
+skills/static-travel-guide/  Skill
+template/                    生成时复制的网页壳
+demo/                        同款 + 澳洲样例
+scripts/                     new-site / serve / photos / sync
 ```
-
----
-
-## 常见问题
-
-**我要自己改代码吗？**  
-不用。说话描述行程即可。
-
-**必须用 Cursor 吗？**  
-不必，支持 Agent Skills 的客户端即可。
-
-**和作者网页是同一个网址吗？**  
-不是。你得到的是自己的一份网页（本地或你的 Pages）。
 
 ---
 
 ## License
 
-MIT（见 [LICENSE](LICENSE)）。`photos/` 中第三方图片按原许可署名，不在 MIT 内。
+MIT（[LICENSE](LICENSE)）。`photos/` 第三方图按原许可署名。
