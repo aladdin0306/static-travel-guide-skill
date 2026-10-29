@@ -42,17 +42,28 @@ Clone skill repo if scripts/template missing:
 
 `git clone https://github.com/aladdin0306/static-travel-guide-skill.git`
 
-### Photos (required practice)
+### Photos (required practice — with fallbacks)
 
-1. Prefer **Wikimedia Commons** for public places.  
-2. Download + compress into `OUTPUT_SITE/photos/{id}.jpg`:
+Prefer this helper (search → retries on 503 → alternate Commons hits → solid placeholder JPG):
+
+```bash
+bash scripts/fetch-place-photo.sh OUTPUT_SITE PHOTO_ID "Fushimi Inari Kyoto"
+# optional 4th arg: exact Commons file name if you already know it
+```
+
+Exact-file entry still works and also falls back to search:
 
 ```bash
 bash scripts/fetch-commons-photo.sh OUTPUT_SITE PHOTO_ID "Exact_File_On_Commons.jpg"
 ```
 
-3. Add the printed line into `PHOTOS` in `data.js`; set stop `photo: photo("PHOTO_ID")`.  
-4. If no suitable image: **omit** `photo` on that stop; optionally note `暂无图` in `note`. **Never** leave `photo: photo("…")` without a file (broken image).
+Then paste the printed `PHOTOS` line into `data.js` and set `photo: photo("PHOTO_ID")` on the stop.
+
+Rules:
+
+1. Run the script for **major sights** (temples, viewpoints, hotels optional).  
+2. On success (Commons or placeholder), **always** wire `photo:` — UI should show an image.  
+3. Only if the script exits non‑zero: omit `photo` and note `暂无图`. Never reference a missing file.
 
 ### Serve (required)
 

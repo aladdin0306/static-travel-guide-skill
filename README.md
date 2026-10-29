@@ -74,7 +74,8 @@ python3 -m http.server 8767 --bind 0.0.0.0
 |------|------|
 | `scripts/new-site.sh OUT` | 复制 `template/` → 新站点 |
 | `scripts/serve.sh OUT [port]` | 起服务并打印电脑/手机 URL（**必须把链接交给用户**） |
-| `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 从 Commons 下图、压缩、打印 `PHOTOS` 行 |
+| `scripts/fetch-place-photo.sh OUT ID "景点名"` | **推荐**：Commons 搜索 + 503 重试 + 多候选 + 占位图兜底 |
+| `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 按精确文件名下载（失败会按文件名再搜索） |
 | `scripts/sync-template.sh [path]` | 从正式 [travel-guides](https://github.com/aladdin0306/travel-guides) 同步 `index.html` / `app.js` / `styles.css` |
 
 模板基准：上游 `travel-guides`（见 `template/SYNC.txt`）。同步示例：
