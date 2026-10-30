@@ -392,17 +392,26 @@ function renderBudget(current) {
     <div class="budget-bar" aria-hidden="true">
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
-    <ul class="budget-legend">
-      ${cats.map((cat) => `<li class="cat-${cat}"><i></i><span class="bl-name">${COST_CAT[cat]}</span><b class="bl-amt">${money(plan.cats[cat])}</b></li>`).join("")}
+    <ul class="budget-legend" aria-label="分类明细">
+      ${cats.map((cat) => {
+        const amt = plan.cats[cat];
+        const rmb = cny(amt);
+        return `<li class="cat-${cat}"><i aria-hidden="true"></i><span class="bl-name">${COST_CAT[cat]}</span><span class="bl-local">${local(amt)}</span><span class="bl-cny">${rmb || "—"}</span></li>`;
+      }).join("")}
     </ul>
     ${budgetOpen ? `<div class="budget-detail">
-      <h3 class="section-title">按天（住宿算在入住那天），点一天跳过去</h3>
+      <h3 class="section-title">按天花费</h3>
+      <p class="budget-hint">住宿算在入住当天。点下面某一天，可跳到当天行程。</p>
       <ol class="budget-days">
-        ${plan.days.map(({ day, sum }) => `<li><button type="button" data-day="${esc(day.id)}">
-          <span class="bd-date">${esc(monthDay(day.date) || "未定")} ${esc(day.city || "")}</span>
-          <span class="bd-bar"><i style="width:${(sum / top * 100).toFixed(1)}%"></i></span>
-          <b>${money(sum)}</b>
-        </button></li>`).join("")}
+        ${plan.days.map(({ day, sum }) => {
+          const rmb = cny(sum);
+          return `<li><button type="button" class="budget-day-btn" data-day="${esc(day.id)}">
+          <span class="bd-date">${esc(monthDay(day.date) || "未定")}<small>${esc(day.city || "")}</small></span>
+          <span class="bd-bar" aria-hidden="true"><i style="width:${(sum / top * 100).toFixed(1)}%"></i></span>
+          <span class="bd-amt"><b>${local(sum)}</b>${rmb ? `<small>${rmb}</small>` : ""}</span>
+          <span class="bd-go">看当天${icon("chevron")}</span>
+        </button></li>`;
+        }).join("")}
       </ol>
       ${plan.extras.length ? `<h3 class="section-title">不跟某一站走的开销</h3>
       <ul class="budget-rows">

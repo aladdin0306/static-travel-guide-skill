@@ -1193,10 +1193,10 @@ main {
 
 .budget-legend li {
   display: grid;
-  grid-template-columns: 10px minmax(0, 1fr) auto;
+  grid-template-columns: 8px minmax(5.5em, 1fr) 7.5em 4.5em;
   align-items: center;
-  gap: 10px;
-  padding: 8px 0;
+  column-gap: 12px;
+  padding: 9px 0;
   border-top: 1px solid var(--line);
 }
 
@@ -1210,11 +1210,126 @@ main {
 }
 
 .bl-name { color: var(--muted); font-weight: 500; }
-.bl-amt {
+.bl-local {
   color: var(--ink);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: right;
+  white-space: nowrap;
+}
+.bl-cny {
+  color: var(--muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.budget-hint {
+  margin: -4px 0 10px;
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.budget-day-btn {
+  display: grid !important;
+  grid-template-columns: 5.5em minmax(0, 1fr) 6.5em auto !important;
+  align-items: center !important;
+  gap: 12px !important;
+  width: 100%;
+  padding: 10px 12px !important;
+  border: 1px solid var(--line) !important;
+  border-radius: 10px !important;
+  background: #fff !important;
+  margin-bottom: 8px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.budget-day-btn:hover {
+  border-color: var(--sea) !important;
+  background: #f7fbfa !important;
+}
+
+.budget-days { list-style: none; margin: 0; padding: 0; }
+.budget-days .bd-date {
+  display: grid;
+  gap: 2px;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+}
+.budget-days .bd-date small {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+.budget-days .bd-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: #e8efed;
+  overflow: hidden;
+}
+.budget-days .bd-bar i {
+  display: block;
+  height: 100%;
+  background: var(--sea);
+  border-radius: inherit;
+}
+.budget-days .bd-amt {
+  display: grid;
+  justify-items: end;
+  gap: 1px;
+  font-variant-numeric: tabular-nums;
+}
+.budget-days .bd-amt b { font-size: 13px; }
+.budget-days .bd-amt small { color: var(--muted); font-size: 12px; font-weight: 600; }
+.budget-days .bd-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--sea);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.budget-days .bd-go .icon { width: 14px; height: 14px; transform: rotate(-90deg); }
+
+.origin-seg {
+  flex: 1;
+  max-width: 280px;
+}
+.origin-seg .origin-btn {
+  flex: 1;
+  justify-content: center;
+}
+
+.plan-row {
+  grid-template-columns: 28px 4.5em minmax(0, 1fr) 9.5em !important;
+  align-items: center;
+  column-gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.plan-row .plan-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.plan-row .price,
+.plan-row .flag {
+  max-width: 100%;
+}
+
+.plan-row .price {
+  justify-content: flex-end;
 }
 
 /* Day tabs: look like clickable chips */
