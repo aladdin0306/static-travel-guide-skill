@@ -1069,71 +1069,190 @@ main {
   background: var(--card);
   border-color: var(--line);
   overflow: visible;
+  display: grid;
+  gap: 14px;
 }
 
 .budget::before { display: none; }
 
-.budget-head .banner-icon {
-  border-radius: 6px;
+.budget-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.budget-label {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.budget-amount {
+  margin: 0;
+  font-family: "Source Serif 4", "Songti SC", Georgia, serif;
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+
+.budget-amount .rmb {
+  margin-left: 10px;
+  font-family: "Instrument Sans", "PingFang SC", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  letter-spacing: 0;
+}
+
+.budget-meta {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.budget-toggle {
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.origin-pick {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding-top: 2px;
+  border-top: 1px solid var(--line);
+}
+
+.origin-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.origin-seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 8px;
+  background: #e8efed;
+  border: 1px solid var(--line);
 }
 
 .origin-btn {
   border-radius: 6px;
   box-shadow: none;
   height: 30px;
+  border: 0;
+  background: transparent;
+  padding: 0 14px;
+  font-weight: 600;
+}
+
+.origin-btn:hover {
+  border: 0;
+  color: var(--sea-dark);
 }
 
 .origin-btn.active {
-  background: var(--sea-soft);
-  border-color: var(--sea);
+  background: #fff;
+  border: 0;
   color: var(--sea-dark);
+  box-shadow: 0 1px 2px rgba(16, 36, 31, 0.08);
+}
+
+.origin-brief {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .budget-bar {
   height: 6px;
-  margin: 14px 0 10px;
+  margin: 0;
+  gap: 0;
   background: #e8efed;
 }
 
 .budget-legend {
-  gap: 8px 18px;
-  font-size: 12px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0;
+  font-size: 13px;
 }
 
-/* Day tabs: one quiet row, aligned baseline */
+.budget-legend li {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-top: 1px solid var(--line);
+}
+
+.budget-legend li:first-child { border-top: 0; padding-top: 0; }
+
+.budget-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--c);
+}
+
+.bl-name { color: var(--muted); font-weight: 500; }
+.bl-amt {
+  color: var(--ink);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Day tabs: look like clickable chips */
 .day-tabs {
   display: flex;
-  gap: 0;
+  gap: 8px;
   margin: 4px 0 0;
   padding: 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 0;
   overflow-x: auto;
 }
 
 .day-tab {
-  min-width: 0;
-  padding: 10px 14px 12px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: transparent;
+  min-width: 72px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
   box-shadow: none;
   align-items: flex-start;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
 
 .day-tab:hover {
-  border-color: transparent;
-  border-bottom-color: var(--edge);
+  border-color: var(--sea);
+  background: #f7fbfa;
 }
 
 .dt-top {
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.02em;
+  color: var(--muted);
 }
 
 .dt-num {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   margin: 2px 0;
@@ -1147,9 +1266,9 @@ main {
 }
 
 .day-tab.active {
-  background: transparent;
+  background: var(--sea-soft);
   color: var(--sea-dark);
-  border-bottom-color: var(--sea);
+  border-color: var(--sea);
   box-shadow: none;
 }
 
@@ -1159,14 +1278,15 @@ main {
 }
 
 .day-tab.all {
-  border-style: none;
-  border-bottom: 2px solid transparent;
+  border-style: dashed;
   margin-left: auto;
 }
 
 .day-tab.all.active {
-  border-bottom-color: var(--sea);
+  border-style: solid;
 }
+
+.plan-thumb { display: none !important; }
 
 /* Day sheet: timeline + content column */
 .day {

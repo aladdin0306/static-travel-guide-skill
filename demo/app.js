@@ -374,25 +374,27 @@ function renderBudget(current) {
   const cats = Object.keys(COST_CAT).filter((cat) => plan.cats[cat] > 0);
   const top = Math.max(...plan.days.map((row) => row.sum), 1);
   return `<section class="budget">
-    <button type="button" class="budget-head" id="toggle-budget" aria-expanded="${budgetOpen}">
-      <span class="banner-icon">${icon("wallet")}</span>
-      <span class="banner-text">
-        <b>预算：每人${unit.lead}${local(plan.total)}${rate ? `，人民币约 ${cny(plan.total)}` : ""}</b>
-        <small>${esc(info.party || "两人同住一间")}${origin ? `，${esc(origin.label)}出发，含国际机票` : ""}${left.length ? `，不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</small>
-      </span>
-      <span class="banner-cta">${budgetOpen ? "收起" : "看明细"}<span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span></span>
-    </button>
+    <div class="budget-top">
+      <div class="budget-sum">
+        <p class="budget-label">预算 · 每人</p>
+        <p class="budget-amount">${unit.lead}${local(plan.total)}${rate ? `<span class="rmb">约 ${cny(plan.total)}</span>` : ""}</p>
+        <p class="budget-meta">${esc(info.party || "两人同住一间")}${origin ? ` · ${esc(origin.label)}出发 · 含国际机票` : ""}${left.length ? ` · 不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</p>
+      </div>
+      <button type="button" class="btn btn-sm budget-toggle" id="toggle-budget" aria-expanded="${budgetOpen}">${budgetOpen ? "收起明细" : "看明细"}<span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span></button>
+    </div>
     ${origins.length > 1 ? `<div class="origin-pick" role="group" aria-label="从哪里出发">
-      <span>从哪里出发</span>
-      ${origins.map((item) => `<button type="button" class="origin-btn${origin && item.id === origin.id ? " active" : ""}" data-origin="${esc(item.id)}" aria-pressed="${origin && item.id === origin.id}">${icon("plane")}${esc(item.label)}</button>`).join("")}
+      <span class="origin-label">出发地</span>
+      <div class="origin-seg">
+        ${origins.map((item) => `<button type="button" class="origin-btn${origin && item.id === origin.id ? " active" : ""}" data-origin="${esc(item.id)}" aria-pressed="${origin && item.id === origin.id}">${esc(item.label)}</button>`).join("")}
+      </div>
     </div>` : ""}
     ${origin && origin.brief ? `<p class="origin-brief">${esc(origin.brief)}</p>` : ""}
     <div class="budget-bar" aria-hidden="true">
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
-    <div class="budget-legend">
-      ${cats.map((cat) => `<span class="cat-${cat}"><i></i>${COST_CAT[cat]}<b>${money(plan.cats[cat])}</b></span>`).join("")}
-    </div>
+    <ul class="budget-legend">
+      ${cats.map((cat) => `<li class="cat-${cat}"><i></i><span class="bl-name">${COST_CAT[cat]}</span><b class="bl-amt">${money(plan.cats[cat])}</b></li>`).join("")}
+    </ul>
     ${budgetOpen ? `<div class="budget-detail">
       <h3 class="section-title">按天（住宿算在入住那天），点一天跳过去</h3>
       <ol class="budget-days">
@@ -463,11 +465,10 @@ function isOptional(item) {
 }
 
 function renderGlance(item, index) {
-  const pic = safePhoto(item);
   return `<li class="plan-row kind-${esc(item.kind)}${isOptional(item) ? " optional" : ""}">
     <span class="plan-num">${index + 1}</span>
     <time>${esc(item.time || "—")}</time>
-    <a href="#item-${esc(item.id)}">${pic ? `<img class="plan-thumb" src="${esc(pic.src)}" alt="" loading="lazy" />` : ""}<span>${esc(item.name)}</span></a>
+    <a href="#item-${esc(item.id)}"><span>${esc(item.name)}</span></a>
     <span class="plan-end">${priceChip(item)}${item.reservation !== "none" ? `<span class="flag ${esc(item.reservation)}">${FLAG[item.reservation]}</span>` : ""}</span>
   </li>`;
 }
