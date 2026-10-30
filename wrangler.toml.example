@@ -1,0 +1,16 @@
+name = "static-travel-guide"
+main = "worker/src/index.js"
+compatibility_date = "2026-10-30"
+
+[assets]
+directory = "./template"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "static-travel-guide"
+database_id = "把 wrangler d1 create 返回的 database_id 填在这里"
+
+# 部署前运行：
+#   npx wrangler secret put RATE_LIMIT_SALT
+# 输入一串随机字符；它只用于匿名发布频率限制，不会公开。

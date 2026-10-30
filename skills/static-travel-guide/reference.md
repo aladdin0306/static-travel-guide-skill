@@ -75,6 +75,26 @@ Respect third-party licenses; do not claim MIT on Wikimedia assets.
 - First visit: clone seed trips; later: prefer saved state
 - Export downloads JSON; import replaces or merges (document which)
 
+## Shared storage
+
+The optional Cloudflare service stores one portable payload per shared page:
+
+```json
+{
+  "trip": { "title": "Kyoto", "days": [] },
+  "booked": {}
+}
+```
+
+- Public route: `/t/:id`
+- Edit route: `/t/:id/edit#token=...`
+- The URL fragment is never sent in the page request.
+- The frontend sends it as a Bearer token for writes.
+- D1 stores only the SHA-256 token hash.
+- Writes include `expectedRevision`; a stale editor receives HTTP 409.
+- Keep the last 20 snapshots for restore.
+- Convert local `photos/*.jpg` references to public Commons URLs before publishing.
+
 ## GitHub Pages checklist
 
 - [ ] Site works via `python3 -m http.server` (or Pages URL)

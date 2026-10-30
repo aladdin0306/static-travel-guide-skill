@@ -13,8 +13,9 @@ Agent:
 5. Write `data.js` with bookings + coords.
 6. `bash scripts/fetch-place-photo.sh …` for major sights (retries + placeholder).
 7. `bash scripts/serve.sh ~/Sites/kyoto-2027 8766`
-8. Reply with `http://127.0.0.1:8766/` (+ phone tip).
-9. Tick acceptance checklist.
+8. If configured: `bash scripts/publish-site.sh ~/Sites/kyoto-2027 "$TRAVEL_GUIDE_API"`.
+9. Reply with local preview plus clearly labelled public/edit links.
+10. Tick acceptance checklist.
 
 ## Multiple departure cities
 
@@ -25,6 +26,9 @@ Agent keeps both in `budget.origins[]`. The generated budget block shows an inte
 ## Wrong — don’t do this
 
 「站点已生成，在 `/Users/…/kyoto-2027`，请自行 `python3 -m http.server` 并改 data.js。」
+
+Also wrong: publish the edit URL in a public issue or README. The edit URL is a
+capability credential; only the public URL is intended for broad sharing.
 
 ## Photos
 

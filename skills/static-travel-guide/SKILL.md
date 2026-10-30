@@ -66,9 +66,9 @@ Detailed question wording: [intake.md](intake.md).
 - [ ] 3. Write OUTPUT_SITE/data.js (full SEED_TRIPS)
 - [ ] 4. Photos: Commons → photos/ + PHOTOS credits (or 暂无图, no broken imgs)
 - [ ] 5. bash scripts/serve.sh /abs/OUTPUT_SITE [port]
-- [ ] 6. Give user Desktop URL + phone LAN tip; open browser if possible
-- [ ] 7. Run acceptance checklist
-- [ ] 8. GitHub Pages only if user asks
+- [ ] 6. If sharing is requested/configured: bash scripts/publish-site.sh /abs/OUTPUT_SITE "$TRAVEL_GUIDE_API"
+- [ ] 7. Give user Desktop URL; when published, give public URL + private edit URL
+- [ ] 8. Run acceptance checklist
 ```
 
 Clone skill repo if scripts/template missing:
@@ -111,6 +111,26 @@ Reply with:
 
 **Do not** finish with only “站点在 /path/to/folder”.
 
+### Share (public view + secret edit link)
+
+When `TRAVEL_GUIDE_API` is configured, publish after generating and checking the
+site:
+
+```bash
+bash scripts/publish-site.sh /abs/OUTPUT_SITE "$TRAVEL_GUIDE_API"
+```
+
+Return both links with clear labels:
+
+- `Public`: anyone can view; safe to share
+- `Edit`: possession grants edit access; keep private
+
+The publisher converts local Wikimedia images to public Commons URLs so shared
+pages do not contain broken local photo paths. Never paste the edit URL into a
+public issue, repository, or document. If the service is not configured, still
+return the local preview and say that Cloudflare deployment is the only missing
+step; do not pretend the page was published.
+
 ### Acceptance checklist (before saying done)
 
 - [ ] 预约 / 订票链接可打开（至少一个 required 或 recommended）  
@@ -118,6 +138,7 @@ Reply with:
 - [ ] 窄屏（~390px）布局不乱  
 - [ ] 若有多个 `origins`，切换出发地预算会变  
 - [ ] 导出 JSON 后再导入不报错  
+- [ ] 共享后，公开链接不可编辑，编辑链接改动会自动保存
 
 ### Disclaimer
 

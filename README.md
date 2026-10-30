@@ -100,18 +100,26 @@ Agent 会先复述这些条件，再制定计划并生成网页。
 
 ### 3. 拿到网页链接
 
-Agent 应自动：拷模板 → 写入行程 → 尽量配图（维基共享资源）→ 起服务 → **给你 URL**。
+Agent 应自动：拷模板 → 写入行程 → 尽量配图（维基共享资源）→ 起服务 →
+**给你 URL**。配置共享服务后，还会直接返回两条线上链接：
+
+- **公开查看**：任何人都能打开，不能修改
+- **持链接编辑**：拿到链接的人可以修改，改动自动保存
 
 - 电脑：`http://127.0.0.1:端口/`  
 - 手机：同一 Wi‑Fi 下电脑的局域网 IP  
 
 若只要文件夹路径、没有链接，那是 Agent 没按 Skill 做完——提醒它「把预览链接发我」。
 
+编辑链接相当于密码，不要公开贴到群公告、Issue 或公开仓库。公开查看链接可以正常分享。
+
 ---
 
 ## 网页能力
 
 与行程库对齐：按天行程、图片、订票/官网、地图打点（手机逐站谷歌）、预算、导入导出。
+共享版使用同一套前端页面，不是另一套 Demo；支持公开查看、编辑链接自动保存、
+冲突保护和最近 20 个历史版本。
 
 澳洲 Demo 只是样例；你说去哪就生成哪。
 
@@ -135,6 +143,7 @@ python3 -m http.server 8767 --bind 0.0.0.0
 |------|------|
 | `scripts/new-site.sh OUT` | 复制 `template/` → 新站点 |
 | `scripts/serve.sh OUT [port]` | 起服务并打印电脑/手机 URL（**必须把链接交给用户**） |
+| `scripts/publish-site.sh OUT [API]` | 发布到共享服务并返回公开链接和私密编辑链接 |
 | `scripts/fetch-place-photo.sh OUT ID "景点名"` | **推荐**：Commons 搜索 + 503 重试 + 多候选 + 占位图兜底 |
 | `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 按精确文件名下载（失败会按文件名再搜索） |
 | `scripts/sync-template.sh [path]` | 从正式 [travel-guides](https://github.com/aladdin0306/travel-guides) 同步 `index.html` / `app.js` / `styles.css` |
@@ -148,6 +157,9 @@ bash scripts/sync-template.sh ../travel-guides
 ```
 
 发布：保持 Demo Pages 可用；可选 `gh skill publish --tag v1.x.0`；可选 [Cursor Marketplace](https://cursor.com/marketplace/publish)。
+
+共享服务部署说明：[`worker/README.md`](worker/README.md)。Cloudflare Pages/Workers +
+D1 的免费额度足够个人和小范围使用；不用先购买服务器。
 
 ### 验收清单（Agent 交活前）
 
@@ -166,6 +178,7 @@ skills/static-travel-guide/  Skill
 template/                    生成时复制的网页壳
 demo/                        同款 + 澳洲样例
 scripts/                     new-site / serve / photos / sync
+worker/                      Cloudflare API、D1 表结构和共享路由
 ```
 
 ---

@@ -1,0 +1,12 @@
+name = "static-travel-guide-dev"
+main = "worker/src/index.js"
+compatibility_date = "2026-10-30"
+
+[assets]
+directory = "./template"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "static-travel-guide"
+database_id = "00000000-0000-0000-0000-000000000000"

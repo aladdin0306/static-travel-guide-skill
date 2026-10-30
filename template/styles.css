@@ -1593,3 +1593,85 @@ main {
   .plan-row .plan-end { grid-column: 3; justify-self: start; }
   .budget-days button { grid-template-columns: 92px minmax(0, 1fr) 76px; gap: 8px; }
 }
+
+/* Shared pages */
+
+html.shared-loading body { visibility: hidden; }
+
+.share-status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: #eef3f2;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.share-status.saved,
+.share-status.public { background: var(--ok-soft); color: var(--ok); }
+.share-status.working { background: var(--sea-soft); color: var(--sea-dark); }
+.share-status.error { background: var(--coral-soft); color: var(--coral-dark); }
+
+.shared-readonly .edit-only { display: none !important; }
+
+.shared-route .rail-note::after {
+  content: " 公开链接只能查看；只有持编辑链接的人可以修改。";
+}
+
+.share-dialog { width: min(560px, calc(100vw - 24px)); }
+.share-dialog form { gap: 16px; }
+.dialog-kicker {
+  margin: 0 0 4px;
+  color: var(--sea);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.share-explain {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+.copy-field {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+.copy-field input {
+  min-width: 0;
+  color: var(--ink);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.share-warning {
+  margin: 0;
+  padding: 10px 12px;
+  border-left: 3px solid var(--sun);
+  background: var(--sun-soft);
+  color: var(--sun-ink);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.share-error {
+  padding: 32px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+.share-error h2 { margin: 0 0 8px; }
+.share-error p { margin: 0; color: var(--muted); }
+
+@media (max-width: 640px) {
+  .top-actions { gap: 6px; }
+  .share-status { order: 3; width: 100%; justify-content: center; }
+  #share-btn { padding: 0 11px; }
+  .copy-field { grid-template-columns: minmax(0, 1fr); }
+  .copy-field .btn { width: 100%; }
+}
