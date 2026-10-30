@@ -18,17 +18,45 @@
 
 ### 1. 安装一次
 
+#### Cursor 插件
+
 ```text
 /add-plugin https://github.com/aladdin0306/static-travel-guide-skill
 ```
 
-或：
+#### 主流 Agent（`gh skill`）
+
+下面任选一条；`--scope user` 表示安装到用户级、所有项目可用。
 
 ```bash
+# Cursor
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent cursor --scope user
+
+# Claude Code
+gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent claude-code --scope user
+
+# OpenAI Codex
+gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent codex --scope user
+
+# GitHub Copilot
+gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent github-copilot --scope user
+
+# Gemini CLI
+gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent gemini-cli --scope user
+
+# OpenCode
+gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent opencode --scope user
 ```
 
-也可用其他支持 Skill 的 Agent（改 `--agent`）。不必只用 Cursor。
+只想在当前项目使用时，把 `--scope user` 改成 `--scope project`。
+
+`gh skill` 还支持更多 Agent，可运行：
+
+```bash
+gh skill install --help
+```
+
+本 Skill 遵循 Agent Skills 目录规范，不依赖 Cursor；只有 `/add-plugin` 这一种安装方式是 Cursor 专用。
 
 ### 2. 描述行程；Agent 会先和你做规划前问答
 
