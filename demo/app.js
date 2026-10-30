@@ -392,13 +392,23 @@ function renderBudget(current) {
     <div class="budget-bar" aria-hidden="true">
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
-    <ul class="budget-legend" aria-label="分类明细">
+    <div class="budget-ledger" role="table" aria-label="分类明细">
+      <div class="ledger-head" role="row">
+        <span role="columnheader">项目</span>
+        <span role="columnheader">当地货币</span>
+        <span role="columnheader">人民币</span>
+      </div>
       ${cats.map((cat) => {
         const amt = plan.cats[cat];
         const rmb = cny(amt);
-        return `<li class="cat-${cat}"><i aria-hidden="true"></i><span class="bl-name">${COST_CAT[cat]}</span><span class="bl-local">${local(amt)}</span><span class="bl-cny">${rmb || "—"}</span></li>`;
+        const pct = plan.total ? ((amt / plan.total) * 100).toFixed(0) : "0";
+        return `<div class="ledger-row cat-${cat}" role="row">
+          <span class="ledger-name" role="cell"><i aria-hidden="true"></i>${COST_CAT[cat]}<em>${pct}%</em></span>
+          <span class="ledger-local" role="cell">${local(amt)}</span>
+          <span class="ledger-cny" role="cell">${rmb || "—"}</span>
+        </div>`;
       }).join("")}
-    </ul>
+    </div>
     ${budgetOpen ? `<div class="budget-detail">
       <h3 class="section-title">按天花费</h3>
       <p class="budget-hint">住宿算在入住当天。点下面某一天，可跳到当天行程。</p>

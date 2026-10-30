@@ -472,10 +472,7 @@ main { overflow: auto; min-height: 0; padding-bottom: 8px; }
 }
 .budget-bar span { background: var(--c); }
 
-.budget-legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13px; color: var(--muted); }
-.budget-legend span { display: inline-flex; align-items: center; gap: 6px; }
-.budget-legend i { width: 9px; height: 9px; border-radius: 3px; background: var(--c); }
-.budget-legend b { color: var(--ink); font-variant-numeric: tabular-nums; }
+/* legacy flex legend removed — see .budget-ledger below */
 
 .budget-detail .section-title { margin: 18px 0 6px; }
 .budget-days, .budget-rows { list-style: none; margin: 0; padding: 0; }
@@ -1182,46 +1179,89 @@ main {
   background: #e8efed;
 }
 
-.budget-legend {
-  list-style: none;
+/* Budget ledger: invoice-style aligned columns */
+.budget-ledger {
   margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 0;
-  font-size: 13px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fbfcfc;
 }
 
-.budget-legend li {
+.ledger-head,
+.ledger-row {
   display: grid;
-  grid-template-columns: 8px minmax(5.5em, 1fr) 7.5em 4.5em;
+  grid-template-columns: minmax(0, 1.4fr) minmax(6.5em, 1fr) minmax(4.5em, 0.7fr);
+  gap: 12px;
   align-items: center;
-  column-gap: 12px;
-  padding: 9px 0;
-  border-top: 1px solid var(--line);
+  padding: 10px 14px;
 }
 
-.budget-legend li:first-child { border-top: 0; padding-top: 0; }
+.ledger-head {
+  background: #f3f6f5;
+  border-bottom: 1px solid var(--line);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
 
-.budget-legend i {
+.ledger-head span:nth-child(2),
+.ledger-head span:nth-child(3),
+.ledger-local,
+.ledger-cny {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-row {
+  background: #fff;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  min-height: 44px;
+}
+
+.ledger-row:first-of-type,
+.ledger-head + .ledger-row {
+  border-top: 0;
+}
+
+.ledger-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.ledger-name i {
   width: 8px;
   height: 8px;
   border-radius: 2px;
   background: var(--c);
+  flex-shrink: 0;
 }
 
-.bl-name { color: var(--muted); font-weight: 500; }
-.bl-local {
+.ledger-name em {
+  margin-left: 2px;
+  color: var(--muted);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ledger-local {
   color: var(--ink);
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
   white-space: nowrap;
 }
-.bl-cny {
+
+.ledger-cny {
   color: var(--muted);
   font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  text-align: right;
   white-space: nowrap;
 }
 
