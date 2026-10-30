@@ -28,23 +28,39 @@
 
 下面任选一条；`--scope user` 表示安装到用户级、所有项目可用。
 
+**Cursor**
+
 ```bash
-# Cursor
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent cursor --scope user
+```
 
-# Claude Code
+**Claude Code**
+
+```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent claude-code --scope user
+```
 
-# OpenAI Codex
+**OpenAI Codex**
+
+```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent codex --scope user
+```
 
-# GitHub Copilot
+**GitHub Copilot**
+
+```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent github-copilot --scope user
+```
 
-# Gemini CLI
+**Gemini CLI**
+
+```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent gemini-cli --scope user
+```
 
-# OpenCode
+**OpenCode**
+
+```bash
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent opencode --scope user
 ```
 
