@@ -14,16 +14,49 @@ description: >-
 2. **You** build the site — user never copies folders or edits `data.js`.  
 3. You **must** return openable **URLs** (desktop + phone hint). Never end with only a folder path.
 
-## Interview checklist (ask what’s missing)
+## Mandatory intake — ask before planning
 
-- [ ] Destinations / cities and days per city  
-- [ ] Dates (or month + length)  
-- [ ] Party size; shared room?  
-- [ ] Departure city; open-jaw OK?  
-- [ ] Pace: 轻松 / 适中 / 赶景  
-- [ ] Budget ceiling (optional) and local currency + home FX (e.g. CNY)  
-- [ ] Diet / accessibility / kids / hiking preferences  
-- [ ] Known must-books (flights, hotels, popular restaurants)
+Do not start selecting sights or writing `data.js` until these are known:
+
+1. **出发地**：城市 / 机场；可填多个（如“上海或北京”）
+2. **目的地**：国家 / 城市；不确定时可让 Agent 推荐城市组合
+3. **旅行节奏**：
+   - `休闲游`：每天 1–2 个核心地点，留午休 / 咖啡 / 自由时间
+   - `均衡游`：每天 2–3 个核心地点，兼顾效率与体验
+   - `特种兵`：每天 3–5 个地点，早出晚归，接受频繁换乘
+4. **必须去的景点**：自由填写；没有就明确答“没有”
+5. **预算范围**：金额、币种、按人还是总计、是否含国际机票
+6. **日期 / 天数**：具体日期，或月份 + 总天数
+7. **同行人数**：成人 / 儿童、房间安排
+
+Also ask only when relevant: diet, accessibility, shopping, hiking, nightlife, hotel level, open-jaw flights.
+
+### Interaction rule
+
+- Prefer one structured multi-question form when the client supports it; otherwise ask the seven items in one concise chat message.
+- Do not make the user answer fields already stated.
+- After answers, send a short confirmation summary before planning:
+
+```text
+我会按以下条件规划：
+出发：上海
+目的地：京都
+节奏：休闲游
+必去：伏见稻荷、清水寺
+预算：每人 ¥8,000–12,000，含机票
+日期/人数：4月10–14日，2位成人
+```
+
+Then proceed without another approval round unless constraints conflict.
+
+Detailed question wording: [intake.md](intake.md).
+
+### How departure cities map to the webpage
+
+- One departure city → create one `budget.origins[]` entry.
+- Multiple possible cities → create one entry per city and show the interactive departure selector in the budget block.
+- Each origin must have its own flight estimate, route note, and any budget adjustment.
+- If the user says “上海或北京都可以”, keep **both**; do not silently choose one.
 
 ## Agent pipeline (every time)
 

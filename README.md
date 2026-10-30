@@ -30,13 +30,29 @@ gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --age
 
 也可用其他支持 Skill 的 Agent（改 `--agent`）。不必只用 Cursor。
 
-### 2. 描述行程（可一次说清偏好）
+### 2. 描述行程；Agent 会先和你做规划前问答
 
 例如：
 
 > 2027 年 5 月北海道 5 天，两人，上海出发，节奏轻松，预算别太猛，不要太多购物店，要能订票跳转和地图打点，手机能打开。
 
-Agent 缺信息时会问：日期、人数、出发地、节奏（轻松/赶）、预算上限、忌口/亲子/徒步等。
+若信息不完整，Agent 必须先问清楚再排线路：
+
+1. 从哪里出发（可以填多个城市）
+2. 去哪里
+3. `休闲游` / `均衡游` / `特种兵`
+4. 有没有必须去的景点
+5. 预算范围（按人还是总计、是否含机票）
+6. 日期 / 天数
+7. 同行人数 / 房间安排
+
+回答示例：
+
+> 上海或北京出发；去京都；休闲游；伏见稻荷和清水寺必须去；每人 ¥8,000–12,000，含机票；4 月 10–14 日；两位成人同住一间。
+
+Agent 会先复述这些条件，再制定计划并生成网页。
+
+如果有多个出发地，网页预算区会出现可点击切换；切换上海 / 北京后，航班说明和预算都会变化。
 
 ### 3. 拿到网页链接
 
@@ -69,6 +85,7 @@ python3 -m http.server 8767 --bind 0.0.0.0
 
 细则：[`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)  
 字段：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
+规划前问答：[`skills/static-travel-guide/intake.md`](skills/static-travel-guide/intake.md)
 
 | 脚本 | 作用 |
 |------|------|
