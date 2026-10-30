@@ -4,11 +4,11 @@
 
 你不用自己复制文件夹，也不用改 `data.js`。
 
-| | |
-|---|---|
-| 仓库 | https://github.com/aladdin0306/static-travel-guide-skill |
-| 作者参考站 | https://aladdin0306.github.io/travel-guides/ |
-| Demo（同款 UI + 澳洲样例） | https://aladdin0306.github.io/static-travel-guide-skill/demo/ |
+### 快速入口
+
+- **查看 Skill 源码** — [aladdin0306/static-travel-guide-skill](https://github.com/aladdin0306/static-travel-guide-skill)
+- **打开完整参考站** — [行程库](https://aladdin0306.github.io/travel-guides/)
+- **体验在线 Demo** — [澳洲行程样例](https://aladdin0306.github.io/static-travel-guide-skill/demo/)
 
 **声明：** 票价、汇率、班期多为估算，出行前请再核对官网。
 
