@@ -35,7 +35,12 @@ export default {
 
       if (/^\/t\/[A-Za-z0-9_-]+(?:\/edit)?\/?$/.test(url.pathname)) {
         const assetUrl = new URL("/", url);
-        return withPageHeaders(await env.ASSETS.fetch(new Request(assetUrl, request)));
+        const assetRes = await env.ASSETS.fetch(new Request(assetUrl, request));
+        const routeMatch = url.pathname.match(/^\/t\/([A-Za-z0-9_-]+)(?:\/edit)?\/?$/);
+        if (routeMatch && (assetRes.headers.get("content-type") || "").includes("text/html")) {
+          return withPageHeaders(await injectOpenGraph(assetRes, env, routeMatch[1], url));
+        }
+        return withPageHeaders(assetRes);
       }
 
       return withPageHeaders(await env.ASSETS.fetch(request));
@@ -266,6 +271,55 @@ function withPageHeaders(response) {
     headers.set("cache-control", "no-cache");
   }
   return new Response(response.body, { status: response.status, headers });
+}
+
+async function injectOpenGraph(response, env, id, url) {
+  try {
+    const row = await env.DB.prepare("SELECT payload FROM trips WHERE id = ?").bind(id).first();
+    if (!row) return response;
+    const data = JSON.parse(row.payload);
+    const trip = data.trip || {};
+    const daysCount = Array.isArray(trip.days) ? trip.days.length : 0;
+    const cities = [...new Set((trip.days || []).map((d) => d.city).filter(Boolean))].join(" · ");
+    const pageTitle = `${trip.title || "行程"}${daysCount ? ` · ${daysCount}天` : ""} | 行程库`;
+    const desc = (trip.summary || (cities ? `路线：${cities}` : "点击查看详细每日行程、预算与地图打点。")).slice(0, 140);
+    let ogImg = "";
+    for (const d of trip.days || []) {
+      for (const it of d.items || []) {
+        if (it.photo && /^https:\/\//i.test(it.photo.src || "")) {
+          ogImg = it.photo.src;
+          break;
+        }
+      }
+      if (ogImg) break;
+    }
+    const metaTags = [
+      `<meta name="description" content="${escAttr(desc)}" />`,
+      `<meta property="og:type" content="website" />`,
+      `<meta property="og:title" content="${escAttr(pageTitle)}" />`,
+      `<meta property="og:description" content="${escAttr(desc)}" />`,
+      `<meta property="og:url" content="${escAttr(`${url.origin}/t/${id}`)}" />`,
+      ogImg ? `<meta property="og:image" content="${escAttr(ogImg)}" />` : "",
+      `<meta name="twitter:card" content="${ogImg ? "summary_large_image" : "summary"}" />`,
+      `<meta name="twitter:title" content="${escAttr(pageTitle)}" />`,
+      `<meta name="twitter:description" content="${escAttr(desc)}" />`
+    ].filter(Boolean).join("\n  ");
+
+    const html = await response.text();
+    const updated = html.replace(
+      /<title>[^<]*<\/title>/i,
+      `<title>${escAttr(pageTitle)}</title>\n  ${metaTags}`
+    );
+    return new Response(updated, { status: response.status, headers: response.headers });
+  } catch {
+    return response;
+  }
+}
+
+function escAttr(str) {
+  return String(str || "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[c]));
 }
 
 function json(body, status = 200, extraHeaders = {}) {

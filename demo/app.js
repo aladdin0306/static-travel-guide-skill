@@ -24,6 +24,11 @@ const ICONS = {
   chevron: '<path d="m6 9 6 6 6-6"/>',
   plane: '<path d="M17.8 19.2 16 11l3.5-3.5C21 6 21.5 4 21 3c-1-.5-3 0-4.5 1.5L13 8 4.8 6.2c-.5-.1-.9.1-1.1.5l-.3.5c-.2.5-.1 1 .3 1.3L9 12l-2 3H4l-1 1 3 2 2 3 1-1v-3l3-2 3.5 5.3c.3.4.8.5 1.3.3l.5-.2c.4-.3.6-.7.5-1.2z"/>',
   camera: '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
+  copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
+  refresh: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/>',
+  arrowUp: '<path d="m18 15-6-6-6 6"/>',
+  arrowDown: '<path d="m6 9 6 6 6-6"/>',
   food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   bus: '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
   bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
@@ -78,12 +83,15 @@ function upgrade(trips) {
 }
 
 function save() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    trips: state.trips,
-    booked: state.booked,
-    tripId: state.tripId,
-    origin: state.origin
-  }));
+  if (!(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute())) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      trips: state.trips,
+      booked: state.booked,
+      tripId: state.tripId,
+      origin: state.origin
+    }));
+  }
+  window.dispatchEvent(new CustomEvent("travelguide:save"));
 }
 
 function trip() {
@@ -315,7 +323,7 @@ function renderMain() {
         <h2>${esc(current.title)}</h2>
         <div class="hero-route">${route}</div>
       </div>
-      <div class="hero-tools">
+      <div class="hero-tools edit-only">
         <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
         <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
         ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
@@ -460,7 +468,7 @@ function renderDay(day, number) {
       </div>
       <div class="day-tools">
         ${mapControl}
-        <button type="button" class="btn" data-add="${esc(day.id)}">${icon("plus")}加一站</button>
+        <button type="button" class="btn edit-only" data-add="${esc(day.id)}">${icon("plus")}加一站</button>
       </div>
     </header>
     ${day.items.length ? `
@@ -511,7 +519,9 @@ function renderItem(day, item, index) {
           <p class="stop-meta"><span class="kind-chip">${icon(KIND_ICON[item.kind] || "pin")}${KIND[item.kind] || "地点"}</span><time>${esc(item.time || "")}</time>${priceChip(item)}</p>
           <h4>${esc(item.name)}</h4>
         </div>
-        <div class="stop-edit">
+        <div class="stop-edit edit-only">
+          ${index > 0 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移" aria-label="上移">${icon("arrowUp")}</button>` : ""}
+          ${index < day.items.length - 1 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移" aria-label="下移">${icon("arrowDown")}</button>` : ""}
           <button type="button" class="icon-btn" data-edit="${esc(day.id)}:${esc(item.id)}" title="修改这一站" aria-label="修改这一站">${icon("pencil")}</button>
           <button type="button" class="icon-btn danger" data-del="${esc(day.id)}:${esc(item.id)}" title="删除这一站" aria-label="删除这一站">${icon("trash")}</button>
         </div>
@@ -524,7 +534,7 @@ function renderItem(day, item, index) {
       <div class="stop-actions">
         <a class="btn btn-sm" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌地图</a>
         ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-        ${needs ? `<label class="booked-toggle${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
+        ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
       </div>
       </div>
     </article>
@@ -633,6 +643,10 @@ function openEditor(dayId, item) {
     form.elements.lng.value = Number.isFinite(item.lng) ? item.lng : "";
     form.elements.costAmount.value = hasCost(item) ? item.cost.amount : "";
     form.elements.costNote.value = (item.cost && item.cost.note) || "";
+    const pic = safePhoto(item);
+    form.elements.photoSrc.value = pic ? pic.src : "";
+    form.elements.photoCredit.value = pic ? (pic.credit || "") : "";
+    form.elements.photoLink.value = pic ? (pic.link || "") : "";
   }
   editor.showModal();
 }
@@ -642,6 +656,9 @@ function readForm() {
   const lat = parseFloat(data.lat);
   const lng = parseFloat(data.lng);
   const spend = parseFloat(data.costAmount);
+  const photoSrc = (data.photoSrc || "").trim();
+  const photoCredit = (data.photoCredit || "").trim();
+  const photoLink = (data.photoLink || "").trim();
   return {
     time: data.time.trim(),
     name: data.name.trim(),
@@ -653,6 +670,9 @@ function readForm() {
     reservationNote: data.reservationNote.trim(),
     bookingUrl: data.bookingUrl.trim(),
     cost: Number.isFinite(spend) ? { amount: spend, note: data.costNote.trim() } : null,
+    photo: /^(photos\/[\w-]+\.jpg|https:\/\/[^'"()\s]+)$/.test(photoSrc)
+      ? { src: photoSrc, credit: photoCredit || "Wikimedia Commons", link: photoLink || photoSrc }
+      : null,
     note: data.note.trim()
   };
 }
@@ -742,6 +762,56 @@ document.querySelector("#geocode-btn").addEventListener("click", async () => {
 
 document.querySelector("#editor-cancel").addEventListener("click", () => editor.close());
 
+document.querySelector("#photo-search-btn").addEventListener("click", async () => {
+  const day = editing && trip().days.find((item) => item.id === editing.dayId);
+  const query = `${form.elements.name.value} ${(day && day.city) || ""} ${form.elements.address.value}`.trim();
+  if (!query) return;
+  const button = document.querySelector("#photo-search-btn");
+  const label = button.querySelector(".label");
+  button.disabled = true;
+  label.textContent = "搜图中…";
+  try {
+    const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srlimit=6&format=json&origin=*&srsearch=${encodeURIComponent(query)}`;
+    const sRes = await fetch(searchUrl);
+    const sData = await sRes.json();
+    const hits = (sData.query && sData.query.search) || [];
+    let picked = null;
+    for (const hit of hits) {
+      if (!/\.(jpe?g|png|webp)$/i.test(hit.title)) continue;
+      const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`;
+      const iRes = await fetch(infoUrl);
+      const iData = await iRes.json();
+      const pages = (iData.query && iData.query.pages) || {};
+      const page = Object.values(pages)[0];
+      const info = page && page.imageinfo && page.imageinfo[0];
+      if (!info) continue;
+      const meta = info.extmetadata || {};
+      const artist = String((meta.Artist && meta.Artist.value) || "Commons").replace(/<[^>]+>/g, "").trim();
+      const lic = String((meta.LicenseShortName && meta.LicenseShortName.value) || "CC").replace(/<[^>]+>/g, "").trim();
+      const file = hit.title.replace(/^File:/, "");
+      picked = {
+        src: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=1400`,
+        credit: `${artist} · ${lic}`.slice(0, 60),
+        link: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`
+      };
+      break;
+    }
+    if (!picked) {
+      label.textContent = "未搜到图";
+      return;
+    }
+    form.elements.photoSrc.value = picked.src;
+    form.elements.photoCredit.value = picked.credit;
+    form.elements.photoLink.value = picked.link;
+    label.textContent = "已配图";
+  } catch (_) {
+    label.textContent = "搜图失败";
+  } finally {
+    button.disabled = false;
+    setTimeout(() => { label.textContent = "自动搜图"; }, 1600);
+  }
+});
+
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   const current = trip();
@@ -771,6 +841,18 @@ main.addEventListener("click", (event) => {
     const [dayId, itemId] = edit.dataset.edit.split(":");
     const day = trip().days.find((item) => item.id === dayId);
     return openEditor(dayId, day.items.find((item) => item.id === itemId));
+  }
+  const move = event.target.closest("[data-move]");
+  if (move) {
+    const [dayId, itemId, deltaStr] = move.dataset.move.split(":");
+    const day = trip().days.find((item) => item.id === dayId);
+    if (!day) return;
+    const idx = day.items.findIndex((item) => item.id === itemId);
+    const targetIdx = idx + Number(deltaStr);
+    if (idx < 0 || targetIdx < 0 || targetIdx >= day.items.length) return;
+    const [moved] = day.items.splice(idx, 1);
+    day.items.splice(targetIdx, 0, moved);
+    return render();
   }
   const del = event.target.closest("[data-del]");
   if (del) {
@@ -852,5 +934,24 @@ tripList.addEventListener("click", (event) => {
   bookingsOpen = false;
   render();
 });
+
+window.TRAVEL_GUIDE_APP = {
+  getPayload() {
+    return {
+      trip: structuredClone(trip()),
+      booked: structuredClone(state.booked)
+    };
+  },
+  loadShared(payload) {
+    state.trips = upgrade([structuredClone(payload.trip)]);
+    state.booked = structuredClone(payload.booked || {});
+    state.tripId = payload.trip.id;
+    state.origin = "";
+    dayFilter = "";
+    bookingsOpen = false;
+    budgetOpen = false;
+    render();
+  }
+};
 
 render();

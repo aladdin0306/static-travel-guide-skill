@@ -1572,7 +1572,8 @@ main {
 }
 
 @media (max-width: 1100px) {
-  .layout { grid-template-columns: minmax(0, 1fr); height: auto; }
+  .layout,
+  .shared-route .layout { grid-template-columns: minmax(0, 1fr); height: auto; }
   .map-panel { height: 420px; order: 3; }
   main { overflow: visible; }
 }
@@ -1617,6 +1618,82 @@ html.shared-loading body { visibility: hidden; }
 .share-status.error { background: var(--coral-soft); color: var(--coral-dark); }
 
 .shared-readonly .edit-only { display: none !important; }
+.readonly-only { display: none !important; }
+.shared-readonly .readonly-only { display: inline-flex !important; }
+
+.shared-route .rail { display: none; }
+.shared-route .layout {
+  grid-template-columns: minmax(0, 1fr) 420px;
+}
+
+#conflict-reload-btn {
+  border-color: var(--coral);
+  color: var(--coral-dark);
+  background: var(--coral-soft);
+}
+#conflict-reload-btn:hover {
+  background: var(--coral);
+  color: #fff;
+}
+
+.share-manage-box {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcfc;
+}
+.share-manage-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.share-manage-head b {
+  display: block;
+  font-size: 13px;
+  color: var(--ink);
+}
+.share-manage-head small {
+  display: block;
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+.revision-section {
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  display: grid;
+  gap: 8px;
+}
+.revision-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.revision-list {
+  display: grid;
+  gap: 6px;
+  max-height: 170px;
+  overflow: auto;
+}
+.revision-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 12px;
+}
+.revision-item b { color: var(--ink); }
+.revision-item small { color: var(--muted); margin-left: 6px; }
 
 .shared-route .rail-note::after {
   content: " 公开链接只能查看；只有持编辑链接的人可以修改。";
