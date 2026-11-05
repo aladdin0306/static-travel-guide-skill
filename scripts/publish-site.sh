@@ -5,12 +5,8 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SITE="${1:?Usage: $0 /path/to/site [API_BASE] [trip-id]}"
-API_BASE="${2:-${TRAVEL_GUIDE_API:-}}"
+DEFAULT_API="https://static-travel-guide.huqimeng0306.workers.dev"
+API_BASE="${2:-${TRAVEL_GUIDE_API:-$DEFAULT_API}}"
 TRIP_ID="${3:-}"
-
-if [[ -z "$API_BASE" ]]; then
-  echo "Missing API base. Pass it as the second argument or set TRAVEL_GUIDE_API." >&2
-  exit 1
-fi
 
 node "$ROOT/scripts/publish-site.mjs" "$SITE" "$API_BASE" "$TRIP_ID"

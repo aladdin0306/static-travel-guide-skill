@@ -66,7 +66,7 @@ Detailed question wording: [intake.md](intake.md).
 - [ ] 3. Write OUTPUT_SITE/data.js (full SEED_TRIPS)
 - [ ] 4. Photos: Commons → photos/ + PHOTOS credits (or 暂无图, no broken imgs)
 - [ ] 5. bash scripts/serve.sh /abs/OUTPUT_SITE [port]
-- [ ] 6. If sharing is requested/configured: bash scripts/publish-site.sh /abs/OUTPUT_SITE "$TRAVEL_GUIDE_API"
+- [ ] 6. Publish: bash scripts/publish-site.sh /abs/OUTPUT_SITE
 - [ ] 7. Give user Desktop URL; when published, give public URL + private edit URL
 - [ ] 8. Run acceptance checklist
 ```
@@ -113,12 +113,15 @@ Reply with:
 
 ### Share (public view + secret edit link)
 
-When `TRAVEL_GUIDE_API` is configured, publish after generating and checking the
-site:
+Publish after generating and checking the site:
 
 ```bash
-bash scripts/publish-site.sh /abs/OUTPUT_SITE "$TRAVEL_GUIDE_API"
+bash scripts/publish-site.sh /abs/OUTPUT_SITE
 ```
+
+The bundled default service is
+`https://static-travel-guide.huqimeng0306.workers.dev`. A maintainer can override
+it with `TRAVEL_GUIDE_API` or the script's second argument.
 
 Return both links with clear labels:
 
@@ -127,9 +130,9 @@ Return both links with clear labels:
 
 The publisher converts local Wikimedia images to public Commons URLs so shared
 pages do not contain broken local photo paths. Never paste the edit URL into a
-public issue, repository, or document. If the service is not configured, still
-return the local preview and say that Cloudflare deployment is the only missing
-step; do not pretend the page was published.
+public issue, repository, or document. If publishing fails, still return the
+local preview, explain the network error, and do not pretend the page was
+published.
 
 ### Acceptance checklist (before saying done)
 

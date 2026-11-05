@@ -33,12 +33,12 @@ npx wrangler deploy
 ## 让 Skill 自动发布
 
 ```bash
-export TRAVEL_GUIDE_API="https://你的服务.workers.dev"
 bash scripts/publish-site.sh /path/to/generated-site
 ```
 
-脚本会返回公开链接和编辑链接。生成站里的 Commons 本地图片会自动改成公开
-图片地址，因此其他设备打开也能看到。
+脚本默认使用仓库内配置的线上服务并返回公开链接和编辑链接。自建服务时可以用
+`TRAVEL_GUIDE_API` 或第二个参数覆盖地址。生成站里的 Commons 本地图片会自动
+改成公开图片地址，因此其他设备打开也能看到。
 
 ## 数据与限制
 

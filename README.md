@@ -113,6 +113,9 @@ Agent 应自动：拷模板 → 写入行程 → 尽量配图（维基共享资�
 
 编辑链接相当于密码，不要公开贴到群公告、Issue 或公开仓库。公开查看链接可以正常分享。
 
+默认共享服务：<https://static-travel-guide.huqimeng0306.workers.dev>。用户不需要
+Cloudflare 账号；Agent 生成完成后直接调用 `publish-site.sh` 即可。
+
 ---
 
 ## 网页能力

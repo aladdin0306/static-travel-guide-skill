@@ -1,6 +1,7 @@
 (function () {
+  const defaultApi = "https://static-travel-guide.huqimeng0306.workers.dev";
   const route = parseRoute(location.pathname);
-  const apiBase = String(window.TRAVEL_SHARE_API || (route ? location.origin : "")).replace(/\/$/, "");
+  const apiBase = String(window.TRAVEL_SHARE_API || (route ? location.origin : defaultApi)).replace(/\/$/, "");
   const shareButton = document.querySelector("#share-btn");
   const status = document.querySelector("#share-status");
   const dialog = document.querySelector("#share-dialog");

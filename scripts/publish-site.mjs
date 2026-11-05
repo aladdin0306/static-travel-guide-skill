@@ -8,7 +8,8 @@ if (!siteArg) {
   fail("Usage: node scripts/publish-site.mjs /path/to/site [API_BASE] [trip-id]");
 }
 
-const apiBase = String(baseArg || process.env.TRAVEL_GUIDE_API || "").replace(/\/$/, "");
+const DEFAULT_API = "https://static-travel-guide.huqimeng0306.workers.dev";
+const apiBase = String(baseArg || process.env.TRAVEL_GUIDE_API || DEFAULT_API).replace(/\/$/, "");
 if (!/^https?:\/\//.test(apiBase)) {
   fail("Missing API base. Pass it as the second argument or set TRAVEL_GUIDE_API.");
 }
