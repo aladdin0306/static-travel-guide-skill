@@ -970,6 +970,10 @@ main {
   padding-bottom: 24px;
 }
 
+main > * {
+  flex-shrink: 0;
+}
+
 /* Shared module frame — aligned edges */
 .trip-head,
 .booking-banner,
@@ -1375,11 +1379,16 @@ main {
 /* Day tabs: look like clickable chips */
 .day-tabs {
   display: flex;
+  flex-shrink: 0;
   gap: 8px;
-  margin: 4px 0 0;
-  padding: 0;
+  margin: 0;
+  padding: 6px 0;
   border-bottom: 0;
   overflow-x: auto;
+  position: sticky;
+  top: 0;
+  z-index: 12;
+  background: var(--sand);
 }
 
 .day-tab {
@@ -1446,6 +1455,21 @@ main {
 /* Day sheet: timeline + content column */
 .day {
   padding: var(--pad) var(--pad) 8px;
+}
+
+.day-pager {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+  padding: 14px 0 10px;
+  border-top: 1px solid var(--line);
+}
+.day-pager-left,
+.day-pager-right {
+  min-width: 1px;
 }
 
 .day h2 {
@@ -1576,6 +1600,7 @@ main {
   .shared-route .layout { grid-template-columns: minmax(0, 1fr); height: auto; }
   .map-panel { height: 420px; order: 3; }
   main { overflow: visible; }
+  .day-tabs { top: 64px; }
 }
 
 @media (max-width: 640px) {

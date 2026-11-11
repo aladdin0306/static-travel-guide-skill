@@ -46,7 +46,7 @@ document.querySelectorAll("[data-icon]").forEach((node) => {
 const state = load();
 let map;
 let markers = [];
-let dayFilter = "";
+let dayFilter = "all";
 let bookingsOpen = false;
 let budgetOpen = false;
 let editing = null;
@@ -365,7 +365,7 @@ function renderMain() {
       </button>
     </nav>
 
-    ${days.map((day) => renderDay(day, current.days.indexOf(day) + 1)).join("")}
+    ${days.map((day) => renderDay(day, current.days.indexOf(day) + 1, current)).join("")}
   `;
   document.querySelector("#map-title").textContent = dayFilter === "all" ? "全程" : (chosen ? `${monthDay(chosen.date)} ${chosen.city}` : "这一天");
 }
@@ -450,7 +450,7 @@ function priceChip(item) {
   return `<span class="price free">${/含/.test(item.cost.note || "") ? "已含" : "免费"}</span>`;
 }
 
-function renderDay(day, number) {
+function renderDay(day, number, current = trip()) {
   const points = mappableItems(day.items).filter((item) => googleUrl(item));
   const mobile = isMobileMaps();
   const link = googleDayUrl(day.items);
@@ -460,6 +460,19 @@ function renderDay(day, number) {
       ? `<a class="btn btn-primary" href="${esc(link)}" target="_blank" rel="noopener">${icon(mobile ? "pin" : "navigation")}${mobile ? "在谷歌地图打点" : "用谷歌地图走这一天"}</a>`
       : "";
   const spend = dayCost(day);
+  const prevDay = number > 1 ? current.days[number - 2] : null;
+  const nextDay = number < current.days.length ? current.days[number] : null;
+  const pager = dayFilter !== "all" && current.days.length > 1
+    ? `<footer class="day-pager">
+        <div class="day-pager-left">
+          ${prevDay ? `<button type="button" class="btn btn-sm" data-day="${esc(prevDay.id)}">← 第 ${number - 1} 天 · ${esc(prevDay.city || "")}</button>` : ""}
+        </div>
+        <button type="button" class="btn btn-sm" data-day="all">查看全部 ${current.days.length} 天</button>
+        <div class="day-pager-right">
+          ${nextDay ? `<button type="button" class="btn btn-sm btn-primary" data-day="${esc(nextDay.id)}">第 ${number + 1} 天 · ${esc(nextDay.city || "")} →</button>` : ""}
+        </div>
+      </footer>`
+    : "";
   return `<section class="day" id="${esc(day.id)}">
     <header class="day-head">
       <div>
@@ -484,6 +497,7 @@ function renderDay(day, number) {
         ${day.items.map((item, index) => renderItem(day, item, index)).join("")}
       </ol>
     </div>` : `<p class="empty">这一天还没有地点，点「加一站」。</p>`}
+    ${pager}
   </section>`;
 }
 
@@ -697,7 +711,7 @@ document.querySelector("#new-trip").addEventListener("click", () => {
     days: [{ id: `${id}-d1`, date: "", city: "", title: "第一天", items: [] }]
   });
   state.tripId = id;
-  dayFilter = "";
+  dayFilter = "all";
   render();
 });
 
@@ -724,7 +738,7 @@ document.querySelector("#import-file").addEventListener("change", async (event) 
   state.trips = upgrade(trips);
   state.booked = data.booked || {};
   state.tripId = trips[0].id;
-  dayFilter = "";
+  dayFilter = "all";
   render();
 });
 
@@ -874,8 +888,10 @@ main.addEventListener("click", (event) => {
   const dayButton = event.target.closest("[data-day]");
   if (dayButton) {
     dayFilter = dayButton.dataset.day;
-    main.scrollTop = 0;
-    return render();
+    render();
+    const tabsEl = main.querySelector(".day-tabs");
+    if (tabsEl) tabsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    return;
   }
   const pick = event.target.closest("[data-origin]");
   if (pick) {
@@ -913,7 +929,7 @@ main.addEventListener("click", (event) => {
     if (!window.confirm(`删除「${trip().title}」？`)) return;
     state.trips = state.trips.filter((item) => item.id !== state.tripId);
     state.tripId = state.trips[0].id;
-    dayFilter = "";
+    dayFilter = "all";
     return render();
   }
 });
@@ -930,7 +946,7 @@ tripList.addEventListener("click", (event) => {
   const button = event.target.closest("[data-trip]");
   if (!button) return;
   state.tripId = button.dataset.trip;
-  dayFilter = "";
+  dayFilter = "all";
   bookingsOpen = false;
   render();
 });
@@ -947,7 +963,7 @@ window.TRAVEL_GUIDE_APP = {
     state.booked = structuredClone(payload.booked || {});
     state.tripId = payload.trip.id;
     state.origin = "";
-    dayFilter = "";
+    dayFilter = "all";
     bookingsOpen = false;
     budgetOpen = false;
     render();
