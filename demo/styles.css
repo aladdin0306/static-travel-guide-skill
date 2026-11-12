@@ -817,7 +817,7 @@ main { overflow: auto; min-height: 0; padding-bottom: 8px; }
 #map { flex: 1; min-height: 260px; margin-top: 10px; border-radius: 14px; background: #e8eef0; }
 #map-legend { margin: 10px 2px 0; color: var(--muted); font-size: 12px; }
 
-.leaflet-tile-pane { filter: saturate(0.55) brightness(1.04) contrast(0.95); }
+.leaflet-tile-pane { filter: saturate(0.75) brightness(1.02) contrast(0.98); }
 
 .pin-wrap { background: none; border: 0; }
 .pin {
@@ -2156,5 +2156,686 @@ html.shared-loading body { visibility: hidden; }
   }
   .stop {
     break-inside: avoid;
+  }
+  .stop-more > .stop-more-body {
+    display: block !important;
+  }
+}
+
+/* ==========================================================================
+   Kinfolk / Wanderlog Editorial Redesign (Borderless + Full-Bleed + Calm)
+   ========================================================================== */
+
+:root {
+  --sand: #f7f5f0;
+  --card: #ffffff;
+  --ink: #17231f;
+  --muted: #66736e;
+  --line: #eae6dd;
+  --edge: #d8d3c8;
+  --sea: #0d5c54;
+  --sea-dark: #08423c;
+  --sea-soft: #eef6f4;
+  --radius: 18px;
+  --pad: 26px;
+  --gap: 16px;
+  --shadow: 0 1px 2px rgba(20, 32, 28, 0.03), 0 12px 32px rgba(20, 32, 28, 0.035);
+}
+
+h1, .trip-head h2, .day h2, .budget-amount {
+  font-family: "Source Serif 4", "Noto Serif SC", "Songti SC", Georgia, serif;
+}
+
+/* Top bar & overflow menu */
+.top {
+  padding: 11px 22px;
+  background: rgba(247, 245, 240, 0.86);
+  border-bottom: 1px solid rgba(216, 211, 200, 0.65);
+  backdrop-filter: blur(16px);
+}
+
+.brand-mark {
+  width: 32px;
+  height: 32px;
+  border-radius: 9px;
+  background: var(--ink);
+}
+
+h1 {
+  font-size: 19px;
+  letter-spacing: -0.01em;
+}
+
+.more-menu {
+  position: relative;
+}
+
+.more-menu summary {
+  list-style: none;
+}
+.more-menu summary::-webkit-details-marker {
+  display: none;
+}
+
+.btn-icon-more {
+  width: 38px;
+  padding: 0;
+}
+
+.more-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  min-width: 196px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 32px rgba(20, 32, 28, 0.12);
+  display: grid;
+  gap: 2px;
+  z-index: 60;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.menu-item:hover {
+  background: var(--sand);
+  color: var(--sea);
+}
+
+/* Full-bleed Magazine Cover Hero */
+.trip-head {
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(23, 35, 31, 0.06);
+  background: var(--card);
+}
+
+.trip-head.has-cover {
+  display: block;
+  padding: 0;
+}
+
+.hero-stage {
+  display: grid;
+  gap: 4px;
+  height: 320px;
+  background: #1b2824;
+}
+
+.hero-stage.count-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+.hero-stage.count-2 {
+  grid-template-columns: 1.55fr 1fr;
+}
+.hero-stage.count-3 {
+  grid-template-columns: 1.65fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+.hero-stage.count-3 .slot-1 {
+  grid-row: 1 / span 2;
+}
+
+.hero-stage .hero-cover {
+  border-radius: 0;
+  border: 0;
+  min-height: 0;
+  aspect-ratio: auto;
+}
+
+.hero-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(12, 20, 18, 0.06) 15%, rgba(12, 20, 18, 0.35) 55%, rgba(12, 20, 18, 0.84) 100%);
+  pointer-events: none;
+}
+
+.hero-overlay {
+  position: absolute;
+  left: 26px;
+  right: 26px;
+  bottom: 22px;
+  z-index: 2;
+  color: #fff;
+}
+
+.hero-overlay .hero-dates {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(8px);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+}
+
+.hero-overlay h2 {
+  margin: 8px 0 10px;
+  color: #fff;
+  font-size: clamp(30px, 4vw, 40px);
+  line-height: 1.12;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.28);
+}
+
+.hero-overlay .hero-route {
+  gap: 6px;
+}
+
+.hero-overlay .hop {
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(8px);
+  color: #fff;
+  padding: 3px 11px;
+  font-size: 12.5px;
+}
+.hero-overlay .hop small {
+  color: rgba(255, 255, 255, 0.8);
+}
+.hero-overlay .hop-sep {
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.hero-plain {
+  padding: 26px 26px 8px;
+}
+
+.hero-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 18px 26px 20px;
+  background: #fff;
+}
+
+.hero-summary {
+  margin: 0;
+  flex: 1;
+  min-width: 240px;
+  color: #42504b;
+  font-size: 14px;
+  line-height: 1.72;
+  max-width: 78ch;
+}
+
+/* Softer booking banner */
+.booking-banner {
+  padding: 14px 22px;
+  border-color: rgba(23, 35, 31, 0.07);
+}
+.booking-banner.due {
+  background: #fffcf9;
+  border-color: #eed8ca;
+}
+
+/* Borderless Apple-Wallet style Budget */
+.budget {
+  border-color: rgba(23, 35, 31, 0.06);
+  gap: 16px;
+}
+
+.budget-amount {
+  font-size: 32px;
+}
+
+.origin-pick {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.flight-watch {
+  background: #f8f7f3;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 15px;
+}
+
+.fw-badge {
+  background: #e7f2ef;
+  color: var(--sea-dark);
+}
+
+.budget-bar {
+  height: 7px;
+  border-radius: 999px;
+  gap: 2px;
+  background: transparent;
+}
+.budget-bar span {
+  border-radius: 999px;
+}
+
+.budget-ledger {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 28px;
+  padding-top: 4px;
+}
+
+.budget-ledger.single-col {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ledger-row {
+  padding: 8px 0;
+  min-height: 0;
+  border-top: 0;
+  border-bottom: 1px solid #f0ede6;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 10px;
+  background: transparent;
+}
+
+.budget-ledger.single-col .ledger-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.ledger-name i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.ledger-cny {
+  min-width: 4.2em;
+}
+
+/* Clean sticky pill day-tabs */
+.day-tabs {
+  padding: 8px 0;
+  gap: 6px;
+}
+
+.day-tab {
+  min-width: 68px;
+  padding: 8px 12px;
+  border-radius: 12px;
+  border-color: rgba(23, 35, 31, 0.08);
+}
+
+.day-tab.active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+}
+.day-tab.active .dt-top,
+.day-tab.active .dt-city {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+/* Editorial Day Sheet & Stops */
+.day {
+  border-color: rgba(23, 35, 31, 0.06);
+  padding: 26px 26px 12px;
+}
+
+.day-head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.day-badge {
+  background: var(--sea-soft);
+  color: var(--sea-dark);
+  border-radius: 5px;
+  font-weight: 800;
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.day h2 {
+  font-size: 24px;
+  margin-top: 6px;
+}
+
+.weather-strip {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  margin-top: 8px;
+  color: var(--muted);
+  font-size: 12.5px;
+}
+.weather-strip b {
+  color: var(--ink);
+}
+
+.stops {
+  margin-top: 6px;
+}
+
+.stop {
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.stop-rail {
+  align-items: center;
+  padding-top: 22px;
+}
+
+.stop-rail::after {
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+  top: 50px;
+  bottom: -6px;
+  width: 1px;
+  background: var(--line);
+}
+
+.stop-num {
+  width: 26px;
+  height: 26px;
+  background: #f2efe8;
+  color: var(--ink);
+  border: 1px solid var(--edge);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stop-card {
+  padding: 20px 0;
+  border-bottom: 1px solid #f0ede6;
+}
+
+.stop-card.has-photo {
+  grid-template-columns: minmax(0, 1fr) 240px;
+  gap: 24px;
+}
+
+.stop-photo {
+  border-radius: 12px;
+  aspect-ratio: 4 / 3;
+  box-shadow: 0 6px 20px rgba(20, 32, 28, 0.07);
+}
+
+.stop-meta {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kind-label {
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--sea);
+  text-transform: uppercase;
+}
+
+.opt-tag {
+  padding: 1px 6px;
+  border-radius: 4px;
+  background: #f2efe8;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.price {
+  background: #f4f2ec;
+  color: #3a4742;
+  font-weight: 600;
+}
+.price .rmb {
+  font-weight: 500;
+}
+
+.stop-card h4 {
+  margin: 5px 0 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.why {
+  margin: 8px 0 0;
+  color: var(--ink);
+  font-size: 14.5px;
+  line-height: 1.65;
+}
+
+.how {
+  margin-top: 8px;
+  padding-left: 0;
+  border-left: 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+.how .icon {
+  width: 14px;
+  height: 14px;
+  margin-top: 4px;
+  color: var(--sea);
+}
+
+.book-inline {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* Progressive disclosure for verbose notes */
+.stop-more {
+  margin-top: 8px;
+}
+.stop-more summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  user-select: none;
+  list-style: none;
+}
+.stop-more summary::-webkit-details-marker {
+  display: none;
+}
+.stop-more summary::after {
+  content: "▾";
+  font-size: 11px;
+  transition: transform 0.15s;
+}
+.stop-more[open] summary::after {
+  transform: rotate(180deg);
+}
+.stop-more summary:hover {
+  color: var(--sea);
+}
+.stop-more-body {
+  margin-top: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #faf9f5;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.68;
+}
+.stop-more-body p {
+  margin: 0 0 6px;
+}
+.stop-more-body p:last-child {
+  margin-bottom: 0;
+}
+
+/* Lightweight Transit Connector Row */
+.stop-transit .stop-rail {
+  padding-top: 14px;
+}
+.stop-transit .stop-rail::after {
+  top: 38px;
+  background: repeating-linear-gradient(var(--edge) 0 4px, transparent 4px 8px);
+}
+.stop-dot {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #f4f2ec;
+  color: var(--muted);
+}
+.stop-dot .icon {
+  width: 13px;
+  height: 13px;
+}
+
+.transit-row {
+  padding: 12px 0;
+  border-bottom: 1px dashed var(--line);
+}
+.stop:last-child .transit-row {
+  border-bottom: 0;
+}
+.transit-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.transit-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 14px;
+}
+.transit-title time {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.transit-title b {
+  font-weight: 650;
+  color: #2c3a35;
+}
+.transit-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.transit-lead {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Calm quiet action buttons */
+.stop-actions {
+  margin-top: 12px;
+  gap: 6px;
+}
+
+.btn-quiet {
+  height: 30px;
+  padding: 0 10px;
+  border-color: var(--line);
+  background: transparent;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 550;
+}
+.btn-quiet:hover {
+  border-color: var(--edge);
+  background: #faf9f5;
+  color: var(--ink);
+}
+.btn-xhs-quiet:hover {
+  border-color: #f3bcc5;
+  background: #fff6f7;
+  color: #c81e3a;
+}
+
+.link-quiet {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 550;
+  text-decoration: none;
+}
+.link-quiet .icon {
+  width: 13px;
+  height: 13px;
+}
+.link-quiet:hover {
+  color: var(--sea);
+}
+
+/* Hover-reveal edit tools on desktop so reading feels uncluttered */
+@media (hover: hover) and (min-width: 820px) {
+  .stop-edit {
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+  .stop:hover .stop-edit,
+  .stop:focus-within .stop-edit {
+    opacity: 1;
+  }
+}
+
+/* Cleaner right map card */
+.map-panel {
+  border-color: rgba(23, 35, 31, 0.06);
+  padding: 16px;
+}
+#map {
+  border-radius: 12px;
+  background: #edf2f3;
+}
+
+@media (max-width: 720px) {
+  :root { --pad: 18px; }
+  .hero-stage { height: 240px; }
+  .hero-stage.count-3 { grid-template-columns: 1.4fr 1fr; }
+  .hero-overlay { left: 18px; right: 18px; bottom: 16px; }
+  .hero-foot { padding: 14px 18px 16px; }
+  .budget-ledger,
+  .budget-ledger.single-col {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .stop-card.has-photo {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 14px;
+  }
+  .stop-photo {
+    order: -1;
+    aspect-ratio: 16 / 10;
   }
 }

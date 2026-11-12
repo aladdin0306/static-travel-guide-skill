@@ -57,6 +57,7 @@ const ICONS = {
   sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
+  more: '<circle cx="12" cy="12" r="1.5" fill="currentColor"/><circle cx="19" cy="12" r="1.5" fill="currentColor"/><circle cx="5" cy="12" r="1.5" fill="currentColor"/>',
   food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   bus: '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
   bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
@@ -569,30 +570,36 @@ function renderMain() {
   const gallery = tripPhotos(current, 3);
 
   main.innerHTML = `
-    <section class="trip-head${gallery.length ? " has-cover" : ""}">
-      <div class="trip-head-main">
-        <div class="trip-head-top">
-          <div class="trip-head-title">
+    <section class="trip-head${gallery.length ? " has-cover" : " no-cover"}">
+      ${gallery.length ? `<div class="hero-stage count-${gallery.length}">
+        <figure class="hero-cover slot-1">
+          <img src="${esc(gallery[0].src)}" alt="${esc(gallery[0].caption || current.title)}" decoding="async" />
+          <div class="hero-scrim"></div>
+          <div class="hero-overlay">
             <p class="hero-dates">${esc(tripRange(current))}</p>
             <h2>${esc(current.title)}</h2>
             <div class="hero-route">${route}</div>
           </div>
-          <div class="hero-tools edit-only">
-            <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
-            <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
-            <button type="button" class="btn btn-sm" id="edit-cover">${icon("camera")}封面</button>
-            <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
-            ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
-          </div>
-        </div>
-        ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : ""}
-      </div>
-      ${gallery.length ? `<div class="hero-mosaic count-${gallery.length}">
-        ${gallery.map((pic, idx) => `<figure class="hero-cover slot-${idx + 1}">
+          ${gallery[0].credit ? `<a class="credit" href="${esc(safeUrl(gallery[0].link))}" target="_blank" rel="noopener">${esc(gallery[0].credit)}</a>` : ""}
+        </figure>
+        ${gallery.slice(1).map((pic, idx) => `<figure class="hero-cover slot-${idx + 2}">
           <img src="${esc(pic.src)}" alt="${esc(pic.caption || current.title)}" decoding="async" />
           ${pic.caption ? `<figcaption class="hero-caption">${esc(pic.caption)}</figcaption>` : ""}
-          ${idx === 0 && pic.credit ? `<a class="credit" href="${esc(safeUrl(pic.link))}" target="_blank" rel="noopener">${esc(pic.credit)}</a>` : ""}
         </figure>`).join("")}
+      </div>` : `<div class="hero-plain">
+        <p class="hero-dates">${esc(tripRange(current))}</p>
+        <h2>${esc(current.title)}</h2>
+        <div class="hero-route">${route}</div>
+      </div>`}
+      ${current.summary || true ? `<div class="hero-foot">
+        ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : `<p class="hero-summary muted edit-only">点击右侧「简介」添加行程看点与注意事项。</p>`}
+        <div class="hero-tools edit-only">
+          <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
+          <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
+          <button type="button" class="btn btn-sm" id="edit-cover">${icon("camera")}封面</button>
+          <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
+          ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
+        </div>
       </div>` : ""}
     </section>
 
@@ -669,11 +676,6 @@ function renderBudget(current) {
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
     <div class="budget-ledger${home ? " single-col" : ""}" role="table" aria-label="分类明细">
-      <div class="ledger-head" role="row">
-        <span role="columnheader">项目</span>
-        <span role="columnheader">${home ? "金额" : "当地货币"}</span>
-        ${home ? "" : `<span role="columnheader">人民币</span>`}
-      </div>
       ${cats.map((cat) => {
         const amt = plan.cats[cat];
         const rmb = cny(amt);
@@ -780,14 +782,6 @@ function renderDay(day, number, current = trip()) {
       </div>
     </header>
     ${day.items.length ? `
-    <div class="plan-ribbon" aria-label="当天路线速览">
-      ${day.items.map((item, index) => `
-        <a class="ribbon-pill kind-${esc(item.kind)}${isOptional(item) ? " optional" : ""}" href="#item-${esc(item.id)}">
-          <span class="rp-num">${index + 1}</span>
-          ${item.time ? `<time>${esc(item.time)}</time>` : ""}
-          <b>${esc(item.name)}</b>
-        </a>`).join(`<span class="ribbon-arrow" aria-hidden="true">→</span>`)}
-    </div>
     <div class="detail">
       <ol class="stops">
         ${day.items.map((item, index) => renderItem(day, item, index)).join("")}
@@ -816,6 +810,46 @@ function renderItem(day, item, index) {
   const parts = splitNote(item.note);
   const needs = item.reservation !== "none";
   const pic = safePhoto(item);
+  const editBtns = `<div class="stop-edit edit-only">
+    ${index > 0 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移" aria-label="上移">${icon("arrowUp")}</button>` : ""}
+    ${index < day.items.length - 1 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移" aria-label="下移">${icon("arrowDown")}</button>` : ""}
+    <button type="button" class="icon-btn" data-edit="${esc(day.id)}:${esc(item.id)}" title="修改这一站" aria-label="修改这一站">${icon("pencil")}</button>
+    <button type="button" class="icon-btn danger" data-del="${esc(day.id)}:${esc(item.id)}" title="删除这一站" aria-label="删除这一站">${icon("trash")}</button>
+  </div>`;
+
+  if (item.kind === "transport" && !pic) {
+    const hasTransitMore = Boolean(parts.rest || (hasCost(item) && item.cost.amount > 0 && item.cost.note) || (needs && item.reservationNote));
+    return `<li class="stop stop-transit kind-transport${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
+      <div class="stop-rail"><span class="stop-dot" aria-hidden="true">${icon("bus")}</span></div>
+      <div class="transit-row">
+        <div class="transit-bar">
+          <div class="transit-title">
+            ${item.time ? `<time>${esc(item.time)}</time>` : ""}
+            <b>${esc(item.name)}</b>
+            ${priceChip(item)}
+            ${needs ? `<span class="flag ${esc(item.reservation)}${booked ? " is-booked" : ""}">${booked ? "已订" : FLAG[item.reservation]}</span>` : ""}
+          </div>
+          <div class="transit-right">
+            ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
+            <a class="link-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}地图</a>
+            ${editBtns}
+          </div>
+        </div>
+        ${parts.lead ? `<p class="transit-lead">${esc(parts.lead)}</p>` : ""}
+        ${hasTransitMore ? `<details class="stop-more">
+          <summary>乘车细节与说明</summary>
+          <div class="stop-more-body">
+            ${parts.rest ? `<p>${esc(parts.rest)}</p>` : ""}
+            ${hasCost(item) && item.cost.amount > 0 && item.cost.note ? `<p class="cost-line">${icon("wallet")}<span>${esc(item.cost.note)}</span></p>` : ""}
+            ${needs && item.reservationNote ? `<p>${esc(item.reservationNote)}</p>` : ""}
+            ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
+          </div>
+        </details>` : ""}
+      </div>
+    </li>`;
+  }
+
+  const hasMore = Boolean(parts.rest || (hasCost(item) && item.cost.amount > 0 && item.cost.note));
   return `<li class="stop kind-${esc(item.kind)}${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
     <div class="stop-rail"><span class="stop-num">${index + 1}</span></div>
     <article class="stop-card${pic ? " has-photo" : ""}">
@@ -824,29 +858,37 @@ function renderItem(day, item, index) {
         <a class="credit" href="${esc(safeUrl(pic.link))}" target="_blank" rel="noopener">${esc(pic.credit)}</a>
       </figure>` : ""}
       <div class="stop-main">
-      <header class="stop-head">
-        <div>
-          <p class="stop-meta"><span class="kind-chip">${icon(KIND_ICON[item.kind] || "pin")}${KIND[item.kind] || "地点"}</span><time>${esc(item.time || "")}</time>${priceChip(item)}</p>
-          <h4>${esc(item.name)}</h4>
+        <header class="stop-head">
+          <div>
+            <p class="stop-meta">
+              <span class="kind-label">${KIND[item.kind] || "地点"}</span>
+              ${item.time ? `<time>${esc(item.time)}</time>` : ""}
+              ${priceChip(item)}
+              ${isOptional(item) ? `<span class="opt-tag">备选</span>` : ""}
+            </p>
+            <h4>${esc(item.name)}</h4>
+          </div>
+          ${editBtns}
+        </header>
+        ${item.why ? `<p class="why">${esc(item.why)}</p>` : ""}
+        ${parts.lead ? `<p class="how">${icon("navigation")}<span>${esc(parts.lead)}</span></p>` : ""}
+        ${needs ? `<div class="book-inline ${esc(item.reservation)}${booked ? " is-booked" : ""}">
+          <span class="flag ${esc(item.reservation)}">${booked ? "已订好" : FLAG[item.reservation]}</span>
+          <span>${esc(item.reservationNote || "")}</span>
+        </div>` : ""}
+        ${hasMore ? `<details class="stop-more">
+          <summary>实用贴士与费用说明</summary>
+          <div class="stop-more-body">
+            ${parts.rest ? `<p>${esc(parts.rest)}</p>` : ""}
+            ${hasCost(item) && item.cost.amount > 0 && item.cost.note ? `<p class="cost-line">${icon("wallet")}<span>${esc(item.cost.note)}</span></p>` : ""}
+          </div>
+        </details>` : ""}
+        <div class="stop-actions">
+          ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
+          <a class="btn btn-sm btn-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}地图</a>
+          ${item.kind !== "transport" ? `<a class="btn btn-sm btn-quiet btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
+          ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
         </div>
-        <div class="stop-edit edit-only">
-          ${index > 0 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移" aria-label="上移">${icon("arrowUp")}</button>` : ""}
-          ${index < day.items.length - 1 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移" aria-label="下移">${icon("arrowDown")}</button>` : ""}
-          <button type="button" class="icon-btn" data-edit="${esc(day.id)}:${esc(item.id)}" title="修改这一站" aria-label="修改这一站">${icon("pencil")}</button>
-          <button type="button" class="icon-btn danger" data-del="${esc(day.id)}:${esc(item.id)}" title="删除这一站" aria-label="删除这一站">${icon("trash")}</button>
-        </div>
-      </header>
-      ${item.why ? `<p class="why"><b>为什么去</b>${esc(item.why)}</p>` : ""}
-      ${parts.lead ? `<p class="how">${icon("navigation")}<span>${esc(parts.lead)}</span></p>` : ""}
-      ${parts.rest ? `<p class="extra">${esc(parts.rest)}</p>` : ""}
-      ${hasCost(item) && item.cost.amount > 0 && item.cost.note ? `<p class="cost-line">${icon("wallet")}<span>${esc(item.cost.note)}</span></p>` : ""}
-      ${needs ? `<div class="book-box ${esc(item.reservation)}${booked ? " is-booked" : ""}"><b>${booked ? "已订好" : FLAG[item.reservation]}</b><span>${esc(item.reservationNote || "")}</span></div>` : ""}
-      <div class="stop-actions">
-        <a class="btn btn-sm" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌地图</a>
-        ${item.kind !== "transport" ? `<a class="btn btn-sm btn-xhs" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单/避雷" : item.kind === "stay" ? "小红书入住评价" : "小红书实况"}</a>` : ""}
-        ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-        ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
-      </div>
       </div>
     </article>
   </li>`;
@@ -990,11 +1032,18 @@ function readForm() {
 }
 
 map = L.map("map", { zoomControl: true });
-L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
   maxZoom: 19,
-  attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  attribution: 'Tiles &copy; Esri'
 }).addTo(map);
 map.setView([-25.5, 146.5], 4);
+
+document.addEventListener("click", (event) => {
+  const more = document.querySelector("#more-menu");
+  if (more && more.open && !event.target.closest("#more-menu")) {
+    more.open = false;
+  }
+});
 
 document.querySelector("#new-trip").addEventListener("click", () => {
   const id = `trip-${Date.now()}`;
@@ -1207,12 +1256,12 @@ document.addEventListener("error", (event) => {
   }
   const heroFig = img.closest(".hero-cover");
   if (heroFig) {
-    const mosaic = heroFig.closest(".hero-mosaic");
+    const mosaic = heroFig.closest(".hero-stage, .hero-mosaic");
     const head = heroFig.closest(".trip-head");
     heroFig.remove();
     if (mosaic) {
       const rem = mosaic.querySelectorAll(".hero-cover").length;
-      mosaic.className = `hero-mosaic count-${rem}`;
+      mosaic.className = `${mosaic.classList.contains("hero-stage") ? "hero-stage" : "hero-mosaic"} count-${rem}`;
       if (!rem) {
         mosaic.remove();
         if (head) head.classList.remove("has-cover");
