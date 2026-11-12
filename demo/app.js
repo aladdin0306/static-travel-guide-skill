@@ -310,10 +310,48 @@ function budgetOf(current) {
   return { total, cats, days, extras, optional };
 }
 
+function commonsFileFromUrl(raw) {
+  try {
+    const u = new URL(raw, location.origin);
+    if (u.pathname.startsWith("/api/img")) return u.searchParams.get("file") || "";
+    const wikiIdx = u.pathname.indexOf("/wiki/File:");
+    if (wikiIdx >= 0) {
+      const f = decodeURIComponent(u.pathname.slice(wikiIdx + "/wiki/File:".length));
+      return /^placeholder:/i.test(f) ? "" : f;
+    }
+    const redirIdx = u.pathname.indexOf("/wiki/Special:Redirect/file/");
+    if (redirIdx >= 0) {
+      return decodeURIComponent(u.pathname.slice(redirIdx + "/wiki/Special:Redirect/file/".length));
+    }
+  } catch (_) {}
+  return "";
+}
+
+function normalizePhotoUrl(src) {
+  const raw = String(src || "").trim();
+  if (!raw) return "";
+  const cleaned = raw.replace(/\(/g, "%28").replace(/\)/g, "%29");
+  if (/^(photos\/[\w-]+\.jpg|\/api\/img\?[^\s"'<>]+|https:\/\/[^\s"'<>]+)$/.test(cleaned)) {
+    return cleaned;
+  }
+  return "";
+}
+
 function safePhoto(item) {
   const pic = item && item.photo;
-  if (!pic || !/^(photos\/[\w-]+\.jpg|https:\/\/[^'"()\s]+)$/.test(pic.src || "")) return null;
-  return pic;
+  if (!pic) return null;
+  let src = normalizePhotoUrl(pic.src);
+  if (!src) return null;
+  const isShared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
+  if (/^https:\/\/(commons|upload|thumb)\.wikimedia\.org\//i.test(src) || (isShared && /^photos\//.test(src))) {
+    const cFile = commonsFileFromUrl(src) || commonsFileFromUrl(pic.link || "");
+    if (cFile) {
+      const base = (window.TRAVEL_SHARE && window.TRAVEL_SHARE.apiBase) || "https://static-travel-guide.huqimeng0306.workers.dev";
+      const enc = encodeURIComponent(cFile).replace(/\(/g, "%28").replace(/\)/g, "%29");
+      src = `${base.replace(/\/$/, "")}/api/img?file=${enc}&w=1200`;
+    }
+  }
+  return { ...pic, src };
 }
 
 function firstPhoto(current) {
@@ -746,8 +784,8 @@ function readForm() {
     reservationNote: data.reservationNote.trim(),
     bookingUrl: data.bookingUrl.trim(),
     cost: Number.isFinite(spend) ? { amount: spend, note: data.costNote.trim() } : null,
-    photo: /^(photos\/[\w-]+\.jpg|https:\/\/[^'"()\s]+)$/.test(photoSrc)
-      ? { src: photoSrc, credit: photoCredit || "Wikimedia Commons", link: photoLink || photoSrc }
+    photo: normalizePhotoUrl(photoSrc)
+      ? { src: normalizePhotoUrl(photoSrc), credit: photoCredit || "Wikimedia Commons", link: photoLink || photoSrc }
       : null,
     note: data.note.trim()
   };
@@ -888,31 +926,44 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
   button.disabled = true;
   label.textContent = "搜图中…";
   try {
-    const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srlimit=6&format=json&origin=*&srsearch=${encodeURIComponent(query)}`;
-    const sRes = await fetch(searchUrl);
-    const sData = await sRes.json();
-    const hits = (sData.query && sData.query.search) || [];
     let picked = null;
-    for (const hit of hits) {
-      if (!/\.(jpe?g|png|webp)$/i.test(hit.title)) continue;
-      const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`;
-      const iRes = await fetch(infoUrl);
-      const iData = await iRes.json();
-      const pages = (iData.query && iData.query.pages) || {};
-      const page = Object.values(pages)[0];
-      const info = page && page.imageinfo && page.imageinfo[0];
-      if (!info) continue;
-      const meta = info.extmetadata || {};
-      const artist = String((meta.Artist && meta.Artist.value) || "Commons").replace(/<[^>]+>/g, "").trim();
-      const lic = String((meta.LicenseShortName && meta.LicenseShortName.value) || "CC").replace(/<[^>]+>/g, "").trim();
-      const file = hit.title.replace(/^File:/, "");
-      picked = {
-        src: `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=1400`,
-        credit: `${artist} · ${lic}`.slice(0, 60),
-        link: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file)}`
-      };
-      break;
+    const proxyBase = ((window.TRAVEL_SHARE && window.TRAVEL_SHARE.apiBase) || "https://static-travel-guide.huqimeng0306.workers.dev").replace(/\/$/, "");
+    try {
+      const pRes = await fetch(`${proxyBase}/api/commons-search?q=${encodeURIComponent(query)}`);
+      if (pRes.ok) {
+        const pData = await pRes.json();
+        picked = pData.picked || null;
+      }
+    } catch (_) {}
+
+    if (!picked) {
+      const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srlimit=6&format=json&origin=*&srsearch=${encodeURIComponent(query)}`;
+      const sRes = await fetch(searchUrl);
+      const sData = await sRes.json();
+      const hits = (sData.query && sData.query.search) || [];
+      for (const hit of hits) {
+        if (!/\.(jpe?g|png|webp)$/i.test(hit.title)) continue;
+        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`;
+        const iRes = await fetch(infoUrl);
+        const iData = await iRes.json();
+        const pages = (iData.query && iData.query.pages) || {};
+        const page = Object.values(pages)[0];
+        const info = page && page.imageinfo && page.imageinfo[0];
+        if (!info) continue;
+        const meta = info.extmetadata || {};
+        const artist = String((meta.Artist && meta.Artist.value) || "Commons").replace(/<[^>]+>/g, "").trim();
+        const lic = String((meta.LicenseShortName && meta.LicenseShortName.value) || "CC").replace(/<[^>]+>/g, "").trim();
+        const file = hit.title.replace(/^File:/, "");
+        const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
+        picked = {
+          src: `${proxyBase}/api/img?file=${enc}&w=1200`,
+          credit: `${artist} · ${lic}`.slice(0, 60),
+          link: `https://commons.wikimedia.org/wiki/File:${enc}`
+        };
+        break;
+      }
     }
+
     if (!picked) {
       label.textContent = "未搜到图";
       return;
@@ -928,6 +979,19 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
     setTimeout(() => { label.textContent = "自动搜图"; }, 1600);
   }
 });
+
+document.addEventListener("error", (event) => {
+  const img = event.target;
+  if (!(img instanceof HTMLImageElement)) return;
+  const fig = img.closest(".stop-photo");
+  if (fig) {
+    const card = fig.closest(".stop-card");
+    fig.remove();
+    if (card) card.classList.remove("has-photo");
+    return;
+  }
+  if (img.classList.contains("popup-photo")) img.remove();
+}, true);
 
 form.addEventListener("submit", (event) => {
   event.preventDefault();

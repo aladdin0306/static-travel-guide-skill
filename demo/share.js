@@ -313,16 +313,18 @@
 
   function portablePayload(payload) {
     const clone = structuredClone(payload);
+    const base = (apiBase || location.origin).replace(/\/$/, "");
     for (const day of clone.trip.days || []) {
       for (const item of day.items || []) {
         if (!item.photo) continue;
-        if (/^https:\/\//i.test(item.photo.src || "")) continue;
-        const file = commonsFile(item.photo.link);
+        const file = commonsFile(item.photo.link) || commonsFile(item.photo.src);
         if (file) {
-          item.photo.src = `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(file)}?width=1400`;
-        } else {
-          delete item.photo;
+          const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
+          item.photo.src = `${base}/api/img?file=${enc}&w=1200`;
+          continue;
         }
+        if (/^https:\/\//i.test(item.photo.src || "")) continue;
+        delete item.photo;
       }
     }
     return clone;
@@ -330,7 +332,13 @@
 
   function commonsFile(link) {
     try {
-      const url = new URL(link);
+      const url = new URL(link, location.origin);
+      if (url.pathname.startsWith("/api/img")) {
+        return url.searchParams.get("file") || "";
+      }
+      const redir = "/wiki/Special:Redirect/file/";
+      const rIdx = url.pathname.indexOf(redir);
+      if (rIdx >= 0) return decodeURIComponent(url.pathname.slice(rIdx + redir.length));
       const marker = "/wiki/File:";
       const index = url.pathname.indexOf(marker);
       const file = index >= 0 ? decodeURIComponent(url.pathname.slice(index + marker.length)) : "";

@@ -11,6 +11,7 @@ const JSON_HEADERS = {
 const MAX_PAYLOAD_BYTES = 750_000;
 const MAX_CREATES_PER_DAY = 20;
 const MAX_REVISIONS = 20;
+const COMMONS_UA = "static-travel-guide-skill/1.2 (https://github.com/aladdin0306/static-travel-guide-skill)";
 
 export default {
   async fetch(request, env) {
@@ -26,7 +27,7 @@ export default {
       }
 
       const nestedAsset = url.pathname.match(
-        /^\/t(?:\/[A-Za-z0-9_-]+)?(?:\/edit)?\/(styles\.css|data\.js|app\.js|share\.js)$/
+        /^\/t(?:\/[A-Za-z0-9_-]+)?(?:\/edit)?\/(styles\.css|data\.js|app\.js|share\.js|photos\/[\w-]+\.jpg)$/
       );
       if (nestedAsset) {
         const assetUrl = new URL(`/${nestedAsset[1]}`, url);
@@ -57,6 +58,15 @@ export default {
 async function handleApi(request, env, url) {
   if (url.pathname === "/api/health" && request.method === "GET") {
     return json({ ok: true });
+  }
+
+  if (url.pathname === "/api/img" && (request.method === "GET" || request.method === "HEAD")) {
+    const imgRes = await handleCommonsImage(request, url);
+    return request.method === "HEAD" ? new Response(null, { status: imgRes.status, headers: imgRes.headers }) : imgRes;
+  }
+
+  if (url.pathname === "/api/commons-search" && request.method === "GET") {
+    return await handleCommonsSearch(url);
   }
 
   if (url.pathname === "/api/trips" && request.method === "POST") {
@@ -286,7 +296,13 @@ async function injectOpenGraph(response, env, id, url) {
     let ogImg = "";
     for (const d of trip.days || []) {
       for (const it of d.items || []) {
-        if (it.photo && /^https:\/\//i.test(it.photo.src || "")) {
+        if (!it.photo) continue;
+        const cFile = extractCommonsFile(it.photo.link || it.photo.src || "");
+        if (cFile) {
+          ogImg = `${url.origin}/api/img?file=${encodeURIComponent(cFile)}&w=1200`;
+          break;
+        }
+        if (/^https:\/\//i.test(it.photo.src || "")) {
           ogImg = it.photo.src;
           break;
         }
@@ -320,6 +336,97 @@ function escAttr(str) {
   return String(str || "").replace(/[&<>"']/g, (c) => ({
     "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
   }[c]));
+}
+
+function extractCommonsFile(raw) {
+  try {
+    const u = new URL(raw, "https://commons.wikimedia.org");
+    if (u.pathname.startsWith("/api/img")) {
+      return u.searchParams.get("file") || "";
+    }
+    const wikiIdx = u.pathname.indexOf("/wiki/File:");
+    if (wikiIdx >= 0) {
+      const f = decodeURIComponent(u.pathname.slice(wikiIdx + "/wiki/File:".length));
+      return /^placeholder:/i.test(f) ? "" : f;
+    }
+    const redirIdx = u.pathname.indexOf("/wiki/Special:Redirect/file/");
+    if (redirIdx >= 0) {
+      return decodeURIComponent(u.pathname.slice(redirIdx + "/wiki/Special:Redirect/file/".length));
+    }
+  } catch {}
+  return "";
+}
+
+async function handleCommonsImage(request, url) {
+  const rawFile = (url.searchParams.get("file") || "").trim().replace(/^File:/i, "");
+  if (!rawFile || rawFile.length > 260 || /[<>\\\r\n]/.test(rawFile)) {
+    return json({ error: "图片参数不正确。" }, 400);
+  }
+  const widthNum = Math.min(Math.max(Number(url.searchParams.get("w")) || 1200, 320), 1920);
+  const cacheKey = new Request(`${url.origin}/api/img?file=${encodeURIComponent(rawFile)}&w=${widthNum}`, { method: "GET" });
+  const cache = caches.default;
+  const cached = await cache.match(cacheKey);
+  if (cached) return cached;
+
+  const target = `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(rawFile)}?width=${widthNum}`;
+  const upstream = await fetch(target, {
+    redirect: "follow",
+    headers: {
+      "user-agent": COMMONS_UA,
+      accept: "image/avif,image/webp,image/apng,image/*,*/*;q=0.8"
+    },
+    cf: { cacheEverything: true, cacheTtl: 2592000 }
+  });
+
+  const ct = upstream.headers.get("content-type") || "";
+  if (!upstream.ok || !ct.startsWith("image/")) {
+    return json({ error: "原图暂时无法读取。" }, upstream.status === 404 ? 404 : 502);
+  }
+
+  const outHeaders = new Headers();
+  outHeaders.set("content-type", ct);
+  outHeaders.set("cache-control", "public, max-age=2592000, s-maxage=2592000, immutable");
+  outHeaders.set("access-control-allow-origin", "*");
+  outHeaders.set("x-content-type-options", "nosniff");
+
+  const res = new Response(upstream.body, { status: 200, headers: outHeaders });
+  try { await cache.put(cacheKey, res.clone()); } catch {}
+  return res;
+}
+
+async function handleCommonsSearch(url) {
+  const q = (url.searchParams.get("q") || "").trim();
+  if (!q || q.length > 160) return json({ error: "缺少搜索词。" }, 400);
+
+  const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srlimit=8&format=json&srsearch=${encodeURIComponent(q)}`;
+  const sRes = await fetch(searchUrl, { headers: { "user-agent": COMMONS_UA } });
+  const sData = await sRes.json();
+  const hits = (sData.query && sData.query.search) || [];
+
+  for (const hit of hits) {
+    if (!/\.(jpe?g|png|webp)$/i.test(hit.title)) continue;
+    const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|mime|extmetadata&format=json`;
+    const iRes = await fetch(infoUrl, { headers: { "user-agent": COMMONS_UA } });
+    const iData = await iRes.json();
+    const pages = (iData.query && iData.query.pages) || {};
+    const page = Object.values(pages)[0];
+    const info = page && page.imageinfo && page.imageinfo[0];
+    if (!info || !String(info.mime || "").startsWith("image/")) continue;
+    const meta = info.extmetadata || {};
+    const artist = String((meta.Artist && meta.Artist.value) || "Commons").replace(/<[^>]+>/g, "").trim();
+    const lic = String((meta.LicenseShortName && meta.LicenseShortName.value) || "CC").replace(/<[^>]+>/g, "").trim();
+    const file = hit.title.replace(/^File:/, "");
+    const encFile = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
+    return json({
+      picked: {
+        src: `${url.origin}/api/img?file=${encFile}&w=1200`,
+        credit: `${artist} · ${lic}`.slice(0, 60),
+        link: `https://commons.wikimedia.org/wiki/File:${encFile}`
+      }
+    });
+  }
+
+  return json({ picked: null });
 }
 
 function json(body, status = 200, extraHeaders = {}) {
