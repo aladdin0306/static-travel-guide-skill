@@ -8,11 +8,13 @@
   title: "Display title",
   start: "YYYY-MM-DD",
   end: "YYYY-MM-DD",
-  summary: "Short narrative",
+  summary: "",
   budget: { /* Budget */ },
   days: [ /* Day */ ]
 }
 ```
+
+> Leave `summary` as `""` — the trip header displays only the cover photo gallery, date range, title, and city hops without long intro paragraphs.
 
 ## Budget
 

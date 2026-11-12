@@ -158,6 +158,7 @@ Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
 
 ## Don’t
 
+- Don’t put intro/summary paragraphs in the trip header (`summary: ""` — keep the top cover purely visual with dates, title, and city hops; put practical reminders on the relevant stops)
 - Don’t ask users to edit `data.js` or deploy servers themselves
 - Don’t deliver JSON-only when they want a webpage
 - Don’t force Australia

@@ -309,15 +309,40 @@ function openPinSheet(dayId) {
     window.open(googleUrl(points[0]), "_blank", "noopener");
     return;
   }
+  const dirLink = googleDayDirUrl(day.items);
   document.querySelector("#pin-sheet-title").textContent =
     `${monthDay(day.date) || "这一天"} · 在谷歌地图打点`;
-  list.innerHTML = points.map((item, index) => `
+  list.innerHTML = `${dirLink ? `<a class="pin-row pin-row-all" href="${esc(dirLink)}" target="_blank" rel="noopener">
+      <span class="pin-num">${icon("navigation")}</span>
+      <span class="pin-meta"><b>连成当天路线（共 ${points.length} 站）</b><small>一次性把今天所有坐标点串进谷歌地图路线</small></span>
+      <span class="pin-go">看路线</span>
+    </a>` : ""}` + points.map((item, index) => `
     <a class="pin-row" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">
       <span class="pin-num">${index + 1}</span>
       <span class="pin-meta"><b>${esc(item.name)}</b><small>${esc(item.time || "—")}${item.address ? ` · ${esc(item.address)}` : ""}</small></span>
-      <span class="pin-go">${icon("pin")}打开</span>
+      <span class="pin-go">${icon("pin")}打点</span>
     </a>`).join("");
   sheet.showModal();
+}
+
+function googleDayDirUrl(items) {
+  const points = (items || []).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  if (points.length < 2) return "";
+  return `https://www.google.com/maps/dir/${points.map((item) => `${item.lat},${item.lng}`).join("/")}`;
+}
+
+function focusOnMap(dayId, itemId) {
+  const current = trip();
+  const day = current.days.find((d) => d.id === dayId);
+  const item = day && day.items.find((it) => it.id === itemId);
+  if (!item || !Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return;
+  const entry = markers.find((m) => m._stopIds && m._stopIds.includes(itemId));
+  const mapEl = document.querySelector("#map");
+  if (window.matchMedia("(max-width: 1100px)").matches && mapEl) {
+    mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+  map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 14), { duration: 0.55 });
+  if (entry) setTimeout(() => entry.openPopup(), 260);
 }
 
 function pending(current = trip()) {
@@ -495,10 +520,13 @@ function tripPhotos(current, max = 3) {
     for (const item of day.items || []) {
       const pic = safePhoto(item);
       if (!pic) continue;
+      const itemCity = pic.city || day.city || "";
+      const name = item.name || "";
+      const caption = itemCity && !name.startsWith(itemCity) ? `${itemCity} · ${name}` : name;
       allCandidates.push({
         pic,
-        caption: `${day.city ? `${day.city} · ` : ""}${item.name || ""}`,
-        city: day.city || "",
+        caption,
+        city: itemCity,
         optional: isOptional(item)
       });
     }
@@ -591,16 +619,14 @@ function renderMain() {
         <h2>${esc(current.title)}</h2>
         <div class="hero-route">${route}</div>
       </div>`}
-      ${current.summary || true ? `<div class="hero-foot">
-        ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : `<p class="hero-summary muted edit-only">点击右侧「简介」添加行程看点与注意事项。</p>`}
-        <div class="hero-tools edit-only">
+      <div class="hero-foot edit-only">
+        <div class="hero-tools">
           <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
-          <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
           <button type="button" class="btn btn-sm" id="edit-cover">${icon("camera")}封面</button>
           <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
           ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
         </div>
-      </div>` : ""}
+      </div>
     </section>
 
     <button type="button" class="booking-banner${required.length ? " due" : " done"}" id="toggle-books" aria-expanded="${bookingsOpen}">
@@ -653,6 +679,7 @@ function renderBudget(current) {
   const unit = currency(current);
   const origins = info.origins || [];
   const origin = pickOrigin(current);
+  const hasOriginCost = Boolean(origin && (Number.isFinite(origin.amount) || Number.isFinite(origin.cny)));
   const cats = Object.keys(COST_CAT).filter((cat) => plan.cats[cat] > 0);
   const top = Math.max(...plan.days.map((row) => row.sum), 1);
   return `<section class="budget">
@@ -660,7 +687,7 @@ function renderBudget(current) {
       <div class="budget-sum">
         <p class="budget-label">预算 · 每人</p>
         <p class="budget-amount">${unit.lead}${local(plan.total)}${rate ? `<span class="rmb">约 ${cny(plan.total)}</span>` : ""}</p>
-        <p class="budget-meta">${esc(info.party || "两人同住一间")}${origin ? ` · ${esc(origin.label)}出发 · 含往返大交通` : ""}${left.length ? ` · 不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</p>
+        <p class="budget-meta">${esc(info.party || "两人同住一间")}${origin ? ` · ${esc(origin.label)}出发${hasOriginCost ? " · 含往返大交通" : ""}` : ""}${left.length ? ` · 不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</p>
       </div>
       <button type="button" class="btn btn-sm budget-toggle" id="toggle-budget" aria-expanded="${budgetOpen}">${budgetOpen ? "收起明细" : "看明细"}<span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span></button>
     </div>
@@ -715,6 +742,9 @@ function renderBudget(current) {
 }
 
 function renderFlightWatch(current, origin) {
+  if (origin && !Number.isFinite(origin.amount) && !Number.isFinite(origin.cny) && /已出|已买|已订/.test(`${origin.brief || ""} ${origin.note || ""}`)) {
+    return "";
+  }
   const fw = flightWatchUrls(current, origin);
   if (!fw) return "";
   const routeDesc = fw.openJaw
@@ -743,12 +773,11 @@ function priceChip(item) {
 
 function renderDay(day, number, current = trip()) {
   const points = mappableItems(day.items).filter((item) => googleUrl(item));
-  const mobile = isMobileMaps();
-  const link = googleDayUrl(day.items);
-  const mapControl = mobile && points.length > 1
-    ? `<button type="button" class="btn btn-primary" data-pins="${esc(day.id)}">${icon("pin")}在谷歌地图打点</button>`
-    : link
-      ? `<a class="btn btn-primary" href="${esc(link)}" target="_blank" rel="noopener">${icon(mobile ? "pin" : "navigation")}${mobile ? "在谷歌地图打点" : "用谷歌地图走这一天"}</a>`
+  const link = googleDayDirUrl(day.items);
+  const mapControl = points.length > 1
+    ? `<button type="button" class="btn btn-primary" data-pins="${esc(day.id)}">${icon("pin")}在谷歌地图打点</button>${link && !isMobileMaps() ? `<a class="btn" href="${esc(link)}" target="_blank" rel="noopener">${icon("navigation")}连成路线</a>` : ""}`
+    : points.length === 1
+      ? `<a class="btn btn-primary" href="${esc(googleUrl(points[0]))}" target="_blank" rel="noopener">${icon("pin")}在谷歌地图打点</a>`
       : "";
   const spend = dayCost(day);
   const prevDay = number > 1 ? current.days[number - 2] : null;
@@ -831,7 +860,8 @@ function renderItem(day, item, index) {
           </div>
           <div class="transit-right">
             ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
-            <a class="link-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}地图</a>
+            ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}定位</button>` : ""}
+            <a class="link-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌打点</a>
             ${editBtns}
           </div>
         </div>
@@ -885,7 +915,8 @@ function renderItem(day, item, index) {
         </details>` : ""}
         <div class="stop-actions">
           ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-          <a class="btn btn-sm btn-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}地图</a>
+          <a class="btn btn-sm btn-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌地图打点</a>
+          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-quiet" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}右侧地图定位</button>` : ""}
           ${item.kind !== "transport" ? `<a class="btn btn-sm btn-quiet btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
           ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
         </div>
@@ -962,6 +993,7 @@ function drawMap() {
       marker.bindPopup(group.items.map((item) =>
         `${safePhoto(item) ? `<img class="popup-photo" src="${esc(safePhoto(item).src)}" alt="" />` : ""}<b>${esc(item.name)}</b><span>${esc(item.time || "")}</span><a href="${esc(googleUrl(item))}" target="_blank" rel="noopener">在谷歌地图打开</a>`
       ).join("<hr>"));
+      marker._stopIds = group.items.map((it) => it.id);
       marker.addTo(map);
       markers.push(marker);
     }
@@ -1296,6 +1328,11 @@ form.addEventListener("submit", (event) => {
 main.addEventListener("click", (event) => {
   const pins = event.target.closest("[data-pins]");
   if (pins) return openPinSheet(pins.dataset.pins);
+  const focusPin = event.target.closest("[data-focus-pin]");
+  if (focusPin) {
+    const [dId, iId] = focusPin.dataset.focusPin.split(":");
+    return focusOnMap(dId, iId);
+  }
   const add = event.target.closest("[data-add]");
   if (add) return openEditor(add.dataset.add, null);
   const editDay = event.target.closest("[data-edit-day]");
@@ -1374,12 +1411,6 @@ main.addEventListener("click", (event) => {
   }
   if (event.target.closest("#add-day")) {
     return openDayEditor(null);
-  }
-  if (event.target.closest("#edit-summary")) {
-    const next = window.prompt("行程简介（用于顶部展示与分享卡片摘要）", trip().summary || "");
-    if (next == null) return;
-    trip().summary = next.trim();
-    return render();
   }
   if (event.target.closest("#edit-cover")) {
     const current = trip();
