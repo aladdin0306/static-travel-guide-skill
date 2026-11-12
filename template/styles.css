@@ -992,6 +992,64 @@ main > * {
 .trip-head {
   background: var(--card);
   border-color: var(--line);
+  display: block;
+}
+
+.trip-head.has-cover {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 268px;
+  gap: 20px;
+  align-items: center;
+}
+
+.trip-head-main {
+  min-width: 0;
+}
+
+.trip-head-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.trip-head-title {
+  min-width: 0;
+}
+
+.hero-cover {
+  position: relative;
+  margin: 0;
+  border-radius: 10px;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  background: var(--sea-soft);
+  border: 1px solid var(--line);
+}
+
+.hero-cover img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.hero-caption {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  max-width: calc(100% - 16px);
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: rgba(16, 36, 31, 0.58);
+  backdrop-filter: blur(4px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .trip-head h2 {
@@ -1621,6 +1679,8 @@ main > * {
   :root { --pad: 16px; --gap: 10px; }
   .top { padding: 12px 14px; }
   .layout { padding: 0 12px 16px; gap: 12px; }
+  .trip-head.has-cover { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .hero-cover { order: -1; aspect-ratio: 16 / 9; }
   .trip-head h2 { font-size: 24px; }
   .stop { grid-template-columns: 40px minmax(0, 1fr); gap: 12px; }
   .stop-card.has-photo { grid-template-columns: minmax(0, 1fr); gap: 12px; }

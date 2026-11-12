@@ -355,13 +355,21 @@ function safePhoto(item) {
 }
 
 function firstPhoto(current) {
-  for (const day of current.days) {
-    for (const item of day.items) {
+  if (current && current.coverPhoto) {
+    const custom = safePhoto({ photo: current.coverPhoto });
+    if (custom) return { ...custom, caption: current.coverPhoto.caption || current.title || "" };
+  }
+  let fallback = null;
+  for (const day of (current && current.days) || []) {
+    for (const item of day.items || []) {
       const pic = safePhoto(item);
-      if (pic) return pic;
+      if (!pic) continue;
+      const withCap = { ...pic, caption: `${day.city ? `${day.city} · ` : ""}${item.name || ""}` };
+      if (!isOptional(item)) return withCap;
+      if (!fallback) fallback = withCap;
     }
   }
-  return null;
+  return fallback;
 }
 
 function syncTripDates(current) {
@@ -409,21 +417,32 @@ function renderMain() {
   const route = cityRun(current.days)
     .map((run) => `<span class="hop">${esc(run.city)}<small>${run.n} 天</small></span>`)
     .join(`<span class="hop-sep">${icon("plane")}</span>`);
+  const cover = firstPhoto(current);
 
   main.innerHTML = `
-    <section class="trip-head">
-      <div class="trip-head-text">
-        <p class="hero-dates">${esc(tripRange(current))}</p>
-        <h2>${esc(current.title)}</h2>
-        <div class="hero-route">${route}</div>
+    <section class="trip-head${cover ? " has-cover" : ""}">
+      <div class="trip-head-main">
+        <div class="trip-head-top">
+          <div class="trip-head-title">
+            <p class="hero-dates">${esc(tripRange(current))}</p>
+            <h2>${esc(current.title)}</h2>
+            <div class="hero-route">${route}</div>
+          </div>
+          <div class="hero-tools edit-only">
+            <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
+            <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
+            <button type="button" class="btn btn-sm" id="edit-cover">${icon("camera")}封面</button>
+            <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
+            ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
+          </div>
+        </div>
         ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : ""}
       </div>
-      <div class="hero-tools edit-only">
-        <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
-        <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
-        <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
-        ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
-      </div>
+      ${cover ? `<figure class="hero-cover">
+        <img src="${esc(cover.src)}" alt="${esc(cover.caption || current.title)}" decoding="async" />
+        ${cover.caption ? `<figcaption class="hero-caption">${esc(cover.caption)}</figcaption>` : ""}
+        ${cover.credit ? `<a class="credit" href="${esc(safeUrl(cover.link))}" target="_blank" rel="noopener">${esc(cover.credit)}</a>` : ""}
+      </figure>` : ""}
     </section>
 
     <button type="button" class="booking-banner${required.length ? " due" : " done"}" id="toggle-books" aria-expanded="${bookingsOpen}">
@@ -990,6 +1009,13 @@ document.addEventListener("error", (event) => {
     if (card) card.classList.remove("has-photo");
     return;
   }
+  const heroFig = img.closest(".hero-cover");
+  if (heroFig) {
+    const head = heroFig.closest(".trip-head");
+    heroFig.remove();
+    if (head) head.classList.remove("has-cover");
+    return;
+  }
   if (img.classList.contains("popup-photo")) img.remove();
 }, true);
 
@@ -1098,6 +1124,22 @@ main.addEventListener("click", (event) => {
     const next = window.prompt("行程简介（用于顶部展示与分享卡片摘要）", trip().summary || "");
     if (next == null) return;
     trip().summary = next.trim();
+    return render();
+  }
+  if (event.target.closest("#edit-cover")) {
+    const current = trip();
+    const curSrc = (current.coverPhoto && current.coverPhoto.src) || "";
+    const next = window.prompt("自定义顶部封面图链接（https://...，留空则自动使用首个必去景点配图）", curSrc);
+    if (next == null) return;
+    const trimmed = next.trim();
+    if (!trimmed) {
+      delete current.coverPhoto;
+    } else if (normalizePhotoUrl(trimmed)) {
+      current.coverPhoto = { src: normalizePhotoUrl(trimmed), credit: "", link: trimmed, caption: current.title };
+    } else {
+      window.alert("请输入有效的 https:// 图片地址");
+      return;
+    }
     return render();
   }
   if (event.target.closest("#rename-trip")) {

@@ -314,17 +314,24 @@
   function portablePayload(payload) {
     const clone = structuredClone(payload);
     const base = (apiBase || location.origin).replace(/\/$/, "");
+    const convertPic = (holder) => {
+      if (!holder) return;
+      const pic = holder.coverPhoto || holder.photo;
+      const key = holder.coverPhoto ? "coverPhoto" : "photo";
+      if (!pic) return;
+      const file = commonsFile(pic.link) || commonsFile(pic.src);
+      if (file) {
+        const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
+        pic.src = `${base}/api/img?file=${enc}&w=1200`;
+        return;
+      }
+      if (/^https:\/\//i.test(pic.src || "")) return;
+      delete holder[key];
+    };
+    convertPic(clone.trip);
     for (const day of clone.trip.days || []) {
       for (const item of day.items || []) {
-        if (!item.photo) continue;
-        const file = commonsFile(item.photo.link) || commonsFile(item.photo.src);
-        if (file) {
-          const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
-          item.photo.src = `${base}/api/img?file=${enc}&w=1200`;
-          continue;
-        }
-        if (/^https:\/\//i.test(item.photo.src || "")) continue;
-        delete item.photo;
+        convertPic(item);
       }
     }
     return clone;
