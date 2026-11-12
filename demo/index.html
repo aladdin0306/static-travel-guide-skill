@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="styles.css?v=22" />
+  <link rel="stylesheet" href="styles.css?v=23" />
 </head>
 <body>
   <header class="top">
@@ -68,6 +68,7 @@
         </select>
       </label>
       <label>地址 <input name="address" placeholder="用来在谷歌上搜索" /></label>
+      <label>为什么去（亮点简介） <input name="why" placeholder="一句话说明为什么推荐这里" /></label>
       <div class="pair">
         <label>纬度 <input name="lat" inputmode="decimal" /></label>
         <label>经度 <input name="lng" inputmode="decimal" /></label>
@@ -99,6 +100,21 @@
       <label>怎么走 <textarea name="note" rows="4"></textarea></label>
       <div class="dialog-actions">
         <button type="button" id="editor-cancel" class="btn">取消</button>
+        <button type="submit" class="btn btn-primary">保存</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="day-editor">
+    <form id="day-editor-form" method="dialog">
+      <h3 id="day-editor-title">编辑这一天</h3>
+      <div class="pair">
+        <label>日期 <input name="date" placeholder="2027-05-01" /></label>
+        <label>城市 <input name="city" placeholder="京都 / 悉尼" /></label>
+      </div>
+      <label>当天主题 <input name="title" required placeholder="例如：伏见稻荷与清水寺漫步" /></label>
+      <div class="dialog-actions">
+        <button type="button" id="day-editor-cancel" class="btn">取消</button>
         <button type="submit" class="btn btn-primary">保存</button>
       </div>
     </form>
@@ -158,8 +174,8 @@
     </form>
   </dialog>
 
-  <script src="data.js?v=22"></script>
-  <script src="app.js?v=22"></script>
-  <script src="share.js?v=4"></script>
+  <script src="data.js?v=23"></script>
+  <script src="app.js?v=23"></script>
+  <script src="share.js?v=5"></script>
 </body>
 </html>

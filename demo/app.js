@@ -4,8 +4,32 @@ const FLAG = { required: "必须预约", recommended: "建议预约", none: "不
 const KIND_ICON = { sight: "camera", food: "food", transport: "bus", stay: "bed" };
 const COST_CAT = { flight: "国际机票", stay: "住宿", transport: "交通", sight: "门票和活动", food: "吃饭", other: "签证和其他" };
 const CURRENCY = {
+  CNY: { lead: "约 ", unit: "人民币", per: 1, step: 1, isCny: true, format: (text) => `¥${text}` },
+  RMB: { lead: "约 ", unit: "人民币", per: 1, step: 1, isCny: true, format: (text) => `¥${text}` },
+  USD: { lead: "美元约 ", unit: "美元", per: 1, step: 1, format: (text) => `US$${text}` },
+  EUR: { lead: "欧元约 ", unit: "欧元", per: 1, step: 1, format: (text) => `€${text}` },
+  GBP: { lead: "英镑约 ", unit: "英镑", per: 1, step: 1, format: (text) => `£${text}` },
   AUD: { lead: "澳币约 ", unit: "澳元", per: 1, step: 1, format: (text) => `A$${text}` },
-  JPY: { lead: "约 ", unit: "日元", per: 100, step: 10, format: (text) => `${text} 日元` }
+  NZD: { lead: "纽币约 ", unit: "新西兰元", per: 1, step: 1, format: (text) => `NZ$${text}` },
+  CAD: { lead: "加币约 ", unit: "加元", per: 1, step: 1, format: (text) => `C$${text}` },
+  CHF: { lead: "瑞郎约 ", unit: "瑞士法郎", per: 1, step: 1, format: (text) => `CHF ${text}` },
+  SGD: { lead: "新币约 ", unit: "新加坡元", per: 1, step: 1, format: (text) => `S$${text}` },
+  HKD: { lead: "港币约 ", unit: "港元", per: 1, step: 1, format: (text) => `HK$${text}` },
+  TWD: { lead: "台币约 ", unit: "新台币", per: 100, step: 10, format: (text) => `NT$${text}` },
+  MOP: { lead: "澳门元约 ", unit: "澳门元", per: 1, step: 1, format: (text) => `MOP$${text}` },
+  JPY: { lead: "约 ", unit: "日元", per: 100, step: 10, format: (text) => `${text} 日元` },
+  KRW: { lead: "约 ", unit: "韩元", per: 1000, step: 100, format: (text) => `₩${text}` },
+  THB: { lead: "泰铢约 ", unit: "泰铢", per: 100, step: 10, format: (text) => `฿${text}` },
+  MYR: { lead: "马币约 ", unit: "林吉特", per: 1, step: 1, format: (text) => `RM${text}` },
+  VND: { lead: "约 ", unit: "越南盾", per: 10000, step: 1000, format: (text) => `${text} 盾` },
+  IDR: { lead: "约 ", unit: "印尼盾", per: 10000, step: 1000, format: (text) => `Rp ${text}` },
+  PHP: { lead: "比索约 ", unit: "菲律宾比索", per: 100, step: 10, format: (text) => `₱${text}` },
+  AED: { lead: "迪拉姆约 ", unit: "迪拉姆", per: 1, step: 1, format: (text) => `AED ${text}` },
+  TRY: { lead: "里拉约 ", unit: "土耳其里拉", per: 10, step: 1, format: (text) => `₺${text}` },
+  ISK: { lead: "克朗约 ", unit: "冰岛克朗", per: 100, step: 10, format: (text) => `${text} ISK` },
+  NOK: { lead: "克朗约 ", unit: "挪威克朗", per: 10, step: 1, format: (text) => `NOK ${text}` },
+  SEK: { lead: "克朗约 ", unit: "瑞典克朗", per: 10, step: 1, format: (text) => `SEK ${text}` },
+  DKK: { lead: "克朗约 ", unit: "丹麦克朗", per: 10, step: 1, format: (text) => `DKK ${text}` }
 };
 
 // Lucide icons (ISC), https://lucide.dev
@@ -55,24 +79,32 @@ const main = document.querySelector("#main");
 const tripList = document.querySelector("#trip-list");
 const editor = document.querySelector("#editor");
 const form = document.querySelector("#editor-form");
+const dayEditor = document.querySelector("#day-editor");
+const dayForm = document.querySelector("#day-editor-form");
+let editingDayId = null;
 
 function load() {
   const seed = structuredClone(window.SEED_TRIPS);
   let booked = {};
   let tripId = seed[0].id;
   let origin = "";
-  let extras = [];
+  let trips = seed;
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (saved) {
       booked = saved.booked || {};
       tripId = saved.tripId || tripId;
       origin = saved.origin || "";
-      const seedIds = new Set(seed.map((item) => item.id));
-      extras = upgrade((saved.trips || []).filter((item) => !seedIds.has(item.id)));
+      if (Array.isArray(saved.trips) && saved.trips.length) {
+        const savedById = new Map(upgrade(saved.trips).map((item) => [item.id, item]));
+        const mergedSeed = seed.map((item) => savedById.get(item.id) || item);
+        const seedIds = new Set(seed.map((item) => item.id));
+        const extras = [...savedById.values()].filter((item) => !seedIds.has(item.id));
+        trips = [...mergedSeed, ...extras];
+      }
     }
   } catch (_) { /* keep the seed trip */ }
-  return { trips: [...seed, ...extras], booked, tripId, origin };
+  return { trips, booked, tripId, origin };
 }
 
 function upgrade(trips) {
@@ -187,7 +219,13 @@ function costCat(entry) {
 }
 
 function currency(current = trip()) {
-  return CURRENCY[current && current.budget && current.budget.currency] || CURRENCY.AUD;
+  const code = String((current && current.budget && current.budget.currency) || "CNY").trim().toUpperCase();
+  if (CURRENCY[code]) return CURRENCY[code];
+  return { lead: "约 ", unit: code, per: 1, step: 1, format: (text) => `${code} ${text}` };
+}
+
+function isHomeCurrency(current = trip()) {
+  return Boolean(currency(current).isCny);
 }
 
 function local(amount, exact) {
@@ -198,11 +236,13 @@ function local(amount, exact) {
 
 function cnyRate() {
   const current = trip();
+  if (isHomeCurrency(current)) return 0;
   const value = Number(current && current.budget && current.budget.cnyRate);
   return value > 0 ? value : 0;
 }
 
 function cny(amount, known) {
+  if (isHomeCurrency()) return "";
   const value = Number.isFinite(known) ? known : amount * cnyRate();
   if (!Number.isFinite(known) && !cnyRate()) return "";
   const rounded = Math.abs(value) >= 1000 ? Math.round(Math.abs(value) / 10) * 10 : Math.round(Math.abs(value));
@@ -222,10 +262,13 @@ function pickOrigin(current) {
 function originLines(current) {
   const origin = pickOrigin(current);
   if (!origin) return [];
-  const rate = Number(current.budget.cnyRate);
+  const home = isHomeCurrency(current);
+  const rate = Number(current.budget && current.budget.cnyRate);
   const lines = [];
-  if (Number.isFinite(origin.cny) && rate) {
-    lines.push({ label: `${origin.label}往返机票`, cat: "flight", amount: Math.round(origin.cny / rate), cny: origin.cny, note: origin.note || "" });
+  if (Number.isFinite(origin.amount)) {
+    lines.push({ label: `${origin.label}往返交通`, cat: "flight", amount: origin.amount, cny: origin.cny, note: origin.note || "" });
+  } else if (Number.isFinite(origin.cny) && (home || rate > 0)) {
+    lines.push({ label: `${origin.label}往返机票`, cat: "flight", amount: home ? origin.cny : Math.round(origin.cny / rate), cny: origin.cny, note: origin.note || "" });
   }
   return lines.concat(origin.adjust || []);
 }
@@ -252,8 +295,13 @@ function budgetOf(current) {
     return { day, sum };
   });
   const rate = cnyRate();
+  const home = isHomeCurrency(current);
   const extras = [...originLines(current), ...((current.budget && current.budget.extras) || [])].map((extra) =>
-    Number.isFinite(extra.amount) || !Number.isFinite(extra.cny) || !rate ? extra : { ...extra, amount: Math.round(extra.cny / rate) });
+    Number.isFinite(extra.amount)
+      ? extra
+      : (Number.isFinite(extra.cny) && (home || rate > 0)
+        ? { ...extra, amount: home ? extra.cny : Math.round(extra.cny / rate) }
+        : extra));
   for (const extra of extras) {
     if (!Number.isFinite(extra.amount)) continue;
     cats[costCat(extra)] = (cats[costCat(extra)] || 0) + extra.amount;
@@ -276,6 +324,14 @@ function firstPhoto(current) {
     }
   }
   return null;
+}
+
+function syncTripDates(current) {
+  const dated = (current.days || []).map((d) => d.date).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d || "")).sort();
+  if (dated.length) {
+    current.start = dated[0];
+    current.end = dated[dated.length - 1];
+  }
 }
 
 function monthDay(date) {
@@ -322,9 +378,11 @@ function renderMain() {
         <p class="hero-dates">${esc(tripRange(current))}</p>
         <h2>${esc(current.title)}</h2>
         <div class="hero-route">${route}</div>
+        ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : ""}
       </div>
       <div class="hero-tools edit-only">
         <button type="button" class="btn btn-sm" id="rename-trip">${icon("pencil")}改名</button>
+        <button type="button" class="btn btn-sm" id="edit-summary">${icon("pencil")}简介</button>
         <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
         ${state.trips.length > 1 ? `<button type="button" class="btn btn-sm" id="delete-trip">${icon("trash")}删除</button>` : ""}
       </div>
@@ -374,7 +432,8 @@ function renderBudget(current) {
   const plan = budgetOf(current);
   if (!plan.total) return "";
   const info = current.budget || {};
-  const rate = Number(info.cnyRate);
+  const home = isHomeCurrency(current);
+  const rate = home ? 0 : Number(info.cnyRate);
   const left = plan.extras.filter((extra) => !Number.isFinite(extra.amount));
   const unit = currency(current);
   const origins = info.origins || [];
@@ -386,7 +445,7 @@ function renderBudget(current) {
       <div class="budget-sum">
         <p class="budget-label">预算 · 每人</p>
         <p class="budget-amount">${unit.lead}${local(plan.total)}${rate ? `<span class="rmb">约 ${cny(plan.total)}</span>` : ""}</p>
-        <p class="budget-meta">${esc(info.party || "两人同住一间")}${origin ? ` · ${esc(origin.label)}出发 · 含国际机票` : ""}${left.length ? ` · 不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</p>
+        <p class="budget-meta">${esc(info.party || "两人同住一间")}${origin ? ` · ${esc(origin.label)}出发 · 含往返大交通` : ""}${left.length ? ` · 不含${esc(left.map((extra) => extra.label).join("、"))}` : ""}</p>
       </div>
       <button type="button" class="btn btn-sm budget-toggle" id="toggle-budget" aria-expanded="${budgetOpen}">${budgetOpen ? "收起明细" : "看明细"}<span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span></button>
     </div>
@@ -400,11 +459,11 @@ function renderBudget(current) {
     <div class="budget-bar" aria-hidden="true">
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
-    <div class="budget-ledger" role="table" aria-label="分类明细">
+    <div class="budget-ledger${home ? " single-col" : ""}" role="table" aria-label="分类明细">
       <div class="ledger-head" role="row">
         <span role="columnheader">项目</span>
-        <span role="columnheader">当地货币</span>
-        <span role="columnheader">人民币</span>
+        <span role="columnheader">${home ? "金额" : "当地货币"}</span>
+        ${home ? "" : `<span role="columnheader">人民币</span>`}
       </div>
       ${cats.map((cat) => {
         const amt = plan.cats[cat];
@@ -413,7 +472,7 @@ function renderBudget(current) {
         return `<div class="ledger-row cat-${cat}" role="row">
           <span class="ledger-name" role="cell"><i aria-hidden="true"></i>${COST_CAT[cat]}<em>${pct}%</em></span>
           <span class="ledger-local" role="cell">${local(amt)}</span>
-          <span class="ledger-cny" role="cell">${rmb || "—"}</span>
+          ${home ? "" : `<span class="ledger-cny" role="cell">${rmb || "—"}</span>`}
         </div>`;
       }).join("")}
     </div>
@@ -482,6 +541,8 @@ function renderDay(day, number, current = trip()) {
       <div class="day-tools">
         ${mapControl}
         <button type="button" class="btn edit-only" data-add="${esc(day.id)}">${icon("plus")}加一站</button>
+        <button type="button" class="icon-btn edit-only" data-edit-day="${esc(day.id)}" title="编辑当天日期、城市和主题" aria-label="编辑当天">${icon("pencil")}</button>
+        ${current.days.length > 1 ? `<button type="button" class="icon-btn danger edit-only" data-del-day="${esc(day.id)}" title="删除这一天" aria-label="删除这一天">${icon("trash")}</button>` : ""}
       </div>
     </header>
     ${day.items.length ? `
@@ -650,7 +711,7 @@ function openEditor(dayId, item) {
   form.reset();
   document.querySelector("#editor-title").textContent = item ? "修改地点" : "添加地点";
   if (item) {
-    for (const key of ["time", "name", "kind", "address", "reservation", "reservationNote", "bookingUrl", "note"]) {
+    for (const key of ["time", "name", "kind", "address", "why", "reservation", "reservationNote", "bookingUrl", "note"]) {
       form.elements[key].value = item[key] || (key === "kind" ? "sight" : key === "reservation" ? "none" : "");
     }
     form.elements.lat.value = Number.isFinite(item.lat) ? item.lat : "";
@@ -678,6 +739,7 @@ function readForm() {
     name: data.name.trim(),
     kind: data.kind,
     address: data.address.trim(),
+    why: (data.why || "").trim(),
     lat: Number.isFinite(lat) ? lat : null,
     lng: Number.isFinite(lng) ? lng : null,
     reservation: data.reservation,
@@ -775,6 +837,47 @@ document.querySelector("#geocode-btn").addEventListener("click", async () => {
 });
 
 document.querySelector("#editor-cancel").addEventListener("click", () => editor.close());
+document.querySelector("#day-editor-cancel").addEventListener("click", () => dayEditor.close());
+
+function openDayEditor(day) {
+  editingDayId = day ? day.id : null;
+  dayForm.reset();
+  document.querySelector("#day-editor-title").textContent = day ? "编辑这一天" : "添加新的一天";
+  if (day) {
+    dayForm.elements.date.value = day.date || "";
+    dayForm.elements.city.value = day.city || "";
+    dayForm.elements.title.value = day.title || "";
+  }
+  dayEditor.showModal();
+}
+
+dayForm.addEventListener("submit", (event) => {
+  event.preventDefault();
+  const current = trip();
+  const date = (dayForm.elements.date.value || "").trim();
+  const city = (dayForm.elements.city.value || "").trim();
+  const title = (dayForm.elements.title.value || "").trim();
+  if (!title) return;
+  if (editingDayId) {
+    const target = current.days.find((d) => d.id === editingDayId);
+    if (target) {
+      target.date = date;
+      target.city = city;
+      target.title = title;
+    }
+  } else {
+    current.days.push({
+      id: `day-${Date.now()}`,
+      date,
+      city,
+      title,
+      items: []
+    });
+  }
+  syncTripDates(current);
+  dayEditor.close();
+  render();
+});
 
 document.querySelector("#photo-search-btn").addEventListener("click", async () => {
   const day = editing && trip().days.find((item) => item.id === editing.dayId);
@@ -850,6 +953,24 @@ main.addEventListener("click", (event) => {
   if (pins) return openPinSheet(pins.dataset.pins);
   const add = event.target.closest("[data-add]");
   if (add) return openEditor(add.dataset.add, null);
+  const editDay = event.target.closest("[data-edit-day]");
+  if (editDay) {
+    const day = trip().days.find((item) => item.id === editDay.dataset.editDay);
+    if (day) openDayEditor(day);
+    return;
+  }
+  const delDay = event.target.closest("[data-del-day]");
+  if (delDay) {
+    const current = trip();
+    if (current.days.length <= 1) return;
+    const day = current.days.find((item) => item.id === delDay.dataset.delDay);
+    if (!day || !window.confirm(`确定删除「${day.title || monthDay(day.date) || "这一天"}」及其所有地点吗？`)) return;
+    for (const it of day.items || []) delete state.booked[it.id];
+    current.days = current.days.filter((item) => item.id !== day.id);
+    if (dayFilter === day.id) dayFilter = "all";
+    syncTripDates(current);
+    return render();
+  }
   const edit = event.target.closest("[data-edit]");
   if (edit) {
     const [dayId, itemId] = edit.dataset.edit.split(":");
@@ -907,16 +1028,12 @@ main.addEventListener("click", (event) => {
     return render();
   }
   if (event.target.closest("#add-day")) {
-    const date = window.prompt("日期，写成 2027-05-06", "");
-    if (date == null) return;
-    const current = trip();
-    current.days.push({
-      id: `day-${Date.now()}`,
-      date: date.trim(),
-      city: "",
-      title: "新的一天",
-      items: []
-    });
+    return openDayEditor(null);
+  }
+  if (event.target.closest("#edit-summary")) {
+    const next = window.prompt("行程简介（用于顶部展示与分享卡片摘要）", trip().summary || "");
+    if (next == null) return;
+    trip().summary = next.trim();
     return render();
   }
   if (event.target.closest("#rename-trip")) {

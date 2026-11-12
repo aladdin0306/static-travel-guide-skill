@@ -1003,6 +1003,14 @@ main > * {
   align-items: baseline;
 }
 
+.hero-summary {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 13.5px;
+  line-height: 1.65;
+  max-width: 72ch;
+}
+
 .hop {
   padding: 0;
   border-radius: 0;
@@ -1201,6 +1209,11 @@ main > * {
   padding: 10px 14px;
 }
 
+.budget-ledger.single-col .ledger-head,
+.budget-ledger.single-col .ledger-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .ledger-head {
   background: #f3f6f5;
   border-bottom: 1px solid var(--line);
@@ -1351,7 +1364,7 @@ main > * {
 }
 
 .plan-row {
-  grid-template-columns: 28px 4.5em minmax(0, 1fr) 9.5em !important;
+  grid-template-columns: 28px 4.5em minmax(0, 1fr) 9.5em;
   align-items: center;
   column-gap: 12px;
   padding: 10px 0;
@@ -1615,9 +1628,10 @@ main > * {
   .stop-rail::after { right: 10px; top: 48px; }
   .banner-cta { display: none; }
   .day-tab { padding: 8px 12px 10px; }
-  .plan-row { grid-template-columns: 22px 70px minmax(0, 1fr); }
-  .plan-row .plan-end { grid-column: 3; justify-self: start; }
-  .budget-days button { grid-template-columns: 92px minmax(0, 1fr) 76px; gap: 8px; }
+  .plan-row { grid-template-columns: 24px 4.2em minmax(0, 1fr); row-gap: 6px; }
+  .plan-row .plan-end { grid-column: 3; flex-direction: row; flex-wrap: wrap; align-items: center; justify-content: flex-start; }
+  .budget-day-btn { grid-template-columns: 4.8em minmax(0, 1fr) auto !important; gap: 8px !important; }
+  .budget-days .bd-go { display: none; }
 }
 
 /* Shared pages */

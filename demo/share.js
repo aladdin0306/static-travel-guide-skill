@@ -25,6 +25,7 @@
   let lastSnapshot = "";
   let currentLinks = null;
   let saveTimer = 0;
+  let dirty = false;
 
   window.TRAVEL_SHARE = {
     isSharedRoute: () => Boolean(route),
@@ -94,8 +95,18 @@
 
   window.addEventListener("travelguide:save", () => {
     if (!route || route.mode !== "edit" || !token || loading) return;
+    const next = snapshot();
+    if (!next || next === lastSnapshot) return;
+    dirty = true;
+    setStatus("有未保存修改…", "working");
     clearTimeout(saveTimer);
-    saveTimer = window.setTimeout(saveRemote, 700);
+    saveTimer = window.setTimeout(saveRemote, 600);
+  });
+
+  window.addEventListener("beforeunload", (event) => {
+    if (!dirty && !saving) return;
+    event.preventDefault();
+    event.returnValue = "";
   });
 
   async function loadShared() {
@@ -112,6 +123,7 @@
       revision = data.revision;
       window.TRAVEL_GUIDE_APP.loadShared({ trip: data.trip, booked: data.booked || {} });
       lastSnapshot = snapshot();
+      dirty = false;
       if (data.trip && data.trip.title) {
         document.title = `${data.trip.title} | 行程库`;
       }
@@ -171,7 +183,10 @@
 
   async function saveRemote() {
     const nextSnapshot = snapshot();
-    if (!nextSnapshot || nextSnapshot === lastSnapshot) return;
+    if (!nextSnapshot || nextSnapshot === lastSnapshot) {
+      dirty = false;
+      return;
+    }
     if (saving) {
       saveAgain = true;
       return;
@@ -200,6 +215,7 @@
       }
       revision = data.revision;
       lastSnapshot = snapshot();
+      dirty = snapshot() !== lastSnapshot;
       if (reloadConflictButton) reloadConflictButton.hidden = true;
       setStatus(`可编辑 · v${revision} 已保存`, "saved");
     } catch (error) {
@@ -276,8 +292,7 @@
       const newToken = new URLSearchParams(newHash.slice(1)).get("token") || "";
       if (newToken) {
         token = newToken;
-        sessionStorage.setItem(`travel-guide-edit-token:${route.id}`, newToken);
-        history.replaceState(null, "", `${location.pathname}${location.search}#token=${newToken}`);
+        saveToken(route.id, newToken);
       }
       editInput.value = data.editUrl;
       setStatus("编辑密钥已重置", "saved");
@@ -325,15 +340,32 @@
     }
   }
 
+  function saveToken(id, value) {
+    const key = `travel-guide-edit-token:${id}`;
+    try { localStorage.setItem(key, value); } catch {}
+    try { sessionStorage.setItem(key, value); } catch {}
+  }
+
   function readToken(id) {
     const params = new URLSearchParams(location.hash.slice(1));
     const fromHash = params.get("token") || "";
     const key = `travel-guide-edit-token:${id}`;
     if (fromHash) {
-      sessionStorage.setItem(key, fromHash);
+      saveToken(id, fromHash);
+      try {
+        history.replaceState(null, "", `${location.pathname}${location.search}`);
+      } catch {}
       return fromHash;
     }
-    return sessionStorage.getItem(key) || "";
+    try {
+      const fromLocal = localStorage.getItem(key);
+      if (fromLocal) return fromLocal;
+    } catch {}
+    try {
+      return sessionStorage.getItem(key) || "";
+    } catch {
+      return "";
+    }
   }
 
   function openShareDialog(links) {
