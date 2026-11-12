@@ -1,22 +1,22 @@
 :root {
-  --sand: #eef3f2;
+  --sand: #f6f4ef;
   --card: #ffffff;
-  --ink: #10241f;
-  --muted: #5a6e69;
-  --line: #d8e4e1;
-  --edge: #c5d5d1;
-  --sea: #0f766e;
-  --sea-dark: #0d5c56;
-  --sea-soft: #e6f5f2;
+  --ink: #162420;
+  --muted: #5f6d68;
+  --line: #e5e1d8;
+  --edge: #d3cec3;
+  --sea: #0f6a61;
+  --sea-dark: #0a4f48;
+  --sea-soft: #eaf5f3;
   --coral: #c2410c;
   --coral-dark: #9a3412;
   --coral-soft: #fff4ed;
   --sun: #b45309;
   --sun-ink: #92400e;
-  --sun-soft: #fff7ed;
+  --sun-soft: #fff8eb;
   --ok: #047857;
   --ok-soft: #ecfdf5;
-  --shadow: 0 1px 0 rgba(16, 36, 31, 0.04), 0 8px 24px rgba(16, 36, 31, 0.05);
+  --shadow: 0 1px 2px rgba(22, 36, 32, 0.04), 0 10px 28px rgba(22, 36, 32, 0.045);
 }
 
 * { box-sizing: border-box; }
@@ -934,16 +934,16 @@ dialog input:focus, dialog select:focus, dialog textarea:focus {
 /* ——— Calm layout: one rhythm, fewer boxes ——— */
 
 :root {
-  --pad: 20px;
-  --radius: 12px;
-  --gap: 12px;
-  --shadow: none;
+  --pad: 22px;
+  --radius: 16px;
+  --gap: 14px;
+  --shadow: 0 1px 2px rgba(22, 36, 32, 0.035), 0 8px 24px rgba(22, 36, 32, 0.038);
 }
 
 .top {
-  background: rgba(255, 255, 255, 0.92);
+  background: rgba(250, 249, 246, 0.9);
   border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
 }
 
 .brand-mark {
@@ -960,7 +960,7 @@ dialog input:focus, dialog select:focus, dialog textarea:focus {
 
 .rail, .map-panel {
   border-radius: var(--radius);
-  box-shadow: none;
+  box-shadow: var(--shadow);
   border-color: var(--line);
 }
 
@@ -986,24 +986,28 @@ main > * {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--card);
-  box-shadow: none;
+  box-shadow: var(--shadow);
 }
 
 .trip-head {
-  background: var(--card);
+  background: linear-gradient(160deg, #ffffff 0%, #fcfbf8 100%);
   border-color: var(--line);
   display: block;
 }
 
 .trip-head.has-cover {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 268px;
-  gap: 20px;
-  align-items: center;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.95fr);
+  gap: 22px;
+  align-items: stretch;
+  padding: 24px;
 }
 
 .trip-head-main {
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .trip-head-top {
@@ -1018,14 +1022,41 @@ main > * {
   min-width: 0;
 }
 
+.hero-mosaic {
+  display: grid;
+  gap: 8px;
+  min-height: 220px;
+}
+
+.hero-mosaic.count-1 {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.hero-mosaic.count-2 {
+  grid-template-columns: 1.2fr 1fr;
+}
+
+.hero-mosaic.count-3 {
+  grid-template-columns: 1.35fr 1fr;
+  grid-template-rows: 1fr 1fr;
+}
+
+.hero-mosaic.count-3 .slot-1 {
+  grid-row: 1 / span 2;
+}
+
 .hero-cover {
   position: relative;
   margin: 0;
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
   background: var(--sea-soft);
-  border: 1px solid var(--line);
+  border: 1px solid rgba(22, 36, 32, 0.08);
+  min-height: 104px;
+}
+
+.hero-mosaic.count-1 .hero-cover {
+  aspect-ratio: 16 / 10;
 }
 
 .hero-cover img {
@@ -1033,6 +1064,11 @@ main > * {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.35s ease;
+}
+
+.hero-cover:hover img {
+  transform: scale(1.03);
 }
 
 .hero-caption {
@@ -1040,10 +1076,10 @@ main > * {
   left: 8px;
   top: 8px;
   max-width: calc(100% - 16px);
-  padding: 2px 8px;
-  border-radius: 6px;
-  background: rgba(16, 36, 31, 0.58);
-  backdrop-filter: blur(4px);
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(16, 28, 25, 0.56);
+  backdrop-filter: blur(6px);
   color: #fff;
   font-size: 11px;
   font-weight: 600;
@@ -1851,4 +1887,274 @@ html.shared-loading body { visibility: hidden; }
   #share-btn { padding: 0 11px; }
   .copy-field { grid-template-columns: minmax(0, 1fr); }
   .copy-field .btn { width: 100%; }
+  .hero-mosaic { order: -1; min-height: 180px; }
+  .hero-mosaic.count-3 { grid-template-columns: 1.3fr 1fr; }
+  .flight-watch { flex-direction: column; align-items: stretch; }
+  .flight-watch-actions { width: 100%; }
+  .flight-watch-actions .btn { flex: 1; }
+}
+
+/* Editorial enhancements: flight watch, ribbon, weather, XHS, print */
+
+.trip-head h2 {
+  margin: 6px 0 12px;
+  font-size: clamp(28px, 3.6vw, 34px);
+  letter-spacing: -0.025em;
+}
+
+.hop {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #f2efe8;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.flight-watch {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 11px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #f3faf8 0%, #fffbf2 100%);
+  border: 1px solid #cde4de;
+}
+
+.flight-watch-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.fw-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--sea);
+  color: #fff;
+  font-size: 11.5px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.fw-badge .icon { width: 13px; height: 13px; }
+
+.fw-route {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+.fw-route b {
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.fw-route small {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.flight-watch-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.day-head-info {
+  min-width: 0;
+}
+
+.day-kicker-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+
+.day-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.day h2 {
+  margin: 6px 0 0;
+  font-size: 22px;
+}
+
+.weather-strip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 8px 0 0;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f8f5ec;
+  border: 1px solid #ebe3cf;
+  color: #6b5626;
+  font-size: 12px;
+}
+.weather-strip .icon {
+  width: 14px;
+  height: 14px;
+  color: #c27803;
+}
+.weather-strip b {
+  font-weight: 700;
+  color: #4f3f19;
+}
+.weather-strip span {
+  color: var(--muted);
+}
+
+.plan-ribbon {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin: 16px 0 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #faf9f5;
+  border: 1px solid var(--line);
+}
+
+.ribbon-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px 4px 5px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 12.5px;
+  text-decoration: none;
+  transition: border-color 0.15s, transform 0.15s, color 0.15s;
+}
+
+.ribbon-pill:hover {
+  border-color: var(--sea);
+  color: var(--sea-dark);
+  transform: translateY(-1px);
+}
+
+.ribbon-pill.optional {
+  opacity: 0.65;
+  border-style: dashed;
+}
+
+.rp-num {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--k, var(--sea));
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ribbon-pill time {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-variant-numeric: tabular-nums;
+}
+
+.ribbon-pill b {
+  font-weight: 600;
+  max-width: 15em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ribbon-arrow {
+  color: var(--edge);
+  font-size: 12px;
+}
+
+.stop-photo {
+  border-radius: 10px;
+  aspect-ratio: 4 / 3;
+  box-shadow: 0 4px 14px rgba(22, 36, 32, 0.08);
+}
+
+.btn-xhs {
+  border-color: #f7c6ce;
+  background: #fff7f8;
+  color: #c81e3a;
+}
+.btn-xhs:hover {
+  border-color: #ff2442;
+  background: #ff2442;
+  color: #fff;
+}
+
+/* Print / Visa PDF stylesheet */
+@media print {
+  @page { margin: 12mm; }
+  html, body {
+    background: #fff !important;
+    height: auto !important;
+    font-size: 12.5px;
+  }
+  .top,
+  .rail,
+  .map-panel,
+  .day-tabs,
+  .day-tools,
+  .hero-tools,
+  .stop-edit,
+  .stop-actions,
+  .budget-toggle,
+  .banner-cta,
+  .flight-watch-actions,
+  .day-pager,
+  dialog {
+    display: none !important;
+  }
+  .layout,
+  .shared-route .layout {
+    display: block !important;
+    padding: 0 !important;
+    height: auto !important;
+  }
+  main {
+    display: block !important;
+    overflow: visible !important;
+    padding: 0 !important;
+  }
+  .trip-head,
+  .booking-banner,
+  .budget,
+  .day {
+    box-shadow: none !important;
+    margin-bottom: 12px !important;
+    break-inside: avoid-page;
+    border-color: #d6d3cb !important;
+  }
+  .day {
+    break-inside: auto;
+  }
+  .stop {
+    break-inside: avoid;
+  }
 }

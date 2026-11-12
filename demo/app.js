@@ -53,6 +53,10 @@ const ICONS = {
   refresh: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/>',
   arrowUp: '<path d="m18 15-6-6-6 6"/>',
   arrowDown: '<path d="m6 9 6 6 6-6"/>',
+  printer: '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
+  sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
+  bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>',
   food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   bus: '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
   bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
@@ -74,6 +78,7 @@ let dayFilter = "all";
 let bookingsOpen = false;
 let budgetOpen = false;
 let editing = null;
+const weatherCache = new Map();
 
 const main = document.querySelector("#main");
 const tripList = document.querySelector("#trip-list");
@@ -150,6 +155,124 @@ function safeUrl(url) {
 function isMobileMaps() {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
     (navigator.maxTouchPoints > 1 && window.matchMedia("(max-width: 820px)").matches);
+}
+
+function xhsUrl(day, item) {
+  const city = (day && day.city) || (trip() && trip().title) || "";
+  const cleanName = String(item.name || "")
+    .replace(/^(住|飞|坐|渡轮去|渡轮回|去)\s*/, "")
+    .replace(/（.*?）|\(.*?\)/g, "")
+    .trim();
+  const suffix = item.kind === "food" ? "点单推荐 避雷" : item.kind === "stay" ? "入住体验 位置" : "攻略 近期实况";
+  const kw = `${city} ${cleanName || item.name} ${suffix}`.trim();
+  return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(kw)}`;
+}
+
+function flightWatchUrls(current, origin) {
+  const days = (current && current.days) || [];
+  if (!days.length) return null;
+  const fromCity = (origin && origin.label) || "上海";
+  const firstCity = days.map((d) => d.city).find(Boolean) || current.title || "";
+  const lastCity = [...days].reverse().map((d) => d.city).find(Boolean) || firstCity;
+  if (!firstCity || fromCity === firstCity) return null;
+  const start = current.start || (days[0] && days[0].date) || "";
+  const end = current.end || (days[days.length - 1] && days[days.length - 1].date) || "";
+  const openJaw = lastCity && lastCity !== firstCity;
+  const gfQuery = openJaw
+    ? `Flights from ${fromCity} to ${firstCity}${start ? ` on ${start}` : ""} and from ${lastCity} to ${fromCity}${end ? ` on ${end}` : ""}`
+    : `Round trip flights from ${fromCity} to ${firstCity}${start ? ` departing ${start}` : ""}${end ? ` returning ${end}` : ""}`;
+  const googleFlights = `https://www.google.com/travel/flights?hl=zh-CN&curr=CNY&q=${encodeURIComponent(gfQuery)}`;
+  const tripCom = `https://hk.trip.com/flights/?locale=zh-HK&curr=CNY`;
+  return {
+    fromCity,
+    firstCity,
+    lastCity,
+    openJaw,
+    start,
+    end,
+    googleFlights,
+    tripCom
+  };
+}
+
+function shiftYear(dateStr, deltaYears) {
+  const m = String(dateStr || "").match(/^(\d{4})-(\d{2}-\d{2})$/);
+  if (!m) return "";
+  return `${Number(m[1]) + deltaYears}-${m[2]}`;
+}
+
+function wearAdvice(minT, maxT, rainMm) {
+  const avg = (minT + maxT) / 2;
+  let cloth = "薄长袖或短袖叠穿";
+  if (avg < 6) cloth = "羽绒服/厚大衣 + 保暖内搭";
+  else if (avg < 14) cloth = "防风外套/风衣 + 卫衣毛衣";
+  else if (avg < 21) cloth = "薄外套/针织衫，早晚微凉";
+  else if (avg >= 27) cloth = "清凉夏装 + 防晒帽墨镜";
+  const rain = rainMm >= 5 ? " · 备晴雨伞" : "";
+  return `${cloth}${rain}`;
+}
+
+async function ensureDayWeather(day) {
+  if (!day || !day.date || !/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return;
+  const pt = (day.items || []).find((it) => Number.isFinite(it.lat) && Number.isFinite(it.lng));
+  if (!pt) return;
+  const key = `${day.date}:${pt.lat.toFixed(2)},${pt.lng.toFixed(2)}`;
+  if (weatherCache.has(key)) return;
+  weatherCache.set(key, { loading: true });
+
+  try {
+    const today = new Date();
+    const target = new Date(`${day.date}T12:00:00`);
+    const diffDays = Math.round((target - today) / 86400000);
+    let url = "";
+    let mode = "forecast";
+    if (diffDays >= -1 && diffDays <= 14) {
+      url = `https://api.open-meteo.com/v1/forecast?latitude=${pt.lat.toFixed(3)}&longitude=${pt.lng.toFixed(3)}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&start_date=${day.date}&end_date=${day.date}`;
+    } else {
+      mode = "climate";
+      const refYear = today.getFullYear() - 1;
+      const md = day.date.slice(5);
+      const refDate = `${refYear}-${md}`;
+      url = `https://archive-api.open-meteo.com/v1/archive?latitude=${pt.lat.toFixed(3)}&longitude=${pt.lng.toFixed(3)}&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto&start_date=${refDate}&end_date=${refDate}`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) throw new Error("weather fetch failed");
+    const data = await res.json();
+    const d = data && data.daily;
+    if (!d || !Array.isArray(d.temperature_2m_max) || d.temperature_2m_max[0] == null) {
+      weatherCache.set(key, null);
+      return;
+    }
+    const maxT = Math.round(d.temperature_2m_max[0]);
+    const minT = Math.round(d.temperature_2m_min[0]);
+    const rain = Number(d.precipitation_sum ? d.precipitation_sum[0] : 0) || 0;
+    const badge = {
+      mode,
+      temp: `${minT}°–${maxT}°C`,
+      tip: wearAdvice(minT, maxT, rain),
+      label: mode === "forecast" ? "实时预报" : "往年同期"
+    };
+    weatherCache.set(key, badge);
+    document.querySelectorAll(`[data-weather-key="${key}"]`).forEach((el) => {
+      el.innerHTML = `${icon("sun")}<b>${esc(badge.label)} ${esc(badge.temp)}</b><span>${esc(badge.tip)}</span>`;
+      el.hidden = false;
+    });
+  } catch (_) {
+    weatherCache.set(key, null);
+  }
+}
+
+function dayWeatherSlot(day) {
+  if (!day || !day.date || !/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return "";
+  const pt = (day.items || []).find((it) => Number.isFinite(it.lat) && Number.isFinite(it.lng));
+  if (!pt) return "";
+  const key = `${day.date}:${pt.lat.toFixed(2)},${pt.lng.toFixed(2)}`;
+  const cached = weatherCache.get(key);
+  if (cached && !cached.loading) {
+    return `<p class="weather-strip" data-weather-key="${esc(key)}">${icon("sun")}<b>${esc(cached.label)} ${esc(cached.temp)}</b><span>${esc(cached.tip)}</span></p>`;
+  }
+  ensureDayWeather(day);
+  return `<p class="weather-strip" data-weather-key="${esc(key)}" hidden></p>`;
 }
 
 function mappableItems(items) {
@@ -354,22 +477,48 @@ function safePhoto(item) {
   return { ...pic, src };
 }
 
-function firstPhoto(current) {
+function tripPhotos(current, max = 3) {
+  const list = [];
+  const seen = new Set();
+  const pushPic = (pic, caption, city) => {
+    if (!pic || !pic.src || seen.has(pic.src)) return;
+    seen.add(pic.src);
+    list.push({ ...pic, caption: caption || "", city: city || "" });
+  };
   if (current && current.coverPhoto) {
     const custom = safePhoto({ photo: current.coverPhoto });
-    if (custom) return { ...custom, caption: current.coverPhoto.caption || current.title || "" };
+    if (custom) pushPic(custom, current.coverPhoto.caption || current.title || "", "");
   }
-  let fallback = null;
+  const allCandidates = [];
   for (const day of (current && current.days) || []) {
     for (const item of day.items || []) {
       const pic = safePhoto(item);
       if (!pic) continue;
-      const withCap = { ...pic, caption: `${day.city ? `${day.city} · ` : ""}${item.name || ""}` };
-      if (!isOptional(item)) return withCap;
-      if (!fallback) fallback = withCap;
+      allCandidates.push({
+        pic,
+        caption: `${day.city ? `${day.city} · ` : ""}${item.name || ""}`,
+        city: day.city || "",
+        optional: isOptional(item)
+      });
     }
   }
-  return fallback;
+  const usedCities = new Set();
+  for (const c of allCandidates.filter((x) => !x.optional)) {
+    if (c.city && !usedCities.has(c.city)) {
+      usedCities.add(c.city);
+      pushPic(c.pic, c.caption, c.city);
+      if (list.length >= max) return list;
+    }
+  }
+  for (const c of allCandidates) {
+    pushPic(c.pic, c.caption, c.city);
+    if (list.length >= max) return list;
+  }
+  return list;
+}
+
+function firstPhoto(current) {
+  return tripPhotos(current, 1)[0] || null;
 }
 
 function syncTripDates(current) {
@@ -417,10 +566,10 @@ function renderMain() {
   const route = cityRun(current.days)
     .map((run) => `<span class="hop">${esc(run.city)}<small>${run.n} 天</small></span>`)
     .join(`<span class="hop-sep">${icon("plane")}</span>`);
-  const cover = firstPhoto(current);
+  const gallery = tripPhotos(current, 3);
 
   main.innerHTML = `
-    <section class="trip-head${cover ? " has-cover" : ""}">
+    <section class="trip-head${gallery.length ? " has-cover" : ""}">
       <div class="trip-head-main">
         <div class="trip-head-top">
           <div class="trip-head-title">
@@ -438,11 +587,13 @@ function renderMain() {
         </div>
         ${current.summary ? `<p class="hero-summary">${esc(current.summary)}</p>` : ""}
       </div>
-      ${cover ? `<figure class="hero-cover">
-        <img src="${esc(cover.src)}" alt="${esc(cover.caption || current.title)}" decoding="async" />
-        ${cover.caption ? `<figcaption class="hero-caption">${esc(cover.caption)}</figcaption>` : ""}
-        ${cover.credit ? `<a class="credit" href="${esc(safeUrl(cover.link))}" target="_blank" rel="noopener">${esc(cover.credit)}</a>` : ""}
-      </figure>` : ""}
+      ${gallery.length ? `<div class="hero-mosaic count-${gallery.length}">
+        ${gallery.map((pic, idx) => `<figure class="hero-cover slot-${idx + 1}">
+          <img src="${esc(pic.src)}" alt="${esc(pic.caption || current.title)}" decoding="async" />
+          ${pic.caption ? `<figcaption class="hero-caption">${esc(pic.caption)}</figcaption>` : ""}
+          ${idx === 0 && pic.credit ? `<a class="credit" href="${esc(safeUrl(pic.link))}" target="_blank" rel="noopener">${esc(pic.credit)}</a>` : ""}
+        </figure>`).join("")}
+      </div>` : ""}
     </section>
 
     <button type="button" class="booking-banner${required.length ? " due" : " done"}" id="toggle-books" aria-expanded="${bookingsOpen}">
@@ -513,6 +664,7 @@ function renderBudget(current) {
       </div>
     </div>` : ""}
     ${origin && origin.brief ? `<p class="origin-brief">${esc(origin.brief)}</p>` : ""}
+    ${renderFlightWatch(current, origin)}
     <div class="budget-bar" aria-hidden="true">
       ${cats.map((cat) => `<span class="cat-${cat}" style="width:${(plan.cats[cat] / plan.total * 100).toFixed(1)}%"></span>`).join("")}
     </div>
@@ -560,6 +712,27 @@ function renderBudget(current) {
   </section>`;
 }
 
+function renderFlightWatch(current, origin) {
+  const fw = flightWatchUrls(current, origin);
+  if (!fw) return "";
+  const routeDesc = fw.openJaw
+    ? `${fw.fromCity} → ${fw.firstCity} · ${fw.lastCity} → ${fw.fromCity}（开口程）`
+    : `${fw.fromCity} ⇄ ${fw.firstCity}（往返）`;
+  const targetTip = origin && Number.isFinite(origin.cny)
+    ? `当前估算 ¥${origin.cny.toLocaleString("en-US")}，建议低于 ¥${Math.round(origin.cny * 0.88 / 50) * 50} 可入手`
+    : "打开 Google Flights 后点「跟踪价格」即可免费收降价邮件提醒";
+  return `<div class="flight-watch">
+    <div class="flight-watch-info">
+      <span class="fw-badge">${icon("bell")}蹲低价机票</span>
+      <span class="fw-route"><b>${esc(routeDesc)}</b><small>${esc(targetTip)}</small></span>
+    </div>
+    <div class="flight-watch-actions">
+      <a class="btn btn-sm btn-primary" href="${esc(fw.googleFlights)}" target="_blank" rel="noopener">${icon("plane")}查实时票价 & 开降价提醒</a>
+      <a class="btn btn-sm" href="${esc(fw.tripCom)}" target="_blank" rel="noopener">携程比价</a>
+    </div>
+  </div>`;
+}
+
 function priceChip(item) {
   if (!hasCost(item)) return "";
   if (item.cost.amount > 0) return `<span class="price">${money(item.cost.amount, true)}<small>/人</small></span>`;
@@ -591,9 +764,13 @@ function renderDay(day, number, current = trip()) {
     : "";
   return `<section class="day" id="${esc(day.id)}">
     <header class="day-head">
-      <div>
-        <p class="eyebrow">第 ${number} 天 · ${esc(monthDay(day.date) || "日期未定")}${day.date ? ` 周${weekday(day.date)}` : ""} · ${esc(day.city || "未定")}${spend ? ` · 每人约 ${local(spend)}${cnyRate() ? `（${cny(spend)}）` : ""}` : ""}</p>
+      <div class="day-head-info">
+        <div class="day-kicker-row">
+          <span class="day-badge">DAY ${String(number).padStart(2, "0")}</span>
+          <p class="eyebrow">${esc(monthDay(day.date) || "日期未定")}${day.date ? ` 周${weekday(day.date)}` : ""} · ${esc(day.city || "未定")}${spend ? ` · 每人约 ${local(spend)}${cnyRate() ? `（${cny(spend)}）` : ""}` : ""}</p>
+        </div>
         <h2>${esc(day.title || day.city)}</h2>
+        ${dayWeatherSlot(day)}
       </div>
       <div class="day-tools">
         ${mapControl}
@@ -603,14 +780,15 @@ function renderDay(day, number, current = trip()) {
       </div>
     </header>
     ${day.items.length ? `
-    <div class="plan">
-      <h3 class="section-title">今天的安排</h3>
-      <ol class="plan-list">
-        ${day.items.map((item, index) => renderGlance(item, index)).join("")}
-      </ol>
+    <div class="plan-ribbon" aria-label="当天路线速览">
+      ${day.items.map((item, index) => `
+        <a class="ribbon-pill kind-${esc(item.kind)}${isOptional(item) ? " optional" : ""}" href="#item-${esc(item.id)}">
+          <span class="rp-num">${index + 1}</span>
+          ${item.time ? `<time>${esc(item.time)}</time>` : ""}
+          <b>${esc(item.name)}</b>
+        </a>`).join(`<span class="ribbon-arrow" aria-hidden="true">→</span>`)}
     </div>
     <div class="detail">
-      <h3 class="section-title">每一站怎么走</h3>
       <ol class="stops">
         ${day.items.map((item, index) => renderItem(day, item, index)).join("")}
       </ol>
@@ -665,6 +843,7 @@ function renderItem(day, item, index) {
       ${needs ? `<div class="book-box ${esc(item.reservation)}${booked ? " is-booked" : ""}"><b>${booked ? "已订好" : FLAG[item.reservation]}</b><span>${esc(item.reservationNote || "")}</span></div>` : ""}
       <div class="stop-actions">
         <a class="btn btn-sm" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌地图</a>
+        ${item.kind !== "transport" ? `<a class="btn btn-sm btn-xhs" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单/避雷" : item.kind === "stay" ? "小红书入住评价" : "小红书实况"}</a>` : ""}
         ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
         ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
       </div>
@@ -843,6 +1022,23 @@ document.querySelector("#export-btn").addEventListener("click", () => {
   URL.revokeObjectURL(link.href);
 });
 
+const printBtn = document.querySelector("#print-btn");
+if (printBtn) {
+  printBtn.addEventListener("click", () => {
+    const prevDay = dayFilter;
+    const prevBudget = budgetOpen;
+    dayFilter = "all";
+    budgetOpen = true;
+    render();
+    setTimeout(() => {
+      window.print();
+      dayFilter = prevDay;
+      budgetOpen = prevBudget;
+      render();
+    }, 180);
+  });
+}
+
 document.querySelector("#import-btn").addEventListener("click", () => {
   document.querySelector("#import-file").click();
 });
@@ -1011,9 +1207,19 @@ document.addEventListener("error", (event) => {
   }
   const heroFig = img.closest(".hero-cover");
   if (heroFig) {
+    const mosaic = heroFig.closest(".hero-mosaic");
     const head = heroFig.closest(".trip-head");
     heroFig.remove();
-    if (head) head.classList.remove("has-cover");
+    if (mosaic) {
+      const rem = mosaic.querySelectorAll(".hero-cover").length;
+      mosaic.className = `hero-mosaic count-${rem}`;
+      if (!rem) {
+        mosaic.remove();
+        if (head) head.classList.remove("has-cover");
+      }
+    } else if (head) {
+      head.classList.remove("has-cover");
+    }
     return;
   }
   if (img.classList.contains("popup-photo")) img.remove();
@@ -1089,7 +1295,7 @@ main.addEventListener("click", (event) => {
     delete state.booked[itemId];
     return render();
   }
-  const jump = event.target.closest(".plan-row a");
+  const jump = event.target.closest(".plan-row a, .ribbon-pill");
   if (jump) {
     event.preventDefault();
     const target = document.getElementById(jump.getAttribute("href").slice(1));
