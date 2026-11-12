@@ -348,7 +348,7 @@ function safePhoto(item) {
     if (cFile) {
       const base = (window.TRAVEL_SHARE && window.TRAVEL_SHARE.apiBase) || "https://static-travel-guide.huqimeng0306.workers.dev";
       const enc = encodeURIComponent(cFile).replace(/\(/g, "%28").replace(/\)/g, "%29");
-      src = `${base.replace(/\/$/, "")}/api/img?file=${enc}&w=1200`;
+      src = `${base.replace(/\/$/, "")}/api/img?file=${enc}&w=960`;
     }
   }
   return { ...pic, src };
@@ -623,7 +623,7 @@ function renderItem(day, item, index) {
     <div class="stop-rail"><span class="stop-num">${index + 1}</span></div>
     <article class="stop-card${pic ? " has-photo" : ""}">
       ${pic ? `<figure class="stop-photo">
-        <img src="${esc(pic.src)}" alt="${esc(item.name)}" loading="lazy" />
+        <img src="${esc(pic.src)}" alt="${esc(item.name)}" decoding="async" />
         <a class="credit" href="${esc(safeUrl(pic.link))}" target="_blank" rel="noopener">${esc(pic.credit)}</a>
       </figure>` : ""}
       <div class="stop-main">
