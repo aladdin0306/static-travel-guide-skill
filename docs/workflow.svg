@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 920 196" width="920" height="196" fill="none">
+  <defs>
+    <style>
+      .bg { fill: #FAF8F4; stroke: #E5E1D8; stroke-width: 1.5; }
+      .card { fill: #FFFFFF; stroke: #DED9CE; stroke-width: 1.5; }
+      .card-accent { fill: #F1FAF8; stroke: #8ED1C6; stroke-width: 1.5; }
+      .step-badge { fill: #0F6A61; }
+      .step-num { fill: #FFFFFF; font: 700 10.5px -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; letter-spacing: 0.06em; }
+      .title { fill: #162420; font: 700 15px -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+      .desc { fill: #5F6D68; font: 500 12px -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+      .tag { fill: #EAF5F3; }
+      .tag-text { fill: #0A4F48; font: 600 11px -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+      .tag-warm { fill: #FFF4ED; }
+      .tag-warm-text { fill: #9A3412; font: 600 11px -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif; }
+      .arrow { stroke: #0F6A61; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    </style>
+  </defs>
+
+  <rect x="1" y="1" width="918" height="194" rx="18" class="bg"/>
+
+  <g transform="translate(20, 22)">
+    <rect width="196" height="152" rx="14" class="card"/>
+    <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
+    <text x="46" y="31" text-anchor="middle" class="step-num">STEP 01</text>
+    <text x="16" y="62" class="title">说出旅行想法</text>
+    <text x="16" y="86" class="desc">「5月想去北海道玩5天，</text>
+    <text x="16" y="105" class="desc">轻松点，做好发朋友改」</text>
+    <rect x="16" y="118" width="116" height="22" rx="11" class="tag"/>
+    <text x="74" y="133" text-anchor="middle" class="tag-text">像平时聊天一样</text>
+  </g>
+
+  <path d="M224 98H242M237 93L243 98L237 103" class="arrow"/>
+
+  <g transform="translate(250, 22)">
+    <rect width="198" height="152" rx="14" class="card"/>
+    <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
+    <text x="46" y="31" text-anchor="middle" class="step-num">STEP 02</text>
+    <text x="16" y="62" class="title">AI 追问 7 项偏好</text>
+    <text x="16" y="86" class="desc">多出发地对比 · 休闲/特种兵</text>
+    <text x="16" y="105" class="desc">必去景点 · 预算口径 · 同行人</text>
+    <rect x="16" y="118" width="116" height="22" rx="11" class="tag"/>
+    <text x="74" y="133" text-anchor="middle" class="tag-text">先问清楚再排线</text>
+  </g>
+
+  <path d="M456 98H474M469 93L475 98L469 103" class="arrow"/>
+
+  <g transform="translate(482, 22)">
+    <rect width="198" height="152" rx="14" class="card"/>
+    <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
+    <text x="46" y="31" text-anchor="middle" class="step-num">STEP 03</text>
+    <text x="16" y="62" class="title">自动建站 &amp; 抓图</text>
+    <text x="16" y="86" class="desc">实景画廊 · 账本预算 · 蹲机票</text>
+    <text x="16" y="105" class="desc">小红书实况 · 天气 · 地图打点</text>
+    <rect x="16" y="118" width="116" height="22" rx="11" class="tag"/>
+    <text x="74" y="133" text-anchor="middle" class="tag-text">零代码生成网页</text>
+  </g>
+
+  <path d="M688 98H706M701 93L707 98L701 103" class="arrow"/>
+
+  <g transform="translate(714, 22)">
+    <rect width="186" height="152" rx="14" class="card-accent"/>
+    <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
+    <text x="46" y="31" text-anchor="middle" class="step-num">STEP 04</text>
+    <text x="16" y="62" class="title">拿到两条在线链接</text>
+    <text x="16" y="86" class="desc">公开链接：发群只读 / 可克隆</text>
+    <text x="16" y="105" class="desc">私密链接：与同伴实时协作改</text>
+    <rect x="16" y="118" width="126" height="22" rx="11" class="tag-warm"/>
+    <text x="79" y="133" text-anchor="middle" class="tag-warm-text">免服务器开箱即用</text>
+  </g>
+</svg>

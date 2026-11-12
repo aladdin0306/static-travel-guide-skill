@@ -101,9 +101,10 @@ Then paste the printed `PHOTOS` line into `data.js` and set `photo: photo("PHOTO
 
 Rules:
 
-1. Run the script for **major sights** (temples, viewpoints, hotels optional).
-2. On success (Commons or placeholder), **always** wire `photo:` — UI should show an image.
-3. Only if the script exits non‑zero: omit `photo` and note `暂无图`. Never reference a missing file.
+1. Run the script for **major sights** (at least 3 sights across different cities/days when possible, so the top **3-photo Hero Mosaic gallery** renders at full strength; hotels/restaurants optional).
+2. Always populate `day.city`, `day.date` (`YYYY-MM-DD`), and `item.lat` / `item.lng` — the template automatically uses them to power **Google Flights / Trip.com price watch**, **Open-Meteo forecast / historical climate & outfit tips**, **Xiaohongshu (小红书) live-post search buttons**, and **one-click Visa/Offline PDF printing**.
+3. On success (Commons or placeholder), **always** wire `photo:` — UI should show an image.
+4. Only if the script exits non‑zero: omit `photo` and note `暂无图`. Never reference a missing file.
 
 ### Serve locally (required)
 
