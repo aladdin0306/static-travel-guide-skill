@@ -7,9 +7,7 @@
 - **在线体验样例** — [澳洲 7 天行程页](https://static-travel-guide.huqimeng0306.workers.dev/t/A1JnvRqhFVEg)（点右上角「复制并修改」可直接试改）
 - **灵感与参考站** — [个人行程库](https://aladdin0306.github.io/travel-guides/)
 
-![行程总览、封面画廊与预算账本](docs/preview.jpg)
-
-![每日路线、天气穿衣、小红书实况与地图打点](docs/preview-day.jpg)
+![行程网页交互演示：多出发地切换算预算、蹲机票、按天筛选、小红书实况与分享协作](docs/preview.gif)
 
 ---
 
