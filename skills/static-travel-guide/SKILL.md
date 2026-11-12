@@ -1,18 +1,25 @@
 ---
 name: static-travel-guide
 description: >-
-  After the user installs this skill and describes a trip, automatically builds
-  a mobile webpage like 行程库: copy template, write data.js with photos/booking/maps,
-  serve, and return a URL (not folder-only). Use for custom travel guide pages.
+  After the user installs this skill and describes a trip, interviews missing
+  constraints first, automatically builds a mobile webpage like 行程库 (budget
+  ledger, photos, booking links, Google/Leaflet map pins), serves locally, and
+  publishes to cloud sharing to return both a public view URL and a private
+  collaborative edit URL. Use for custom travel guide webpages.
 ---
 
 # Static travel guide
 
 ## User experience
 
-1. Install once → describe trip + preferences in chat.  
-2. **You** build the site — user never copies folders or edits `data.js`.  
-3. You **must** return openable **URLs** (desktop + phone hint). Never end with only a folder path.
+1. Install once → describe trip + preferences in chat.
+2. **Interview first** if key constraints are missing, then confirm in one short summary.
+3. **You** build and publish the site — user never copies folders, edits `data.js`, or configures servers.
+4. You **must** return openable **URLs**:
+   - Online **Public View URL** (`/t/:id` — read-only, OpenGraph preview card, supports one-click Fork「复制并修改」)
+   - Online **Private Edit URL** (`/t/:id/edit#token=...` — autosave, stop reordering, online Commons photo search, 20-version history restore, edit token reset, conflict reload)
+   - Local **Preview URL** (`http://127.0.0.1:PORT/` + phone LAN hint)
+   Never end with only a folder path.
 
 ## Mandatory intake — ask before planning
 
@@ -33,18 +40,18 @@ Also ask only when relevant: diet, accessibility, shopping, hiking, nightlife, h
 
 ### Interaction rule
 
-- Prefer one structured multi-question form when the client supports it; otherwise ask the seven items in one concise chat message.
+- Prefer one structured multi-question form when the client supports it; otherwise ask the missing items in one concise chat message.
 - Do not make the user answer fields already stated.
 - After answers, send a short confirmation summary before planning:
 
 ```text
 我会按以下条件规划：
-出发：上海
+出发：上海 / 北京
 目的地：京都
 节奏：休闲游
 必去：伏见稻荷、清水寺
 预算：每人 ¥8,000–12,000，含机票
-日期/人数：4月10–14日，2位成人
+日期/人数：4月10–14日，2位成人同住一间
 ```
 
 Then proceed without another approval round unless constraints conflict.
@@ -61,13 +68,13 @@ Detailed question wording: [intake.md](intake.md).
 ## Agent pipeline (every time)
 
 ```text
-- [ ] 1. Interview (checklist above)
+- [ ] 1. Interview (checklist above) + send confirmation summary
 - [ ] 2. bash scripts/new-site.sh /abs/OUTPUT_SITE
 - [ ] 3. Write OUTPUT_SITE/data.js (full SEED_TRIPS)
 - [ ] 4. Photos: Commons → photos/ + PHOTOS credits (or 暂无图, no broken imgs)
 - [ ] 5. bash scripts/serve.sh /abs/OUTPUT_SITE [port]
 - [ ] 6. Publish: bash scripts/publish-site.sh /abs/OUTPUT_SITE
-- [ ] 7. Give user Desktop URL; when published, give public URL + private edit URL
+- [ ] 7. Give user Public URL + Private Edit URL + Local Desktop/Phone URLs
 - [ ] 8. Run acceptance checklist
 ```
 
@@ -94,24 +101,17 @@ Then paste the printed `PHOTOS` line into `data.js` and set `photo: photo("PHOTO
 
 Rules:
 
-1. Run the script for **major sights** (temples, viewpoints, hotels optional).  
-2. On success (Commons or placeholder), **always** wire `photo:` — UI should show an image.  
+1. Run the script for **major sights** (temples, viewpoints, hotels optional).
+2. On success (Commons or placeholder), **always** wire `photo:` — UI should show an image.
 3. Only if the script exits non‑zero: omit `photo` and note `暂无图`. Never reference a missing file.
 
-### Serve (required)
+### Serve locally (required)
 
 ```bash
 bash scripts/serve.sh /abs/OUTPUT_SITE 8766
 ```
 
-Reply with:
-
-- Desktop: `http://127.0.0.1:8766/`  
-- Phone (same Wi‑Fi): `http://<LAN-IP>:8766/`  
-
-**Do not** finish with only “站点在 /path/to/folder”.
-
-### Share (public view + secret edit link)
+### Share & collaborative editing (default on)
 
 Publish after generating and checking the site:
 
@@ -119,59 +119,46 @@ Publish after generating and checking the site:
 bash scripts/publish-site.sh /abs/OUTPUT_SITE
 ```
 
-The bundled default service is
-`https://static-travel-guide.huqimeng0306.workers.dev`. A maintainer can override
-it with `TRAVEL_GUIDE_API` or the script's second argument.
+The bundled default service is `https://static-travel-guide.huqimeng0306.workers.dev` (zero setup for end users). A maintainer can override it via `TRAVEL_GUIDE_API` or the script's second argument.
 
-Return both links with clear labels:
+Return both online links clearly alongside the local preview:
 
-- `Public`: anyone can view; safe to share
-- `Edit`: possession grants edit access; keep private
+- **公开查看（可发群/朋友，支持右上角「复制并修改」克隆副本）**: `https://.../t/ID`
+- **私密编辑（仅自己和共同编辑者保留，支持增删改、上下调序、在线搜图、历史版本恢复、重置密钥）**: `https://.../t/ID/edit#token=...`
+- **本地预览**: `http://127.0.0.1:8766/`（同 Wi‑Fi 手机可用局域网 IP）
 
-The publisher converts local Wikimedia images to public Commons URLs so shared
-pages do not contain broken local photo paths. Never paste the edit URL into a
-public issue, repository, or document. If publishing fails, still return the
-local preview, explain the network error, and do not pretend the page was
-published.
+Notes:
+
+- `publish-site.sh` automatically rewrites local Wikimedia `photos/*.jpg` paths into public Commons URLs so shared pages never have broken images.
+- Never paste the private `#token=...` edit URL into a public issue, repository, or public README.
+- If publishing fails due to offline/network issues, still return the local preview URL and explain the network error honestly.
 
 ### Acceptance checklist (before saying done)
 
-- [ ] 预约 / 订票链接可打开（至少一个 required 或 recommended）  
-- [ ] 地图有坐标点  
-- [ ] 窄屏（~390px）布局不乱  
-- [ ] 若有多个 `origins`，切换出发地预算会变  
-- [ ] 导出 JSON 后再导入不报错  
-- [ ] 共享后，公开链接不可编辑，编辑链接改动会自动保存
+- [ ] 全部天数默认完整展示，顶部日期切换栏可见且点击单天可正常筛选/翻页
+- [ ] 预约 / 订票链接可打开（至少一个 required 或 recommended）
+- [ ] 地图有坐标点，窄屏（~390px）布局对齐不乱
+- [ ] 若有多个 `origins`，切换出发地时航班与总预算联动变化
+- [ ] 导出 JSON 后再导入不报错
+- [ ] 共享发布后：公开链接只读且带「复制并修改」；编辑链接改动自动保存，分享弹窗可查看历史版本与重置密钥
 
 ### Disclaimer
 
-Keep the template rail note (prices / FX / schedules are estimates). Also mention once in chat when handing over the URL.
+Keep the template rail note (prices / FX / schedules are estimates). Mention once in chat when handing over the URLs.
 
 Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
 
-## Template sync (maintainers)
+## Template sync & maintenance
 
-`template/` tracks [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides). See `template/SYNC.txt` after sync.
+`template/` builds on [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides) and adds `share.js`, online Commons photo search, stop reordering, sticky all-days view, and Worker/D1 collaboration.
 
-```bash
-# from skill repo root — sibling ../travel-guides or clone
-bash scripts/sync-template.sh
-# or pin a ref:
-TRAVEL_GUIDES_REF=main bash scripts/sync-template.sh
-```
-
-Does not overwrite carefully curated `data.js` / demo Australia photos unless you replace them separately.
-
-## Publish (maintainers)
-
-- Keep Demo Pages green: https://aladdin0306.github.io/static-travel-guide-skill/demo/  
-- Optional: `gh skill publish --tag v1.x.0`  
-- Optional: Cursor Marketplace https://cursor.com/marketplace/publish  
+- Self-host / deploy Cloudflare Worker + D1: see [`worker/README.md`](../../worker/README.md)
+- Keep Demo Pages green: https://aladdin0306.github.io/static-travel-guide-skill/demo/
 
 ## Don’t
 
-- Don’t ask users to edit `data.js`  
-- Don’t deliver JSON-only when they want a webpage  
-- Don’t force Australia  
-- Don’t leave broken photo refs  
-- Don’t stop at a folder path without a URL  
+- Don’t ask users to edit `data.js` or deploy servers themselves
+- Don’t deliver JSON-only when they want a webpage
+- Don’t force Australia
+- Don’t leave broken photo refs
+- Don’t stop at a folder path without openable URLs

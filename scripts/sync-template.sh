@@ -6,7 +6,21 @@
 #   TRAVEL_GUIDES_REF=v1.0.0 ./scripts/sync-template.sh
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SRC="${1:-}"
+FORCE=0
+SRC=""
+for arg in "$@"; do
+  if [[ "$arg" == "--force" ]]; then
+    FORCE=1
+  elif [[ -z "$SRC" ]]; then
+    SRC="$arg"
+  fi
+done
+
+if [[ "$FORCE" -ne 1 ]]; then
+  echo "Refusing to overwrite template/ without --force because template/ includes cloud sharing (share.js), Commons photo search, and stop reordering hooks." >&2
+  echo "Re-run with --force only if you plan to re-apply or merge those hooks afterwards." >&2
+  exit 1
+fi
 REF="${TRAVEL_GUIDES_REF:-main}"
 TMP=""
 

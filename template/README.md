@@ -1,13 +1,17 @@
-# Site template（与正式「行程库」同款）
+# Site template（与「行程库」同款 + 云端共享协作壳）
 
-这套文件来自 [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides)：同一套前端（列表、预算、预约、Leaflet 地图、手机谷歌打点、导入导出）。
+本目录是 Skill 生成行程网页时复制的前端模板，包含：
 
-当前种子数据是 **澳洲示例**（`data.js`）。用 Skill 给用户生成行程时：
+- 对账单式预算总览 + 多出发地切换
+- 预约提醒横幅与订票直达链接
+- 默认展开全部天数 + 吸顶日期切换栏 + 单天翻页器
+- 桌面 Leaflet 路线图 + 手机 Google Maps 逐站打点
+- 在线编辑增强：上下移动站点顺序、Wikimedia Commons 在线自动搜图
+- 云端共享与协作（`share.js`）：公开只读查看、一键「复制并修改」（Fork）、私密链接自动保存、最近 20 版历史回滚、重置编辑密钥、多人冲突刷新
 
-1. 复制整个 `template/`（或本仓库的 `demo/`）到新目录 / 新仓库  
-2. 改写 `data.js` 里的 `SEED_TRIPS` 为用户的行程  
-3. 把图片放进 `photos/`，并在 `PHOTOS` 里登记署名  
-4. 本地 `python3 -m http.server` 预览（手机同一 Wi‑Fi 可打开局域网 IP）  
-5. 推到用户的 GitHub Pages  
+## Agent 生成流程
 
-能力清单见 Skill 主说明。
+1. `bash scripts/new-site.sh /abs/path/to/site`
+2. 写入 `data.js`（`window.SEED_TRIPS`）并用 `scripts/fetch-place-photo.sh` 抓取景点实景图
+3. `bash scripts/serve.sh /abs/path/to/site 8766` 启动本地预览
+4. `bash scripts/publish-site.sh /abs/path/to/site` 发布到云端共享服务，把公开查看链接和私密编辑链接返回给用户

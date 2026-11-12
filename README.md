@@ -1,16 +1,33 @@
 # static-travel-guide
 
-装上 Skill → **说出行程和偏好** → Agent **自动生成同款前端网页** 并把 **链接** 发给你（手机也能开）。
+装上 Skill → **说出行程和偏好** → Agent **自动生成「行程库」同款网页**，并直接返回 **在线公开链接 + 私密编辑链接 + 本地预览链接**（手机、电脑都能直接打开）。
 
-你不用自己复制文件夹，也不用改 `data.js`。
+不用自己复制文件夹，不用手改 `data.js`，也不用自己买服务器或配数据库。
 
 ### 快速入口
 
 - **查看 Skill 源码** — [aladdin0306/static-travel-guide-skill](https://github.com/aladdin0306/static-travel-guide-skill)
+- **体验在线共享样例（支持「复制并修改」）** — [澳洲 7 天共享页](https://static-travel-guide.huqimeng0306.workers.dev/t/A1JnvRqhFVEg)
+- **体验 GitHub Pages 静态样例** — [澳洲行程 Demo](https://aladdin0306.github.io/static-travel-guide-skill/demo/)
 - **打开完整参考站** — [行程库](https://aladdin0306.github.io/travel-guides/)
-- **体验在线 Demo** — [澳洲行程样例](https://aladdin0306.github.io/static-travel-guide-skill/demo/)
 
 **声明：** 票价、汇率、班期多为估算，出行前请再核对官网。
+
+---
+
+## 核心亮点
+
+1. **先问清楚再排线**：Agent 在写行程前会一次性确认出发地（支持多城市对比）、目的地、旅行节奏（`休闲游` / `均衡游` / `特种兵`）、必去景点、预算口径、日期和同行人数。
+2. **产出真实可用的响应式网页**：
+   - **总览与对账单式预算**：置顶展示每人总预算、双币种分类占比（国际机票 / 住宿 / 交通 / 门票 / 餐饮 / 其他）；多出发地可一键切换并自动重算机票与总价。
+   - **预约提醒与一键跳转**：自动汇总「必须预约 / 建议预约」项目，直达官网或订票页，支持勾选「已订好」。
+   - **完整多日时间轴 + 吸顶日期栏**：默认展开全部天数顺畅浏览；吸顶日期卡片可筛选单天，底部自带「上一天 / 查看全部 / 下一天」翻页。
+   - **实景配图 + 地图打点**：自动抓取 Wikimedia Commons 实景图与版权署名（含重试与兜底）；桌面端联动 Leaflet 路线地图，手机端一键唤起 Google Maps App 逐站打点。
+3. **零配置在线共享与协作编辑**：
+   - **公开查看链接（`/t/:id`）**：只读展示、自动收起左侧列表栏；发到微信 / 飞书 / iMessage 自动展示行程专属标题、摘要与首图预览卡片（OpenGraph）。
+   - **公开页一键「复制并修改」（Fork）**：别人打开你的公开链接后，点右上角「复制并修改」，即可克隆出独立副本并跳转到他自己的专属编辑链接，互不干扰。
+   - **私密编辑链接（`/t/:id/edit#token=...`）**：持有链接即可在线改名、增删天数与站点、**上下调整站点顺序**、**在线自动搜图换图**，所有改动自动保存到云端。
+   - **历史版本回滚 & 密钥重置 & 冲突保护**：保留最近 **20 个历史版本** 随时一键恢复；编辑链接泄露可一键 **重置编辑密钥**（旧链接立即作废）；多人同时编辑触发冲突时提供 **「加载最新内容」** 按钮，防止误覆盖。
 
 ---
 
@@ -64,69 +81,58 @@ gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --age
 gh skill install aladdin0306/static-travel-guide-skill static-travel-guide --agent opencode --scope user
 ```
 
-只想在当前项目使用时，把 `--scope user` 改成 `--scope project`。
-
-`gh skill` 还支持更多 Agent，可运行：
+只想在当前项目使用时，把 `--scope user` 改成 `--scope project`。更多支持的 Agent 可运行：
 
 ```bash
 gh skill install --help
 ```
 
-本 Skill 遵循 Agent Skills 目录规范，不依赖 Cursor；只有 `/add-plugin` 这一种安装方式是 Cursor 专用。
+本 Skill 遵循通用 Agent Skills 目录规范，不绑定 Cursor；只有 `/add-plugin` 这一种安装方式是 Cursor 专用。
 
-### 2. 描述行程；Agent 会先和你做规划前问答
+---
 
-例如：
+### 2. 描述行程（Agent 会先做规划前问答）
 
-> 2027 年 5 月北海道 5 天，两人，上海出发，节奏轻松，预算别太猛，不要太多购物店，要能订票跳转和地图打点，手机能打开。
+你可以直接说：
 
-若信息不完整，Agent 必须先问清楚再排线路：
+> 帮我做一趟 2027 年 5 月北海道 5 天网页，手机能看还能发给朋友一起改。
 
-1. 从哪里出发（可以填多个城市）
-2. 去哪里
-3. `休闲游` / `均衡游` / `特种兵`
-4. 有没有必须去的景点
-5. 预算范围（按人还是总计、是否含机票）
-6. 日期 / 天数
-7. 同行人数 / 房间安排
+若信息不完整，Agent 会先向你确认 7 项关键约束再排线路：
+
+1. **出发地**（可填多个城市，如“上海或北京”）
+2. **目的地**（国家 / 城市，不确定可让 Agent 推荐组合）
+3. **旅行节奏**（`休闲游` / `均衡游` / `特种兵`）
+4. **必须去的景点**（没有可填“没有”）
+5. **预算范围**（按人还是总计、币种、是否含国际机票）
+6. **日期 / 天数**
+7. **同行人数 / 房间安排**
 
 回答示例：
 
 > 上海或北京出发；去京都；休闲游；伏见稻荷和清水寺必须去；每人 ¥8,000–12,000，含机票；4 月 10–14 日；两位成人同住一间。
 
-Agent 会先复述这些条件，再制定计划并生成网页。
-
-如果有多个出发地，网页预算区会出现可点击切换；切换上海 / 北京后，航班说明和预算都会变化。
-
-### 3. 拿到网页链接
-
-Agent 应自动：拷模板 → 写入行程 → 尽量配图（维基共享资源）→ 起服务 →
-**给你 URL**。配置共享服务后，还会直接返回两条线上链接：
-
-- **公开查看**：任何人都能打开，不能修改
-- **持链接编辑**：拿到链接的人可以修改，改动自动保存
-
-- 电脑：`http://127.0.0.1:端口/`  
-- 手机：同一 Wi‑Fi 下电脑的局域网 IP  
-
-若只要文件夹路径、没有链接，那是 Agent 没按 Skill 做完——提醒它「把预览链接发我」。
-
-编辑链接相当于密码，不要公开贴到群公告、Issue 或公开仓库。公开查看链接可以正常分享。
-
-默认共享服务：<https://static-travel-guide.huqimeng0306.workers.dev>。用户不需要
-Cloudflare 账号；Agent 生成完成后直接调用 `publish-site.sh` 即可。
+Agent 会先用几行文字复述确认条件，随后自动完成建站、配图、启动预览与云端发布。
 
 ---
 
-## 网页能力
+### 3. 拿到链接并分享 / 协作修改
 
-与行程库对齐：按天行程、图片、订票/官网、地图打点（手机逐站谷歌）、预算、导入导出。
-共享版使用同一套前端页面，不是另一套 Demo；支持公开查看、编辑链接自动保存、
-冲突保护和最近 20 个历史版本。
+生成完成后，Agent 会直接把链接发给你：
 
-澳洲 Demo 只是样例；你说去哪就生成哪。
+- **公开查看链接**（如 `https://.../t/xxx`）：可放心发给任何人或群聊查看，对方无法直接改你的原稿；若朋友想拿你的行程改一版自己的，点页面右上角 **「复制并修改」** 即可。
+- **私密编辑链接**（如 `https://.../t/xxx/edit#token=...`）：相当于编辑密码，只发给一起做攻略的同伴。打开后可直接在网页上：
+  - 新增/删除某一天，或点击站点右上角 **上移 / 下移 / 修改 / 删除**
+  - 在修改弹窗里点 **「自动搜图」** 一键从维基共享资源配图，或按名称自动查坐标打点
+  - 点右上角 **「分享」** 查看最近 **20 个历史版本** 并一键回滚，或点击 **「重置编辑密钥」** 让旧编辑链接失效
+- **本地预览链接**：`http://127.0.0.1:端口/`（同一 Wi‑Fi 下手机也可通过局域网 IP 访问），同时支持右上角 JSON 导入 / 导出备份。
 
-本地看 Demo：
+> **安全提醒：** 编辑密钥保存在 URL 的 `#token=` 片段中，浏览器不会将其发送给服务器访问日志，云端数据库仅存储 SHA-256 哈希。请勿将带 `#token=` 的编辑链接贴到公开仓库、公开文档或群公告。
+
+默认共享服务已托管在 `<https://static-travel-guide.huqimeng0306.workers.dev>`，普通用户无需注册 Cloudflare 即可直接使用。
+
+---
+
+## 本地体验 Demo
 
 ```bash
 git clone https://github.com/aladdin0306/static-travel-guide-skill.git
@@ -134,58 +140,71 @@ cd static-travel-guide-skill/demo
 python3 -m http.server 8767 --bind 0.0.0.0
 ```
 
+打开 `http://127.0.0.1:8767/` 即可体验（澳洲 Demo 仅为样例，实际按你的目的地生成）。
+
 ---
 
-## Agent / 维护者
+## Agent / 维护者指南
 
-细则：[`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)  
-字段：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
-规划前问答：[`skills/static-travel-guide/intake.md`](skills/static-travel-guide/intake.md)
+- Skill 执行规范：[`skills/static-travel-guide/SKILL.md`](skills/static-travel-guide/SKILL.md)
+- 规划前问答细则：[`skills/static-travel-guide/intake.md`](skills/static-travel-guide/intake.md)
+- 数据结构与接口说明：[`skills/static-travel-guide/reference.md`](skills/static-travel-guide/reference.md)
+- 完整问答与发布示例：[`skills/static-travel-guide/examples.md`](skills/static-travel-guide/examples.md)
+- 自建 Cloudflare 共享服务指南：[`worker/README.md`](worker/README.md)
+
+### 常用脚本
 
 | 脚本 | 作用 |
 |------|------|
-| `scripts/new-site.sh OUT` | 复制 `template/` → 新站点 |
-| `scripts/serve.sh OUT [port]` | 起服务并打印电脑/手机 URL（**必须把链接交给用户**） |
-| `scripts/publish-site.sh OUT [API]` | 发布到共享服务并返回公开链接和私密编辑链接 |
-| `scripts/fetch-place-photo.sh OUT ID "景点名"` | **推荐**：Commons 搜索 + 503 重试 + 多候选 + 占位图兜底 |
-| `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 按精确文件名下载（失败会按文件名再搜索） |
-| `scripts/sync-template.sh [path]` | 从正式 [travel-guides](https://github.com/aladdin0306/travel-guides) 同步 `index.html` / `app.js` / `styles.css` |
+| `scripts/new-site.sh OUT` | 复制 `template/` 生成新行程站点目录 |
+| `scripts/fetch-place-photo.sh OUT ID "景点名"` | **推荐**：Commons 搜索 + 503 重试 + 多候选 + 纯色占位图兜底，输出 `PHOTOS` 条目 |
+| `scripts/fetch-commons-photo.sh OUT ID "File.jpg"` | 按精确 Commons 文件名下载（失败自动回退到关键词搜索） |
+| `scripts/serve.sh OUT [port]` | 启动本地 HTTP 服务并打印电脑 + 手机局域网 URL |
+| `scripts/publish-site.sh OUT [API_BASE] [trip-id]` | 将行程发布到共享服务（自动把本地 Commons 图转为公开 URL），返回公开链接与私密编辑链接 |
+| `scripts/sync-template.sh [path] --force` | 从上游 `travel-guides` 同步基础壳（默认带保护提示，避免误覆盖共享能力） |
 
-模板基准：上游 `travel-guides`（见 `template/SYNC.txt`）。同步示例：
+### 自建共享服务（可选，0 元/月）
+
+仓库内置了完整的 Cloudflare Worker + D1 后端（位于 `worker/`），个人及小范围使用完全在 Cloudflare 免费额度内（0 元/月）。详见 [`worker/README.md`](worker/README.md)：
 
 ```bash
-TRAVEL_GUIDES_REF=main bash scripts/sync-template.sh
-# 或传入本地路径
-bash scripts/sync-template.sh ../travel-guides
+npx wrangler login
+cp wrangler.toml.example wrangler.toml
+npx wrangler d1 create static-travel-guide
+# 将返回的 database_id 填入 wrangler.toml 后：
+npx wrangler d1 execute static-travel-guide --remote --file=worker/schema.sql
+npx wrangler secret put RATE_LIMIT_SALT
+npx wrangler deploy
 ```
 
-发布：保持 Demo Pages 可用；可选 `gh skill publish --tag v1.x.0`；可选 [Cursor Marketplace](https://cursor.com/marketplace/publish)。
+自建后通过环境变量指定你自己的服务地址即可：
 
-共享服务部署说明：[`worker/README.md`](worker/README.md)。Cloudflare Pages/Workers +
-D1 的免费额度足够个人和小范围使用；不用先购买服务器。
+```bash
+export TRAVEL_GUIDE_API="https://你的服务名.你的子域.workers.dev"
+bash scripts/publish-site.sh /path/to/site
+```
 
-### 验收清单（Agent 交活前）
+### 交付验收清单（Agent 交活前必查）
 
-1. 预约链接能打开  
-2. 地图有点  
-3. 手机宽度不乱  
-4. 多出发地时切换预算会变  
-5. 导出 JSON 能再导入  
+1. 全部天数默认完整展示，吸顶日期切换栏可见且可筛选单天
+2. 至少一个预约 / 订票链接可正常打开
+3. 地图有坐标打点，手机宽度（~390px）排版对齐不乱
+4. 多出发地切换时，航班说明与总预算会联动变化
+5. 无破图（Commons 实景图或兜底图正常显示，彻底无图时省略 `photo`）
+6. 已返回在线公开查看链接、私密编辑链接及本地预览链接
 
-无图时写「暂无图」并省略 `photo`，禁止破图。
-
-### 结构
+### 目录结构
 
 ```text
-skills/static-travel-guide/  Skill
-template/                    生成时复制的网页壳
-demo/                        同款 + 澳洲样例
-scripts/                     new-site / serve / photos / sync
-worker/                      Cloudflare API、D1 表结构和共享路由
+skills/static-travel-guide/  Agent Skill 定义与参考文档（SKILL.md / intake / reference / examples）
+template/                    生成站点时复制的前端模板（含在线共享、自动搜图、版本管理）
+demo/                        在线静态样例（澳洲 7 天）
+scripts/                     建站 / 搜图兜底 / 本地预览 / 一键云端发布脚本
+worker/                      Cloudflare Worker + D1 共享后端源码、表结构与部署说明
 ```
 
 ---
 
 ## License
 
-MIT（[LICENSE](LICENSE)）。`photos/` 第三方图按原许可署名。
+MIT（[LICENSE](LICENSE)）。`photos/` 及 Wikimedia Commons 第三方图片按原许可署名。

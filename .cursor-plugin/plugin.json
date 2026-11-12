@@ -1,17 +1,19 @@
 {
   "name": "static-travel-guide",
-  "version": "1.0.0",
-  "description": "Build and maintain static travel-guide sites (itinerary, map pins, booking flags, dual-currency budget) for GitHub Pages.",
+  "version": "1.2.0",
+  "description": "Interview trip preferences, generate an aligned mobile-friendly travel guide webpage (budget ledger, Commons photos, booking links, Google/Leaflet maps), and publish shareable view + collaborative edit URLs.",
   "author": {
     "name": "aladdin0306"
   },
-  "homepage": "https://aladdin0306.github.io/travel-guides/",
+  "homepage": "https://github.com/aladdin0306/static-travel-guide-skill",
   "license": "MIT",
   "keywords": [
     "travel",
     "itinerary",
-    "github-pages",
+    "travel-guide",
     "leaflet",
+    "cloudflare-workers",
+    "collaborative-editing",
     "static-site"
   ]
 }

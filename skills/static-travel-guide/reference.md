@@ -1,4 +1,4 @@
-# Schema reference
+# Schema & Sharing Reference
 
 ## Trip
 
@@ -19,16 +19,16 @@
 | Field | Type | Notes |
 |-------|------|--------|
 | `currency` | string | e.g. `AUD`, `JPY`, `EUR` |
-| `party` | string | Who the totals assume |
+| `party` | string | Who the totals assume (e.g. `两人同住一间`) |
 | `basis` | string | How prices were estimated |
-| `cnyRate` | number | Optional home-currency rate (name can be adapted) |
+| `cnyRate` | number | Optional home-currency conversion rate |
 | `rateDate` | string | When rate was checked |
-| `extras[]` | array | Trip-level costs not tied to a stop |
-| `origins[]` | array | Alternate departure packages |
+| `extras[]` | array | Trip-level costs not tied to a single stop |
+| `origins[]` | array | Alternate departure city packages |
 
 **Extra / origin row:** `{ id?, label, cat?, amount?, cny?, note?, brief?, adjust? }`
 
-**Categories (`cat`):** `flight` | `stay` | `transport` | `sight` | `food` | `other` (extend if needed; keep UI labels in sync).
+**Categories (`cat`):** `flight` | `stay` | `transport` | `sight` | `food` | `other`.
 
 ## Day
 
@@ -42,6 +42,8 @@
 }
 ```
 
+> By default, the UI displays **all days** (`dayFilter = "all"`) with a sticky day-chip bar so users can either scroll through the entire trip or filter a single day (with previous/next day pager buttons at the bottom).
+
 ## Stop (`items[]`)
 
 | Field | Notes |
@@ -54,50 +56,48 @@
 | `lat`, `lng` | Map pin |
 | `reservation` | `none` \| `recommended` \| `required` |
 | `reservationNote` | Why / how |
-| `bookingUrl` | External link |
+| `bookingUrl` | External `https://` link |
 | `cost` | `{ amount, note, cat?, optional? }` |
 | `note` | Directions / tips |
-| `photo` | Optional asset id |
+| `photo` | Optional `{ src, credit, link }` (or `photo("id")`) |
 
-## Photos (optional)
+## Photos
 
 ```js
 PHOTOS[id] = ["Credit · License", "OriginalFilenameOnCommons.jpg"]
 // → { src: `photos/${id}.jpg`, credit, link }
 ```
 
-Respect third-party licenses; do not claim MIT on Wikimedia assets.
+In the online editor, users can also paste any `https://` image URL or click **「自动搜图」** to query Wikimedia Commons directly from the browser. Respect third-party licenses.
 
-## Storage (suggested)
+## Local Storage
 
-- Key e.g. `travel-guides-v2`
-- Value: `{ trips, activeId, … }`
-- First visit: clone seed trips; later: prefer saved state
-- Export downloads JSON; import replaces or merges (document which)
+- Key: `travel-guides-v2`
+- Value: `{ trips, booked, tripId, origin }`
+- Export downloads JSON; import restores trips and booked states.
 
-## Shared storage
+## Cloud Shared Storage & Collaborative Editing
 
-The optional Cloudflare service stores one portable payload per shared page:
+The Cloudflare Worker + D1 service (`worker/`) stores portable payloads:
 
 ```json
 {
-  "trip": { "title": "Kyoto", "days": [] },
+  "trip": { "id": "kyoto-2027", "title": "京都 5 日休闲游", "days": [] },
   "booked": {}
 }
 ```
 
-- Public route: `/t/:id`
-- Edit route: `/t/:id/edit#token=...`
-- The URL fragment is never sent in the page request.
-- The frontend sends it as a Bearer token for writes.
-- D1 stores only the SHA-256 token hash.
-- Writes include `expectedRevision`; a stale editor receives HTTP 409.
-- Keep the last 20 snapshots for restore.
-- Convert local `photos/*.jpg` references to public Commons URLs before publishing.
+### Routes & Capabilities
 
-## GitHub Pages checklist
-
-- [ ] Site works via `python3 -m http.server` (or Pages URL)
-- [ ] No secrets in repo
-- [ ] Asset cache-bust updated if needed
-- [ ] README documents import/export (data is per-browser)
+- **Public read-only route (`/t/:id`)**:
+  - Hides left trip-list rail and all edit controls.
+  - Worker dynamically injects `<title>`, `og:title`, `og:description`, and `og:image` for rich link cards in WeChat, Feishu/Lark, iMessage, etc.
+  - Top bar shows **「复制并修改」** (Fork), cloning the trip via `POST /api/trips` and redirecting the viewer to their own editable copy.
+- **Secret edit route (`/t/:id/edit#token=...`)**:
+  - Reads `#token` from URL fragment (never sent in HTTP page requests) and sends `Authorization: Bearer <token>` on API calls.
+  - D1 stores only the SHA-256 hash of `token`.
+  - Edits (renaming, adding/editing/deleting stops, moving stops up/down, toggling booked status, searching Commons photos) auto-save via `PUT /api/trips/:id` with optimistic concurrency (`expectedRevision`).
+  - On `409 REVISION_CONFLICT`, top bar offers a one-click **「加载最新内容」** button.
+  - Share modal provides **recent 20 revisions** (`GET /api/trips/:id/revisions`, `POST /api/trips/:id/restore`) and **edit-key rotation** (`POST /api/trips/:id/rotate-token`).
+- **Publishing (`scripts/publish-site.sh`)**:
+  - Automatically converts local `photos/*.jpg` Commons assets into public `https://commons.wikimedia.org/wiki/Special:Redirect/file/...` URLs before uploading.
