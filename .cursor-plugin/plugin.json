@@ -1,6 +1,6 @@
 {
   "name": "static-travel-guide",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Interview trip preferences, generate an aligned mobile-friendly travel guide webpage (budget ledger, Commons photos, booking links, Google/Leaflet maps), and publish shareable view + collaborative edit URLs.",
   "author": {
     "name": "aladdin0306"

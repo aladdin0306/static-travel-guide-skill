@@ -78,9 +78,18 @@ Detailed question wording: [intake.md](intake.md).
 - [ ] 8. Run acceptance checklist
 ```
 
-Clone skill repo if scripts/template missing:
+Clone the skill repo into `/tmp` if `scripts/` or `template/` is missing in the current workspace (and reuse/update it on repeat runs instead of cloning into the user's project folder):
 
-`git clone https://github.com/aladdin0306/static-travel-guide-skill.git`
+```bash
+SKILL_REPO="/tmp/static-travel-guide-skill"
+if [ -d "$SKILL_REPO/.git" ]; then
+  git -C "$SKILL_REPO" pull --ff-only
+else
+  git clone https://github.com/aladdin0306/static-travel-guide-skill.git "$SKILL_REPO"
+fi
+```
+
+Then run `scripts/*.sh` from `"$SKILL_REPO"` (for example, `bash "$SKILL_REPO/scripts/new-site.sh" /abs/OUTPUT_SITE`).
 
 ### Photos (required practice — with fallbacks)
 
@@ -153,7 +162,7 @@ Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
 
 `template/` builds on [aladdin0306/travel-guides](https://github.com/aladdin0306/travel-guides) and adds `share.js`, online Commons photo search, stop reordering, sticky all-days view, and Worker/D1 collaboration.
 
-- Self-host / deploy Cloudflare Worker + D1: see [`worker/README.md`](../../worker/README.md)
+- Self-host / deploy Cloudflare Worker + D1: see [`worker/README.md`](https://github.com/aladdin0306/static-travel-guide-skill/blob/main/worker/README.md)
 - Keep Demo Pages green: https://aladdin0306.github.io/static-travel-guide-skill/demo/
 
 ## Don’t
