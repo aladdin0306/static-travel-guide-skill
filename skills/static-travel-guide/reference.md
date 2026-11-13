@@ -70,7 +70,7 @@ PHOTOS[id] = ["Credit · License", "OriginalFilenameOnCommons.jpg"]
 // → { src: `photos/${id}.jpg`, credit, link }
 ```
 
-In the online editor, users can also paste any `https://` image URL or click **「自动搜图」** to query Wikimedia Commons directly from the browser. Respect third-party licenses.
+In the online editor, click **「自动搜图」** to query Wikimedia Commons, or paste a Wikimedia / this site's `/api/img` URL. Arbitrary external image hosts are not stored in the shared cloud. Respect third-party licenses. Local preview can still show other `https://` images.
 
 ## Local Storage
 
@@ -100,6 +100,9 @@ The Cloudflare Worker + D1 service (`worker/`) stores portable payloads:
   - D1 stores only the SHA-256 hash of `token`.
   - Edits (renaming, adding/editing/deleting stops, moving stops up/down, toggling booked status, searching Commons photos) auto-save via `PUT /api/trips/:id` with optimistic concurrency (`expectedRevision`).
   - On `409 REVISION_CONFLICT`, top bar offers a one-click **「加载最新内容」** button.
-  - Share modal provides **recent 20 revisions** (`GET /api/trips/:id/revisions`, `POST /api/trips/:id/restore`) and **edit-key rotation** (`POST /api/trips/:id/rotate-token`).
+  - Share modal provides **recent 10 revisions** (`GET /api/trips/:id/revisions`, `POST /api/trips/:id/restore`), **edit-key rotation** (`POST /api/trips/:id/rotate-token`), and **permanent delete** (`DELETE /api/trips/:id`, which also removes `revisions`).
+  - Public `/t/*` responses send `X-Robots-Tag: noindex, nofollow`.
+  - Stored JSON is field-whitelisted. `photo.src` may only be a local `photos/*.jpg`, a Wikimedia URL, or this service's `/api/img`. Payload cap is 100 KB.
+  - Daily Scheduled Cron (`crons = ["17 19 * * *"]`) purges inactive sandbox trips older than 90 days (`TRIP_TTL_DAYS`, sparing `PINNED_TRIP_IDS`) and expired `creation_limits` rate-limit buckets.
 - **Publishing (`scripts/publish-site.sh`)**:
   - Automatically converts local `photos/*.jpg` Commons assets into public `https://commons.wikimedia.org/wiki/Special:Redirect/file/...` URLs before uploading.

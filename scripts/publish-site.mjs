@@ -54,17 +54,22 @@ console.log(`Edit: ${result.editUrl}`);
 console.log("Keep the edit link private; possession grants edit access.");
 
 function makePortable(value) {
+  const convertPic = (holder, key) => {
+    const pic = holder && holder[key];
+    if (!pic) return;
+    const file = commonsFile(pic.link) || commonsFile(pic.src);
+    if (file) {
+      const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
+      pic.src = `${apiBase}/api/img?file=${enc}&w=1200`;
+      return;
+    }
+    if (/^https:\/\//i.test(pic.src || "")) return;
+    delete holder[key];
+  };
+  convertPic(value, "coverPhoto");
   for (const day of value.days || []) {
     for (const item of day.items || []) {
-      if (!item.photo) continue;
-      const file = commonsFile(item.photo.link) || commonsFile(item.photo.src);
-      if (file) {
-        const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
-        item.photo.src = `${apiBase}/api/img?file=${enc}&w=1200`;
-        continue;
-      }
-      if (/^https:\/\//i.test(item.photo.src || "")) continue;
-      delete item.photo;
+      convertPic(item, "photo");
     }
   }
   return value;

@@ -1864,6 +1864,39 @@ html.shared-loading body { visibility: hidden; }
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 12px;
 }
+.sandbox-notice {
+  margin: 0;
+  padding: 8px 16px;
+  background: var(--sun-soft);
+  color: var(--sun-ink);
+  font-size: 12px;
+  line-height: 1.5;
+  border-bottom: 1px solid var(--line);
+}
+.share-delete-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+.share-delete-row small {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+#delete-cloud-trip-btn {
+  flex: none;
+  border-color: var(--coral);
+  color: var(--coral-dark);
+  background: var(--coral-soft);
+}
+#delete-cloud-trip-btn:hover {
+  background: var(--coral);
+  color: #fff;
+}
 .share-warning {
   margin: 0;
   padding: 10px 12px;
@@ -2130,6 +2163,7 @@ html.shared-loading body { visibility: hidden; }
   .banner-cta,
   .flight-watch-actions,
   .day-pager,
+  .mobile-map-fab,
   dialog {
     display: none !important;
   }
@@ -2990,3 +3024,92 @@ h1 {
   }
   .map-panel { height: 340px; padding: 14px; }
 }
+
+/* Pin sheet dual domestic actions (Amap + Apple Maps) */
+.pin-row-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+.pin-row-wrap .pin-row {
+  flex: 1;
+  min-width: 0;
+}
+.pin-apple {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #faf9f5;
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.pin-apple:hover {
+  border-color: var(--sea);
+  color: var(--sea-dark);
+}
+
+/* Mobile floating map <-> itinerary round-trip toggle */
+.mobile-map-fab {
+  position: fixed;
+  right: 14px;
+  bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(23, 35, 31, 0.92);
+  color: #fff;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 8px 24px rgba(20, 32, 28, 0.24);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s ease, transform 0.12s ease;
+}
+.mobile-map-fab:active {
+  transform: scale(0.96);
+}
+.mobile-map-fab .icon {
+  width: 15px;
+  height: 15px;
+}
+.mobile-map-fab[data-mode="back"] {
+  background: var(--sea-dark);
+  border-color: rgba(255, 255, 255, 0.24);
+}
+@media (min-width: 1101px) {
+  .mobile-map-fab {
+    display: none !important;
+  }
+}
+
+.page-footnote {
+  margin: 4px 6px 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: rgba(23, 35, 31, 0.03);
+  border: 1px dashed var(--line);
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+@media print {
+  .mobile-map-fab {
+    display: none !important;
+  }
+}
+
+

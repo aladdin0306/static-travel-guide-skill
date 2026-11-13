@@ -11,6 +11,11 @@ binding = "DB"
 database_name = "static-travel-guide"
 database_id = "把 wrangler d1 create 返回的 database_id 填在这里"
 
+# 每日定时清理过期频率限制记录与超过 90 天未编辑的行程（可在环境变量设置 TRIP_TTL_DAYS 与 PINNED_TRIP_IDS）
+[triggers]
+crons = ["17 19 * * *"]
+
+# 成本安全建议：公共体验沙盒请保持在 Cloudflare Workers Free 免费计划（硬封顶 $0.00/月，超额仅返回 429/1027，不会产生超额账单）。
 # 部署前运行：
 #   npx wrangler secret put RATE_LIMIT_SALT
 # 输入一串随机字符；它只用于匿名发布频率限制，不会公开。

@@ -88,7 +88,11 @@ const editor = document.querySelector("#editor");
 const form = document.querySelector("#editor-form");
 const dayEditor = document.querySelector("#day-editor");
 const dayForm = document.querySelector("#day-editor-form");
+const mapFab = document.querySelector("#mobile-map-fab");
 let editingDayId = null;
+let returnScrollY = null;
+let returnStopId = "";
+let lastItineraryY = 0;
 
 function load() {
   const seed = structuredClone(window.SEED_TRIPS);
@@ -170,6 +174,47 @@ function xhsUrl(day, item) {
   return `https://www.xiaohongshu.com/search_result?keyword=${encodeURIComponent(kw)}`;
 }
 
+const CN_PLACE_RE = /中国|北京|上海|天津|重庆|广州|深圳|成都|杭州|南京|苏州|西安|长沙|武汉|厦门|青岛|大连|哈尔滨|长春|沈阳|三亚|海口|昆明|大理|丽江|香格里拉|西双版纳|腾冲|拉萨|林芝|日喀则|乌鲁木齐|喀什|伊犁|阿勒泰|吐鲁番|敦煌|嘉峪关|张掖|西宁|兰州|银川|贵阳|荔波|镇远|桂林|阳朔|北海|张家界|凤凰|黄山|宏村|婺源|景德镇|九寨沟|黄龙|稻城|亚丁|川西|康定|新都桥|理塘|四姑娘山|色达|甘南|呼伦贝尔|阿尔山|漠河|延吉|长白山|威海|烟台|泉州|福州|平潭|宁波|舟山|绍兴|乌镇|西塘|扬州|无锡|常州|洛阳|开封|大同|平遥|太原|郑州|济南|泰山|合肥|南昌|庐山|武夷山|潮州|汕头|珠海|佛山|东莞|南宁|崇左|新疆|西藏|云南|四川|青海|甘肃|宁夏|陕西|山西|内蒙古|黑龙江|吉林|辽宁|福建|浙江|江苏|广东|海南|湖南|湖北|江西|安徽|山东|河南|河北|广西|贵州/;
+const FOREIGN_PLACE_RE = /首尔|釜山|济州|仁川|庆州|东京|京都|大阪|北海道|札幌|冲绳|福冈|名古屋|悉尼|墨尔本|圣灵群岛|布里斯班|黄金海岸|凯恩斯|曼谷|清迈|普吉|苏梅|新加坡|吉隆坡|槟城|亚庇|河内|胡志明|岘港|富国岛|巴厘岛|雅加达|马尼拉|长滩|伦敦|巴黎|罗马|米兰|威尼斯|佛罗伦萨|慕尼黑|柏林|苏黎世|日内瓦|维也纳|布拉格|阿姆斯特丹|巴塞罗那|马德里|里斯本|雅典|伊斯坦布尔|开罗|迪拜|纽约|洛杉矶|旧金山|西雅图|温哥华|多伦多|台北|台中|高雄|花莲|垦丁|香港|澳门/;
+
+function isMainlandCoord(lat, lng) {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+  if (lat < 18.0 || lat > 53.6 || lng < 73.5 || lng > 135.1) return false;
+  if (lat < 39.8 && lng > 124.2) return false;
+  if (lat >= 21.8 && lat <= 25.4 && lng >= 119.5 && lng <= 122.2) return false;
+  if (lat >= 22.1 && lat <= 22.6 && lng >= 113.4 && lng <= 114.5) return false;
+  if (lat < 21.2 && !(lat >= 18.0 && lat <= 20.3 && lng >= 108.5 && lng <= 111.3)) return false;
+  if (lat < 27.6 && lng < 92.0) return false;
+  if (lat > 43.5 && lng < 118.0 && !(lng < 96.5 && lat <= 49.2)) return false;
+  return true;
+}
+
+function isDomesticItem(item, day, current = trip()) {
+  const localText = `${(day && day.city) || ""} ${(day && day.title) || ""} ${(item && item.address) || ""} ${(item && item.name) || ""}`;
+  if (FOREIGN_PLACE_RE.test(localText)) return false;
+  const tripText = `${(current && current.title) || ""} ${localText}`;
+  const hasCnText = CN_PLACE_RE.test(tripText);
+  const isCny = String((current && current.budget && current.budget.currency) || "").trim().toUpperCase() === "CNY";
+  if (item && Number.isFinite(item.lat) && Number.isFinite(item.lng)) {
+    return isMainlandCoord(item.lat, item.lng) && (hasCnText || (isCny && !FOREIGN_PLACE_RE.test(tripText)));
+  }
+  return hasCnText && !FOREIGN_PLACE_RE.test(tripText);
+}
+
+function isDomesticDay(day, current = trip()) {
+  const items = (day && day.items) || [];
+  const mapped = items.filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng));
+  if (mapped.length) return mapped.some((item) => isDomesticItem(item, day, current));
+  const text = `${(day && day.city) || ""} ${(day && day.title) || ""}`;
+  return CN_PLACE_RE.test(text) && !FOREIGN_PLACE_RE.test(text);
+}
+
+function isDomesticTrip(current = trip()) {
+  const days = (current && current.days) || [];
+  if (!days.length) return false;
+  return days.some((day) => isDomesticDay(day, current));
+}
+
 function flightWatchUrls(current, origin) {
   const days = (current && current.days) || [];
   if (!days.length) return null;
@@ -185,6 +230,7 @@ function flightWatchUrls(current, origin) {
     : `Round trip flights from ${fromCity} to ${firstCity}${start ? ` departing ${start}` : ""}${end ? ` returning ${end}` : ""}`;
   const googleFlights = `https://www.google.com/travel/flights?hl=zh-CN&curr=CNY&q=${encodeURIComponent(gfQuery)}`;
   const tripCom = `https://hk.trip.com/flights/?locale=zh-HK&curr=CNY`;
+  const ctripDomestic = `https://flights.ctrip.com/`;
   return {
     fromCity,
     firstCity,
@@ -192,8 +238,10 @@ function flightWatchUrls(current, origin) {
     openJaw,
     start,
     end,
+    domestic: isDomesticTrip(current),
     googleFlights,
-    tripCom
+    tripCom,
+    ctripDomestic
   };
 }
 
@@ -291,6 +339,26 @@ function googleUrl(item) {
   return query ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}` : "";
 }
 
+function amapUrl(item) {
+  if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) {
+    return `https://uri.amap.com/marker?position=${item.lng},${item.lat}&name=${encodeURIComponent(item.name || "目的地")}&src=travelguide&coordinate=wgs84&callnative=1`;
+  }
+  const query = `${item.name || ""} ${item.address || ""}`.trim();
+  return query ? `https://ditu.amap.com/search?query=${encodeURIComponent(query)}` : "";
+}
+
+function appleMapsUrl(item) {
+  if (Number.isFinite(item.lat) && Number.isFinite(item.lng)) {
+    return `https://maps.apple.com/?ll=${item.lat},${item.lng}&q=${encodeURIComponent(item.name || item.address || "目的地")}`;
+  }
+  const query = `${item.name || ""} ${item.address || ""}`.trim();
+  return query ? `https://maps.apple.com/?q=${encodeURIComponent(query)}` : "";
+}
+
+function externalMapUrl(item, day, current = trip()) {
+  return isDomesticItem(item, day, current) ? amapUrl(item) : googleUrl(item);
+}
+
 function googleDayUrl(items) {
   const points = (items || []).filter((item) => Number.isFinite(item.lat) && Number.isFinite(item.lng));
   if (!points.length) return "";
@@ -300,29 +368,44 @@ function googleDayUrl(items) {
 }
 
 function openPinSheet(dayId) {
-  const day = trip().days.find((item) => item.id === dayId);
+  const current = trip();
+  const day = current.days.find((item) => item.id === dayId);
   const sheet = document.querySelector("#pin-sheet");
   const list = document.querySelector("#pin-sheet-list");
+  const noteEl = document.querySelector("#pin-sheet-note");
   if (!day || !sheet || !list) return;
-  const points = mappableItems(day.items).filter((item) => googleUrl(item));
+  const domestic = isDomesticDay(day, current);
+  const points = mappableItems(day.items).filter((item) => (domestic ? amapUrl(item) : googleUrl(item)));
   if (!points.length) return;
   if (points.length === 1) {
-    window.open(googleUrl(points[0]), "_blank", "noopener");
+    window.open(domestic ? amapUrl(points[0]) : googleUrl(points[0]), "_blank", "noopener");
     return;
   }
-  const dirLink = googleDayDirUrl(day.items);
-  document.querySelector("#pin-sheet-title").textContent =
-    `${monthDay(day.date) || "这一天"} · 在谷歌地图打点`;
+  const dirLink = domestic ? "" : googleDayDirUrl(day.items);
+  document.querySelector("#pin-sheet-title").textContent = domestic
+    ? `${monthDay(day.date) || "这一天"} · 在高德 / 苹果地图打点`
+    : `${monthDay(day.date) || "这一天"} · 在谷歌地图打点`;
+  if (noteEl) {
+    noteEl.textContent = domestic
+      ? "国内行程优先使用高德地图打点（已自动校准坐标），也支持直接用苹果地图导航。"
+      : "点任意一站即可在谷歌地图里单独打点定位；也可以点第一项把今天所有站点连成路线。";
+  }
   list.innerHTML = `${dirLink ? `<a class="pin-row pin-row-all" href="${esc(dirLink)}" target="_blank" rel="noopener">
       <span class="pin-num">${icon("navigation")}</span>
       <span class="pin-meta"><b>连成当天路线（共 ${points.length} 站）</b><small>一次性把今天所有坐标点串进谷歌地图路线</small></span>
       <span class="pin-go">看路线</span>
-    </a>` : ""}` + points.map((item, index) => `
-    <a class="pin-row" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">
-      <span class="pin-num">${index + 1}</span>
-      <span class="pin-meta"><b>${esc(item.name)}</b><small>${esc(item.time || "—")}${item.address ? ` · ${esc(item.address)}` : ""}</small></span>
-      <span class="pin-go">${icon("pin")}打点</span>
-    </a>`).join("");
+    </a>` : ""}` + points.map((item, index) => {
+    const primaryUrl = domestic ? amapUrl(item) : googleUrl(item);
+    const apple = domestic ? appleMapsUrl(item) : "";
+    return `<div class="pin-row-wrap">
+      <a class="pin-row" href="${esc(primaryUrl)}" target="_blank" rel="noopener">
+        <span class="pin-num">${index + 1}</span>
+        <span class="pin-meta"><b>${esc(item.name)}</b><small>${esc(item.time || "—")}${item.address ? ` · ${esc(item.address)}` : ""}</small></span>
+        <span class="pin-go">${icon("pin")}${domestic ? "高德" : "打点"}</span>
+      </a>
+      ${apple ? `<a class="pin-apple" href="${esc(apple)}" target="_blank" rel="noopener" title="用苹果地图打开">苹果地图</a>` : ""}
+    </div>`;
+  }).join("");
   sheet.showModal();
 }
 
@@ -332,6 +415,74 @@ function googleDayDirUrl(items) {
   return `https://www.google.com/maps/dir/${points.map((item) => `${item.lat},${item.lng}`).join("/")}`;
 }
 
+function isStackedLayout() {
+  return window.matchMedia("(max-width: 1100px)").matches;
+}
+
+function inMapViewport() {
+  const panel = document.querySelector(".map-panel");
+  if (!panel || !isStackedLayout()) return false;
+  const r = panel.getBoundingClientRect();
+  const threshold = window.innerHeight - Math.min(200, Math.max(120, r.height * 0.5));
+  return r.top <= threshold && r.bottom >= 90;
+}
+
+function updateMapFab() {
+  if (!mapFab) return;
+  if (!isStackedLayout() || !document.querySelector(".map-panel")) {
+    mapFab.hidden = true;
+    return;
+  }
+  mapFab.hidden = false;
+  if (inMapViewport()) {
+    mapFab.dataset.mode = "back";
+    const label = returnStopId ? "回刚才那站" : "回日程";
+    mapFab.innerHTML = `${icon("arrowUp")}<span>${label}</span>`;
+    mapFab.setAttribute("aria-label", label);
+  } else {
+    lastItineraryY = window.scrollY;
+    mapFab.dataset.mode = "to-map";
+    mapFab.innerHTML = `${icon("map")}<span>看地图</span>`;
+    mapFab.setAttribute("aria-label", "跳到底部查看地图");
+  }
+}
+
+let scrollAnimId = 0;
+function smoothScrollTo(targetY, onDone) {
+  const maxY = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+  const dest = Math.min(Math.max(0, Math.round(targetY)), maxY);
+  const start = window.scrollY;
+  const diff = dest - start;
+  if (Math.abs(diff) < 2) {
+    window.scrollTo(0, dest);
+    if (onDone) onDone();
+    return;
+  }
+  cancelAnimationFrame(scrollAnimId);
+  const duration = 260;
+  const t0 = performance.now();
+  const step = (now) => {
+    const p = Math.min(1, (now - t0) / duration);
+    const ease = 1 - Math.pow(1 - p, 3);
+    window.scrollTo(0, Math.round(start + diff * ease));
+    if (p < 1) {
+      scrollAnimId = requestAnimationFrame(step);
+    } else {
+      window.scrollTo(0, dest);
+      if (onDone) onDone();
+    }
+  };
+  scrollAnimId = requestAnimationFrame(step);
+}
+
+function scrollToMapPanel() {
+  const panel = document.querySelector(".map-panel") || document.querySelector("#map");
+  if (!panel) return;
+  const topOffset = Math.round((document.querySelector(".top")?.getBoundingClientRect().height || 59) + 10);
+  const targetY = Math.max(0, window.scrollY + panel.getBoundingClientRect().top - topOffset);
+  smoothScrollTo(targetY, updateMapFab);
+}
+
 function focusOnMap(dayId, itemId) {
   if (!map || !window.L) return;
   const current = trip();
@@ -339,9 +490,10 @@ function focusOnMap(dayId, itemId) {
   const item = day && day.items.find((it) => it.id === itemId);
   if (!item || !Number.isFinite(item.lat) || !Number.isFinite(item.lng)) return;
   const entry = markers.find((m) => m._stopIds && m._stopIds.includes(itemId));
-  const mapEl = document.querySelector("#map");
-  if (window.matchMedia("(max-width: 1100px)").matches && mapEl) {
-    mapEl.scrollIntoView({ behavior: "smooth", block: "center" });
+  if (isStackedLayout()) {
+    returnScrollY = window.scrollY;
+    returnStopId = itemId;
+    scrollToMapPanel();
   }
   map.flyTo([item.lat, item.lng], Math.max(map.getZoom(), 14), { duration: 0.55 });
   if (entry) setTimeout(() => entry.openPopup(), 260);
@@ -482,9 +634,16 @@ function normalizePhotoUrl(src) {
   const raw = String(src || "").trim();
   if (!raw) return "";
   const cleaned = raw.replace(/\(/g, "%28").replace(/\)/g, "%29");
-  if (/^(photos\/[\w-]+\.jpg|\/api\/img\?[^\s"'<>]+|https:\/\/[^\s"'<>]+)$/.test(cleaned)) {
-    return cleaned;
-  }
+  if (/^photos\/[\w.-]+\.(jpe?g|png|webp)$/i.test(cleaned)) return cleaned;
+  if (/^\/api\/img\?[^\s"'<>]+$/.test(cleaned)) return cleaned;
+  if (/^https:\/\/(commons|upload|thumb)\.wikimedia\.org\/[^\s"'<>]+$/i.test(cleaned)) return cleaned;
+  try {
+    const url = new URL(cleaned);
+    if (url.protocol === "https:" && url.pathname === "/api/img" && url.searchParams.get("file")) return cleaned;
+  } catch (_) {}
+  const shared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
+  if (!shared && /^https:\/\/[^\s"'<>]+$/i.test(cleaned)) return cleaned;
+  if (!shared && /^data:image\/(?:jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(cleaned)) return cleaned;
   return "";
 }
 
@@ -667,6 +826,7 @@ function renderMain() {
     </nav>
 
     ${days.map((day) => renderDay(day, current.days.indexOf(day) + 1, current)).join("")}
+    <footer class="page-footnote">票价、汇率与班期仅供参考，出行前请核对官网 · 默认云端为免费公共沙盒（限 100 KB · 90 天未编辑自动清理），请勿填入身份证/护照号、手机号或机票酒店预订确认码，重要路书可在右上角导出 JSON 备份。</footer>
   `;
   document.querySelector("#map-title").textContent = dayFilter === "all" ? "全程" : (chosen ? `${monthDay(chosen.date)} ${chosen.city}` : "这一天");
 }
@@ -754,15 +914,19 @@ function renderFlightWatch(current, origin) {
     : `${fw.fromCity} ⇄ ${fw.firstCity}（往返）`;
   const targetTip = origin && Number.isFinite(origin.cny)
     ? `当前估算 ¥${origin.cny.toLocaleString("en-US")}，建议低于 ¥${Math.round(origin.cny * 0.88 / 50) * 50} 可入手`
-    : "打开 Google Flights 后点「跟踪价格」即可免费收降价邮件提醒";
+    : (fw.domestic ? "国内航线可直接在携程查实时票价，或用 Google Flights 设降价提醒" : "打开 Google Flights 后点「跟踪价格」即可免费收降价邮件提醒");
+  const actionsHtml = fw.domestic
+    ? `<a class="btn btn-sm btn-primary" href="${esc(fw.ctripDomestic)}" target="_blank" rel="noopener">${icon("plane")}携程查实时票价</a>
+      <a class="btn btn-sm" href="${esc(fw.googleFlights)}" target="_blank" rel="noopener">Google Flights 提醒</a>`
+    : `<a class="btn btn-sm btn-primary" href="${esc(fw.googleFlights)}" target="_blank" rel="noopener">${icon("plane")}查实时票价 & 开降价提醒</a>
+      <a class="btn btn-sm" href="${esc(fw.tripCom)}" target="_blank" rel="noopener">携程比价</a>`;
   return `<div class="flight-watch">
     <div class="flight-watch-info">
       <span class="fw-badge">${icon("bell")}蹲低价机票</span>
       <span class="fw-route"><b>${esc(routeDesc)}</b><small>${esc(targetTip)}</small></span>
     </div>
     <div class="flight-watch-actions">
-      <a class="btn btn-sm btn-primary" href="${esc(fw.googleFlights)}" target="_blank" rel="noopener">${icon("plane")}查实时票价 & 开降价提醒</a>
-      <a class="btn btn-sm" href="${esc(fw.tripCom)}" target="_blank" rel="noopener">携程比价</a>
+      ${actionsHtml}
     </div>
   </div>`;
 }
@@ -774,12 +938,13 @@ function priceChip(item) {
 }
 
 function renderDay(day, number, current = trip()) {
-  const points = mappableItems(day.items).filter((item) => googleUrl(item));
-  const link = googleDayDirUrl(day.items);
+  const domestic = isDomesticDay(day, current);
+  const points = mappableItems(day.items).filter((item) => (domestic ? amapUrl(item) : googleUrl(item)));
+  const link = domestic ? "" : googleDayDirUrl(day.items);
   const mapControl = points.length > 1
-    ? `<button type="button" class="btn btn-primary" data-pins="${esc(day.id)}">${icon("pin")}在谷歌地图打点</button>${link && !isMobileMaps() ? `<a class="btn" href="${esc(link)}" target="_blank" rel="noopener">${icon("navigation")}连成路线</a>` : ""}`
+    ? `<button type="button" class="btn btn-primary" data-pins="${esc(day.id)}">${icon("pin")}${domestic ? "在高德地图打点" : "在谷歌地图打点"}</button>${link && !isMobileMaps() ? `<a class="btn" href="${esc(link)}" target="_blank" rel="noopener">${icon("navigation")}连成路线</a>` : ""}`
     : points.length === 1
-      ? `<a class="btn btn-primary" href="${esc(googleUrl(points[0]))}" target="_blank" rel="noopener">${icon("pin")}在谷歌地图打点</a>`
+      ? `<a class="btn btn-primary" href="${esc(domestic ? amapUrl(points[0]) : googleUrl(points[0]))}" target="_blank" rel="noopener">${icon("pin")}${domestic ? "在高德地图打点" : "在谷歌地图打点"}</a>`
       : "";
   const spend = dayCost(day);
   const prevDay = number > 1 ? current.days[number - 2] : null;
@@ -841,6 +1006,9 @@ function renderItem(day, item, index) {
   const parts = splitNote(item.note);
   const needs = item.reservation !== "none";
   const pic = safePhoto(item);
+  const domestic = isDomesticItem(item, day);
+  const mapHref = domestic ? amapUrl(item) : googleUrl(item);
+  const mapLabel = domestic ? "高德打点" : "谷歌打点";
   const editBtns = `<div class="stop-edit edit-only">
     ${index > 0 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移" aria-label="上移">${icon("arrowUp")}</button>` : ""}
     ${index < day.items.length - 1 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移" aria-label="下移">${icon("arrowDown")}</button>` : ""}
@@ -863,7 +1031,7 @@ function renderItem(day, item, index) {
           <div class="transit-right">
             ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
             ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet chip-map" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
-            <a class="link-quiet chip-gmaps" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌打点</a>
+            <a class="link-quiet chip-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("pin")}${mapLabel}</a>
             ${editBtns}
           </div>
         </div>
@@ -917,7 +1085,7 @@ function renderItem(day, item, index) {
         </details>` : ""}
         <div class="stop-actions">
           ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-          <a class="btn btn-sm btn-action btn-gmaps" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("external")}谷歌打点</a>
+          <a class="btn btn-sm btn-action btn-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("external")}${mapLabel}</a>
           ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-action btn-map-focus" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
           ${item.kind !== "transport" ? `<a class="btn btn-sm btn-action btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
           ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
@@ -993,9 +1161,13 @@ function drawMap() {
           iconSize: null
         })
       });
-      marker.bindPopup(group.items.map((item) =>
-        `${safePhoto(item) ? `<img class="popup-photo" src="${esc(safePhoto(item).src)}" alt="" />` : ""}<b>${esc(item.name)}</b><span>${esc(item.time || "")}</span><a href="${esc(googleUrl(item))}" target="_blank" rel="noopener">在谷歌地图打开</a>`
-      ).join("<hr>"));
+      marker.bindPopup(group.items.map((item) => {
+        const domestic = isDomesticItem(item, day, current);
+        const navHtml = domestic
+          ? `<a href="${esc(amapUrl(item))}" target="_blank" rel="noopener">在高德地图打开</a> · <a href="${esc(appleMapsUrl(item))}" target="_blank" rel="noopener">苹果地图</a>`
+          : `<a href="${esc(googleUrl(item))}" target="_blank" rel="noopener">在谷歌地图打开</a>`;
+        return `${safePhoto(item) ? `<img class="popup-photo" src="${esc(safePhoto(item).src)}" alt="" />` : ""}<b>${esc(item.name)}</b><span>${esc(item.time || "")}</span>${navHtml}`;
+      }).join("<hr>"));
       marker._stopIds = group.items.map((it) => it.id);
       marker.addTo(map);
       markers.push(marker);
@@ -1019,7 +1191,41 @@ function syncStickyOffsets() {
   }
 }
 
-window.addEventListener("resize", syncStickyOffsets);
+window.addEventListener("resize", () => {
+  syncStickyOffsets();
+  updateMapFab();
+});
+
+let fabScrollRaf = 0;
+window.addEventListener("scroll", () => {
+  if (fabScrollRaf) return;
+  fabScrollRaf = requestAnimationFrame(() => {
+    fabScrollRaf = 0;
+    updateMapFab();
+  });
+}, { passive: true });
+
+if (mapFab) {
+  mapFab.addEventListener("click", () => {
+    if (mapFab.dataset.mode === "back") {
+      const stopEl = returnStopId ? document.getElementById(`item-${returnStopId}`) : null;
+      const topOffset = Math.round(
+        (document.querySelector(".top")?.getBoundingClientRect().height || 59) +
+        (document.querySelector(".day-tabs")?.getBoundingClientRect().height || 88) + 12
+      );
+      const backY = stopEl
+        ? window.scrollY + stopEl.getBoundingClientRect().top - topOffset
+        : (Number.isFinite(returnScrollY) ? returnScrollY : lastItineraryY);
+      returnScrollY = null;
+      returnStopId = "";
+      smoothScrollTo(backY, updateMapFab);
+      return;
+    }
+    returnScrollY = window.scrollY;
+    returnStopId = "";
+    scrollToMapPanel();
+  });
+}
 
 function render() {
   if (!state.trips.length) return;
@@ -1030,6 +1236,7 @@ function render() {
   syncStickyOffsets();
   drawMap();
   main.scrollTop = scroll;
+  updateMapFab();
   save();
 }
 
@@ -1410,6 +1617,8 @@ main.addEventListener("click", (event) => {
   const dayButton = event.target.closest("[data-day]");
   if (dayButton) {
     dayFilter = dayButton.dataset.day;
+    returnScrollY = null;
+    returnStopId = "";
     render();
     const tabsEl = main.querySelector(".day-tabs");
     if (tabsEl) tabsEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -1434,7 +1643,7 @@ main.addEventListener("click", (event) => {
   if (event.target.closest("#edit-cover")) {
     const current = trip();
     const curSrc = (current.coverPhoto && current.coverPhoto.src) || "";
-    const next = window.prompt("自定义顶部封面图链接（https://...，留空则自动使用首个必去景点配图）", curSrc);
+    const next = window.prompt("自定义顶部封面图：云端只保存 Wikimedia 或本站 /api/img 链接，留空则用首个景点配图", curSrc);
     if (next == null) return;
     const trimmed = next.trim();
     if (!trimmed) {
@@ -1442,7 +1651,7 @@ main.addEventListener("click", (event) => {
     } else if (normalizePhotoUrl(trimmed)) {
       current.coverPhoto = { src: normalizePhotoUrl(trimmed), credit: "", link: trimmed, caption: current.title };
     } else {
-      window.alert("请输入有效的 https:// 图片地址");
+      window.alert("请输入 Wikimedia 或本站 /api/img 图片地址");
       return;
     }
     return render();
@@ -1476,6 +1685,8 @@ tripList.addEventListener("click", (event) => {
   state.tripId = button.dataset.trip;
   dayFilter = "all";
   bookingsOpen = false;
+  returnScrollY = null;
+  returnStopId = "";
   render();
 });
 
@@ -1494,6 +1705,8 @@ window.TRAVEL_GUIDE_APP = {
     dayFilter = "all";
     bookingsOpen = false;
     budgetOpen = false;
+    returnScrollY = null;
+    returnStopId = "";
     render();
   }
 };

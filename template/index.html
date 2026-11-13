@@ -13,7 +13,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="styles.css?v=32" />
+  <link rel="stylesheet" href="styles.css?v=35" />
 </head>
 <body>
   <header class="top">
@@ -45,7 +45,7 @@
         <button type="button" id="new-trip" class="btn btn-sm edit-only"><span data-icon="plus"></span>新建</button>
       </div>
       <div id="trip-list"></div>
-      <p class="rail-note">票价、汇率、班期多为估算，请出行前再核对官网。共享页面会自动保存；本地预览也可以导出备份。</p>
+      <p class="rail-note">票价、汇率与班期多为估算，请出行前再核对官网。发布到公共演示沙盒前请勿写入证件号、手机号或预订号；云端超过 90 天未编辑会自动清理，重要路书请导出备份。</p>
     </aside>
 
     <main id="main"></main>
@@ -93,7 +93,7 @@
         <label>每人费用（当地货币） <input name="costAmount" inputmode="decimal" placeholder="免费填 0" /></label>
         <label>费用说明 <input name="costNote" placeholder="含什么，怎么算的" /></label>
       </div>
-      <label>配图链接（https://）
+      <label>配图链接（Wikimedia 或本站 /api/img）
         <span class="copy-field">
           <input name="photoSrc" placeholder="https://commons.wikimedia.org/..." />
           <button type="button" id="photo-search-btn" class="btn btn-sm"><span data-icon="camera"></span><span class="label">自动搜图</span></button>
@@ -130,13 +130,15 @@
   <dialog id="pin-sheet" class="pin-sheet">
     <form method="dialog">
       <h3 id="pin-sheet-title">在谷歌地图打点</h3>
-      <p class="pin-sheet-note">点任意一站即可在谷歌地图里单独打点定位；也可以点第一项把今天所有站点连成路线。</p>
+      <p id="pin-sheet-note" class="pin-sheet-note">点任意一站即可在谷歌地图里单独打点定位；也可以点第一项把今天所有站点连成路线。</p>
       <div id="pin-sheet-list" class="pin-sheet-list"></div>
       <div class="dialog-actions">
         <button type="submit" class="btn" value="cancel">关闭</button>
       </div>
     </form>
   </dialog>
+
+  <button type="button" id="mobile-map-fab" class="mobile-map-fab" hidden></button>
 
   <dialog id="share-dialog" class="share-dialog">
     <form method="dialog">
@@ -167,21 +169,25 @@
         </div>
         <div class="revision-section">
           <div class="revision-bar">
-            <span>最近保存记录（最多 20 版）</span>
+            <span>最近保存记录（最多 10 版）</span>
             <button type="button" class="btn btn-sm" id="load-revisions-btn">刷新列表</button>
           </div>
           <div id="revision-list" class="revision-list"></div>
         </div>
+        <div class="share-delete-row">
+          <small>误发了证件号或预订号时，连同历史版本一起从云端清除。</small>
+          <button type="button" class="btn btn-sm" id="delete-cloud-trip-btn">彻底删除云端行程</button>
+        </div>
       </div>
-      <p class="share-warning">不要把编辑链接公开发布。丢失后可通过上方重置，旧链接会立即失效。</p>
+      <p class="share-warning">公共演示沙盒单行程限 100 KB、超过 90 天未编辑自动清理，不承诺永久保存。请勿把编辑链接公开发布，也不要写入身份证、护照、手机号或预订号。</p>
       <div class="dialog-actions">
         <button type="button" id="share-close" class="btn btn-primary">完成</button>
       </div>
     </form>
   </dialog>
 
-  <script src="data.js?v=32"></script>
-  <script src="app.js?v=32"></script>
-  <script src="share.js?v=9"></script>
+  <script src="data.js?v=35"></script>
+  <script src="app.js?v=35"></script>
+  <script src="share.js?v=10"></script>
 </body>
 </html>

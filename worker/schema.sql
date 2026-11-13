@@ -7,6 +7,9 @@ CREATE TABLE IF NOT EXISTS trips (
   updated_at TEXT NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS trips_updated_at
+ON trips (updated_at);
+
 CREATE TABLE IF NOT EXISTS revisions (
   trip_id TEXT NOT NULL,
   revision INTEGER NOT NULL,

@@ -16,9 +16,12 @@
   const rotateTokenButton = document.querySelector("#rotate-token-btn");
   const loadRevisionsButton = document.querySelector("#load-revisions-btn");
   const revisionList = document.querySelector("#revision-list");
+  const deleteTripButton = document.querySelector("#delete-cloud-trip-btn");
+  const sandboxNotice = document.querySelector("#sandbox-notice");
 
   let token = "";
   let revision = 0;
+  let removed = false;
   let loading = false;
   let saving = false;
   let saveAgain = false;
@@ -35,6 +38,7 @@
 
   if (route) {
     document.body.classList.add("shared-route");
+    if (sandboxNotice) sandboxNotice.hidden = false;
     if (route.mode === "edit") {
       token = readToken(route.id);
       if (token) document.body.classList.add("shared-edit");
@@ -78,6 +82,10 @@
     loadRevisionsButton.addEventListener("click", loadRevisions);
   }
 
+  if (deleteTripButton) {
+    deleteTripButton.addEventListener("click", deleteCloudTrip);
+  }
+
   if (revisionList) {
     revisionList.addEventListener("click", async (event) => {
       const btn = event.target.closest("[data-restore]");
@@ -94,7 +102,7 @@
   copyEdit.addEventListener("click", () => copyValue(editInput, copyEdit));
 
   window.addEventListener("travelguide:save", () => {
-    if (!route || route.mode !== "edit" || !token || loading) return;
+    if (removed || !route || route.mode !== "edit" || !token || loading) return;
     const next = snapshot();
     if (!next || next === lastSnapshot) return;
     dirty = true;
@@ -274,6 +282,36 @@
       setStatus(`已恢复 v${targetRev}（当前 v${data.revision}）`, "saved");
     } catch (error) {
       window.alert(error.message || "恢复历史版本失败");
+    }
+  }
+
+  async function deleteCloudTrip() {
+    if (removed || !route || !token || !deleteTripButton) return;
+    if (!window.confirm("彻底删除后，公开链接、编辑链接和全部历史版本都会立即失效，且无法恢复。确定删除这份云端行程吗？")) return;
+    deleteTripButton.disabled = true;
+    try {
+      const response = await fetch(`${apiBase}/api/trips/${route.id}`, {
+        method: "DELETE",
+        headers: { authorization: `Bearer ${token}` }
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "删除失败。");
+      removed = true;
+      dirty = false;
+      clearTimeout(saveTimer);
+      const key = `travel-guide-edit-token:${route.id}`;
+      try { localStorage.removeItem(key); } catch {}
+      try { sessionStorage.removeItem(key); } catch {}
+      token = "";
+      if (dialog.open) dialog.close();
+      document.body.classList.remove("shared-edit");
+      document.body.classList.add("shared-readonly");
+      document.querySelector("#main").innerHTML =
+        `<section class="share-error"><h2>云端行程已删除</h2><p>公开链接和历史版本都已清除。可以关闭这个页面。</p></section>`;
+      setStatus("已从云端删除", "saved");
+    } catch (error) {
+      window.alert(error.message || "删除失败");
+      deleteTripButton.disabled = false;
     }
   }
 
