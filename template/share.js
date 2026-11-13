@@ -18,6 +18,13 @@
   const revisionList = document.querySelector("#revision-list");
   const deleteTripButton = document.querySelector("#delete-cloud-trip-btn");
   const sandboxNotice = document.querySelector("#sandbox-notice");
+  const staticCloudBox = document.querySelector("#static-cloud-box");
+  const staticCloudButton = document.querySelector("#static-cloud-btn");
+  const dialogKicker = document.querySelector("#share-dialog-kicker");
+  const dialogTitle = document.querySelector("#share-dialog-title");
+  const dialogExplain = document.querySelector("#share-dialog-explain");
+  const shareWarning = document.querySelector("#share-warning");
+  const isStaticHosted = !route && !window.TRAVEL_SHARE_API && /^https?:$/i.test(location.protocol) && !/^(localhost|127\.0\.0\.1)$/i.test(location.hostname);
 
   let token = "";
   let revision = 0;
@@ -58,8 +65,17 @@
         editUrl: token ? `${location.origin}/t/${route.id}/edit#token=${token}` : ""
       });
     }
+    if (isStaticHosted) {
+      return openStaticShareDialog();
+    }
     await createShare(false);
   });
+
+  if (staticCloudButton) {
+    staticCloudButton.addEventListener("click", async () => {
+      await createShare(false, staticCloudButton);
+    });
+  }
 
   if (forkButton) {
     forkButton.addEventListener("click", async () => {
@@ -157,9 +173,25 @@
     }
   }
 
-  async function createShare(isFork) {
+  async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
+    if (typeof AbortController !== "function") return fetch(url, options);
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } catch (error) {
+      if (error && error.name === "AbortError") {
+        throw new Error("连接共享服务超时（当前网络可能无法直连 workers.dev）。");
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timer);
+    }
+  }
+
+  async function createShare(isFork, explicitBtn) {
     const base = apiBase || location.origin;
-    const triggerBtn = isFork && forkButton ? forkButton : shareButton;
+    const triggerBtn = explicitBtn || (isFork && forkButton ? forkButton : shareButton);
     triggerBtn.disabled = true;
     setStatus(isFork ? "正在复制为你的可编辑副本…" : "正在生成分享链接…", "working");
     try {
@@ -167,7 +199,7 @@
       if (isFork && payload.trip && payload.trip.title && !/副本$/.test(payload.trip.title)) {
         payload.trip.title = `${payload.trip.title}（副本）`;
       }
-      const response = await fetch(`${base}/api/trips`, {
+      const response = await fetchWithTimeout(`${base}/api/trips`, {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify(payload)
@@ -182,8 +214,8 @@
       setStatus("分享链接已生成", "saved");
       openShareDialog(data);
     } catch (error) {
-      setStatus("当前站点未配置共享服务", "error");
-      window.alert(`${error.message || "发布失败。"}\n\n如果这是本地预览，请让 Agent 使用 scripts/publish-site.sh 发布。`);
+      setStatus(isStaticHosted ? "" : "当前站点未配置共享服务", isStaticHosted ? "" : "error");
+      window.alert(`${error.message || "发布失败。"}\n\n${isStaticHosted ? "可直接复制当前静态链接发给朋友，或用右上角「··· → 导出 JSON 备份」传递修改。" : "如果这是本地预览，请让 Agent 使用 scripts/publish-gh-pages.sh 或 scripts/publish-site.sh 发布。"}`);
     } finally {
       triggerBtn.disabled = false;
     }
@@ -421,10 +453,32 @@
     }
   }
 
+  function openStaticShareDialog() {
+    if (dialogKicker) dialogKicker.textContent = "分享静态路书";
+    if (dialogTitle) dialogTitle.textContent = "直接转发当前网页链接";
+    if (dialogExplain) dialogExplain.textContent = "此页面托管在静态网站上，国内手机与电脑可直接打开，无需依赖海外云端沙盒。";
+    publicInput.value = location.href.split("#")[0];
+    editInput.value = "";
+    document.querySelector("#edit-link-row").hidden = true;
+    if (manageBox) manageBox.hidden = true;
+    if (staticCloudBox) staticCloudBox.hidden = false;
+    if (shareWarning) {
+      shareWarning.textContent = "你在本页面做的修改仅保存在当前浏览器；要同步给同行人，请点右上角「··· → 导出 JSON 备份」或让 Agent 更新静态站点。";
+    }
+    dialog.showModal();
+  }
+
   function openShareDialog(links) {
+    if (dialogKicker) dialogKicker.textContent = "分享行程";
+    if (dialogTitle) dialogTitle.textContent = "两个链接，两种权限";
+    if (dialogExplain) dialogExplain.textContent = "公开链接只能查看；编辑链接相当于密码，请只发给共同规划的人。";
     publicInput.value = links.publicUrl || "";
     editInput.value = links.editUrl || "";
     document.querySelector("#edit-link-row").hidden = !links.editUrl;
+    if (staticCloudBox) staticCloudBox.hidden = true;
+    if (shareWarning) {
+      shareWarning.textContent = "公共演示沙盒单行程限 100 KB、超过 90 天未编辑自动清理，不承诺永久保存。请勿把编辑链接公开发布，也不要写入身份证、护照、手机号或预订号。";
+    }
     const canManage = Boolean(route && route.mode === "edit" && token);
     if (manageBox) {
       manageBox.hidden = !canManage;
@@ -435,7 +489,13 @@
 
   async function copyValue(input, button) {
     if (!input.value) return;
-    await navigator.clipboard.writeText(input.value);
+    try {
+      await navigator.clipboard.writeText(input.value);
+    } catch {
+      input.focus();
+      input.select();
+      try { document.execCommand("copy"); } catch {}
+    }
     const before = button.textContent;
     button.textContent = "已复制";
     window.setTimeout(() => { button.textContent = before; }, 1200);

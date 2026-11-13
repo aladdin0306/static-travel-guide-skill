@@ -27,7 +27,7 @@ html, body { margin: 0; height: 100%; }
 body {
   background: var(--sand);
   color: var(--ink);
-  font-family: "Instrument Sans", "PingFang SC", "Hiragino Sans GB", "Noto Sans SC", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
   font-size: 15px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
@@ -1772,6 +1772,24 @@ html.shared-loading body { visibility: hidden; }
 #conflict-reload-btn:hover {
   background: var(--coral);
   color: #fff;
+}
+
+.static-cloud-box {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fbfcfc;
+}
+.static-cloud-box small {
+  flex: 1 1 260px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 .share-manage-box {

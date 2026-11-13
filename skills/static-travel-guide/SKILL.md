@@ -129,21 +129,23 @@ bash scripts/serve.sh /abs/OUTPUT_SITE 8766
 
 Choose the publish path automatically based on what the user needs and what tools are already signed in:
 
-1. **Permanent static site on the user's own GitHub Pages (default whenever `gh auth status` succeeds and live multi-user web editing is not required — fast on mobile in China, zero author-domain dependency, permanent)**:
+1. **Permanent static site on the user's own GitHub Pages (default whenever `gh auth status` succeeds and live multi-user web editing is not required — fast on mobile in China, zero author-domain dependency, permanent, $0/month)**:
 
 ```bash
 bash scripts/publish-gh-pages.sh /abs/OUTPUT_SITE [trip-slug]
+bash scripts/bundle-single.sh /abs/OUTPUT_SITE
 ```
 
-   Returns `https://<github-username>.github.io/travel-guides/<trip-slug>/` directly under the user's own GitHub account.
+   Returns `https://<github-username>.github.io/travel-guides/<trip-slug>/` directly under the user's own GitHub account, plus a self-contained `*-offline.html` bundle (with local Leaflet and embedded photos, no external CDN/Google Fonts dependencies) ready for WeChat/Feishu sharing.
 
-2. **Live collaborative editing link (when the user asks to edit online with friends, or `gh` is not logged in)**:
+2. **Live collaborative editing link (only when the user asks to edit online with friends, or `gh` is not logged in)**:
 
 ```bash
 bash scripts/publish-site.sh /abs/OUTPUT_SITE
 ```
 
    - Automatically checks `~/.config/static-travel-guide/api` (created by `bash scripts/setup-cloud.sh` on the user's own free Cloudflare account) before falling back to the bundled public demo sandbox `https://static-travel-guide.huqimeng0306.workers.dev`.
+   - Note: default `*.workers.dev` URLs can be unreachable on some mainland China networks unless bound to a custom domain in Cloudflare, so prefer GitHub Pages + `*-offline.html` whenever live multi-user web editing is not required.
    - If the user wants long-term private collaborative hosting under their own Cloudflare free account ($0/month), suggest or run `bash scripts/setup-cloud.sh` once (browser login + auto D1/Worker deploy).
 
 3. **Zero-account offline single-file HTML (always safe as backup, or primary if both `gh` and cloud fail)**:

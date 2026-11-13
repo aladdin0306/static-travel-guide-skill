@@ -9,11 +9,8 @@
       document.documentElement.classList.add("shared-loading");
     }
   </script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap" rel="stylesheet" media="print" onload="this.media='all'" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="styles.css?v=35" />
+  <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4" />
+  <link rel="stylesheet" href="styles.css?v=36" />
 </head>
 <body>
   <header class="top">
@@ -126,7 +123,7 @@
     </form>
   </dialog>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="vendor/leaflet.js?v=1.9.4"></script>
   <dialog id="pin-sheet" class="pin-sheet">
     <form method="dialog">
       <h3 id="pin-sheet-title">在谷歌地图打点</h3>
@@ -143,9 +140,9 @@
   <dialog id="share-dialog" class="share-dialog">
     <form method="dialog">
       <div>
-        <p class="dialog-kicker">分享行程</p>
-        <h3>两个链接，两种权限</h3>
-        <p class="share-explain">公开链接只能查看；编辑链接相当于密码，请只发给共同规划的人。</p>
+        <p class="dialog-kicker" id="share-dialog-kicker">分享行程</p>
+        <h3 id="share-dialog-title">两个链接，两种权限</h3>
+        <p class="share-explain" id="share-dialog-explain">公开链接只能查看；编辑链接相当于密码，请只发给共同规划的人。</p>
       </div>
       <label>公开查看链接
         <span class="copy-field">
@@ -159,6 +156,10 @@
           <button type="button" class="btn btn-sm" id="copy-edit">复制</button>
         </span>
       </label>
+      <div id="static-cloud-box" class="static-cloud-box" hidden>
+        <small>当前为静态托管页面，复制上方链接即可发给同行人查看。如果需要在网页上多人实时编辑，也可以生成云端副本（默认沙盒使用 workers.dev，部分国内网络可能无法直连）。</small>
+        <button type="button" class="btn btn-sm" id="static-cloud-btn">生成云端可编辑副本</button>
+      </div>
       <div id="share-manage-box" class="share-manage-box" hidden>
         <div class="share-manage-head">
           <div>
@@ -179,7 +180,7 @@
           <button type="button" class="btn btn-sm" id="delete-cloud-trip-btn">彻底删除云端行程</button>
         </div>
       </div>
-      <p class="share-warning">公共演示沙盒单行程限 100 KB、超过 90 天未编辑自动清理，不承诺永久保存。请勿把编辑链接公开发布，也不要写入身份证、护照、手机号或预订号。</p>
+      <p class="share-warning" id="share-warning">公共演示沙盒单行程限 100 KB、超过 90 天未编辑自动清理，不承诺永久保存。请勿把编辑链接公开发布，也不要写入身份证、护照、手机号或预订号。</p>
       <div class="dialog-actions">
         <button type="button" id="share-close" class="btn btn-primary">完成</button>
       </div>
@@ -187,7 +188,7 @@
   </dialog>
 
   <script src="data.js?v=35"></script>
-  <script src="app.js?v=35"></script>
-  <script src="share.js?v=10"></script>
+  <script src="app.js?v=37"></script>
+  <script src="share.js?v=11"></script>
 </body>
 </html>

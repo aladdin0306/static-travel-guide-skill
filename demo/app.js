@@ -653,7 +653,8 @@ function safePhoto(item) {
   let src = normalizePhotoUrl(pic.src);
   if (!src) return null;
   const isShared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
-  if (/^https:\/\/(commons|upload|thumb)\.wikimedia\.org\//i.test(src) || (isShared && /^photos\//.test(src))) {
+  const hasCustomApi = Boolean(window.TRAVEL_SHARE_API);
+  if ((isShared || hasCustomApi) && (/^https:\/\/(commons|upload|thumb)\.wikimedia\.org\//i.test(src) || (isShared && /^photos\//.test(src)))) {
     const cFile = commonsFileFromUrl(src) || commonsFileFromUrl(pic.link || "");
     if (cFile) {
       const base = (window.TRAVEL_SHARE && window.TRAVEL_SHARE.apiBase) || "https://static-travel-guide.huqimeng0306.workers.dev";
@@ -1289,10 +1290,27 @@ function readForm() {
 
 if (window.L) {
   map = L.map("map", { zoomControl: true });
-  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+  const primaryTiles = L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
     maxZoom: 19,
     attribution: 'Tiles &copy; Esri'
-  }).addTo(map);
+  });
+  let tileLoaded = false;
+  let tileErrors = 0;
+  let switchedTiles = false;
+  primaryTiles.on("tileload", () => { tileLoaded = true; });
+  primaryTiles.on("tileerror", () => {
+    tileErrors += 1;
+    if (!tileLoaded && !switchedTiles && tileErrors >= 4) {
+      switchedTiles = true;
+      map.removeLayer(primaryTiles);
+      L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+        maxZoom: 19,
+        subdomains: "abcd",
+        attribution: '&copy; OpenStreetMap &copy; CARTO'
+      }).addTo(map);
+    }
+  });
+  primaryTiles.addTo(map);
   map.setView([-25.5, 146.5], 4);
 }
 
@@ -1449,14 +1467,21 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
   label.textContent = "搜图中…";
   try {
     let picked = null;
+    const isShared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
+    const hasCustomApi = Boolean(window.TRAVEL_SHARE_API);
     const proxyBase = ((window.TRAVEL_SHARE && window.TRAVEL_SHARE.apiBase) || "https://static-travel-guide.huqimeng0306.workers.dev").replace(/\/$/, "");
-    try {
-      const pRes = await fetch(`${proxyBase}/api/commons-search?q=${encodeURIComponent(query)}`);
-      if (pRes.ok) {
-        const pData = await pRes.json();
-        picked = pData.picked || null;
-      }
-    } catch (_) {}
+    if (isShared || hasCustomApi) {
+      try {
+        const ctrl = typeof AbortController === "function" ? new AbortController() : null;
+        const timer = ctrl ? setTimeout(() => ctrl.abort(), 4000) : 0;
+        const pRes = await fetch(`${proxyBase}/api/commons-search?q=${encodeURIComponent(query)}`, ctrl ? { signal: ctrl.signal } : undefined);
+        if (timer) clearTimeout(timer);
+        if (pRes.ok) {
+          const pData = await pRes.json();
+          picked = pData.picked || null;
+        }
+      } catch (_) {}
+    }
 
     if (!picked) {
       const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srnamespace=6&srlimit=6&format=json&origin=*&srsearch=${encodeURIComponent(query)}`;
@@ -1465,7 +1490,7 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
       const hits = (sData.query && sData.query.search) || [];
       for (const hit of hits) {
         if (!/\.(jpe?g|png|webp)$/i.test(hit.title)) continue;
-        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|extmetadata&format=json&origin=*`;
+        const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(hit.title)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=1200&format=json&origin=*`;
         const iRes = await fetch(infoUrl);
         const iData = await iRes.json();
         const pages = (iData.query && iData.query.pages) || {};
@@ -1478,7 +1503,7 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
         const file = hit.title.replace(/^File:/, "");
         const enc = encodeURIComponent(file).replace(/\(/g, "%28").replace(/\)/g, "%29");
         picked = {
-          src: `${proxyBase}/api/img?file=${enc}&w=1200`,
+          src: (isShared || hasCustomApi) ? `${proxyBase}/api/img?file=${enc}&w=1200` : (info.thumburl || info.url),
           credit: `${artist} · ${lic}`.slice(0, 60),
           link: `https://commons.wikimedia.org/wiki/File:${enc}`
         };

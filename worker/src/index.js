@@ -39,7 +39,7 @@ export default {
       }
 
       const nestedAsset = url.pathname.match(
-        /^\/t(?:\/[A-Za-z0-9_-]+)?(?:\/edit)?\/(styles\.css|data\.js|app\.js|share\.js|photos\/[\w-]+\.jpg)$/
+        /^\/t(?:\/[A-Za-z0-9_-]+)?(?:\/edit)?\/(styles\.css|data\.js|app\.js|share\.js|vendor\/[\w.-]+\.(?:css|js)|vendor\/images\/[\w.-]+\.png|photos\/[\w-]+\.jpg)$/
       );
       if (nestedAsset) {
         const assetUrl = new URL(`/${nestedAsset[1]}`, url);
