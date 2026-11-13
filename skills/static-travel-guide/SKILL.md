@@ -15,10 +15,10 @@ description: >-
 1. Install once → describe trip + preferences in chat.
 2. **Interview first** if key constraints are missing, then confirm in one short summary.
 3. **You** build and publish the site — user never copies folders, edits `data.js`, or configures servers.
-4. You **must** return openable **URLs**:
-   - Online **Public View URL** (`/t/:id` — read-only, OpenGraph preview card, supports one-click Fork「复制并修改」)
-   - Online **Private Edit URL** (`/t/:id/edit#token=...` — autosave, stop reordering, online Commons photo search, 20-version history restore, edit token reset, conflict reload)
-   - Local **Preview URL** (`http://127.0.0.1:PORT/` + phone LAN hint)
+4. You **must** return openable **URLs** (putting the cloud public & edit links first as ready on any phone/network):
+   - Online **Public View URL** (`https://.../t/:id` — works on any phone over cellular or any Wi‑Fi, read-only, OpenGraph preview card, supports one-click Fork「复制并修改」)
+   - Online **Private Edit URL** (`https://.../t/:id/edit#token=...` — works on any device, autosave, stop reordering, online Commons photo search, 20-version history restore, edit token reset, conflict reload)
+   - Local **Preview URL** (`http://127.0.0.1:PORT/`, optional same-machine/offline backup)
    Never end with only a folder path.
 
 ## Mandatory intake — ask before planning
@@ -122,11 +122,11 @@ bash scripts/publish-site.sh /abs/OUTPUT_SITE
 
 The bundled default service is `https://static-travel-guide.huqimeng0306.workers.dev` (zero setup for end users). A maintainer can override it via `TRAVEL_GUIDE_API` or the script's second argument.
 
-Return both online links clearly alongside the local preview:
+Return both online links first and clearly label them as ready for any phone/network (do not make the local `127.0.0.1` URL sound like the main mobile link):
 
-- **公开查看（可发群/朋友，支持右上角「复制并修改」克隆副本）**: `https://.../t/ID`
-- **私密编辑（仅自己和共同编辑者保留，支持增删改、上下调序、在线搜图、历史版本恢复、重置密钥）**: `https://.../t/ID/edit#token=...`
-- **本地预览**: `http://127.0.0.1:8766/`（同 Wi‑Fi 手机可用局域网 IP）
+- **公开查看（任何手机 4G/5G/任意 Wi‑Fi 可直接打开；可发群/朋友，支持右上角「复制并修改」克隆副本）**: `https://.../t/ID`
+- **私密编辑（任何设备可打开；仅自己和共同编辑者保留，支持增删改、上下调序、在线搜图、历史版本恢复、重置密钥）**: `https://.../t/ID/edit#token=...`
+- **本地离线备份（可选，仅本机或同 Wi‑Fi 调试用）**: `http://127.0.0.1:8766/`
 
 Notes:
 

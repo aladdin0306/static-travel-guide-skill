@@ -15,9 +15,9 @@ Agent:
 7. `bash scripts/serve.sh ~/Sites/kyoto-2027 8766` (run in background).
 8. `bash scripts/publish-site.sh ~/Sites/kyoto-2027` (publishes to the default Cloudflare sharing service).
 9. Reply with:
-   - **公开查看链接**（可发群/朋友，支持「复制并修改」克隆副本）
-   - **私密编辑链接**（仅自己和同伴保留，支持在线改行程、上下移动站点、自动搜图、恢复最近 20 版、重置密钥）
-   - **本地预览链接**（`http://127.0.0.1:8766/` + 手机局域网提示）
+   - **公开查看链接**（公网 HTTPS，任何手机 4G/5G/任意 Wi‑Fi 可直接打开，支持「复制并修改」克隆副本）
+   - **私密编辑链接**（公网 HTTPS，仅自己和同伴保留，支持在线改行程、上下移动站点、自动搜图、恢复最近 20 版、重置密钥）
+   - **本地预览链接**（`http://127.0.0.1:8766/`，仅作本机离线备份）
 10. Tick acceptance checklist.
 
 ## Multiple departure cities

@@ -42,6 +42,7 @@ const ICONS = {
   trash: '<path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/>',
   pin: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>',
   map: '<path d="M14.106 5.553a2 2 0 0 0 1.788 0l3.659-1.83A1 1 0 0 1 21 4.619v12.764a1 1 0 0 1-.553.894l-4.553 2.277a2 2 0 0 1-1.788 0l-4.212-2.106a2 2 0 0 0-1.788 0l-3.659 1.83A1 1 0 0 1 3 19.381V6.618a1 1 0 0 1 .553-.894l4.553-2.277a2 2 0 0 1 1.788 0z"/><path d="M15 5.764v15"/><path d="M9 3.236v15"/>',
+  external: '<path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>',
   navigation: '<polygon points="3 11 22 2 13 21 11 13 3 11"/>',
   calendar: '<path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="m9 16 2 2 4-4"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
@@ -332,6 +333,7 @@ function googleDayDirUrl(items) {
 }
 
 function focusOnMap(dayId, itemId) {
+  if (!map || !window.L) return;
   const current = trip();
   const day = current.days.find((d) => d.id === dayId);
   const item = day && day.items.find((it) => it.id === itemId);
@@ -860,8 +862,8 @@ function renderItem(day, item, index) {
           </div>
           <div class="transit-right">
             ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
-            ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}定位</button>` : ""}
-            <a class="link-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌打点</a>
+            ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet chip-map" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
+            <a class="link-quiet chip-gmaps" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌打点</a>
             ${editBtns}
           </div>
         </div>
@@ -915,9 +917,9 @@ function renderItem(day, item, index) {
         </details>` : ""}
         <div class="stop-actions">
           ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-          <a class="btn btn-sm btn-quiet" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("pin")}谷歌地图打点</a>
-          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-quiet" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}右侧地图定位</button>` : ""}
-          ${item.kind !== "transport" ? `<a class="btn btn-sm btn-quiet btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
+          <a class="btn btn-sm btn-action btn-gmaps" href="${esc(googleUrl(item))}" target="_blank" rel="noopener">${icon("external")}谷歌打点</a>
+          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-action btn-map-focus" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
+          ${item.kind !== "transport" ? `<a class="btn btn-sm btn-action btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
           ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
         </div>
       </div>
@@ -959,6 +961,7 @@ function visibleItems() {
 }
 
 function drawMap() {
+  if (!map || !window.L) return;
   markers.forEach((layer) => layer.remove());
   markers = [];
   const current = trip();
@@ -1005,12 +1008,26 @@ function drawMap() {
   setTimeout(() => map.invalidateSize(), 0);
 }
 
+function syncStickyOffsets() {
+  const topEl = document.querySelector(".top");
+  const tabsEl = main.querySelector(".day-tabs");
+  if (topEl) {
+    document.documentElement.style.setProperty("--top-h", `${Math.round(topEl.getBoundingClientRect().height)}px`);
+  }
+  if (tabsEl) {
+    document.documentElement.style.setProperty("--tabs-h", `${Math.round(tabsEl.getBoundingClientRect().height)}px`);
+  }
+}
+
+window.addEventListener("resize", syncStickyOffsets);
+
 function render() {
   if (!state.trips.length) return;
   if (!trip()) state.tripId = state.trips[0].id;
   const scroll = main.scrollTop;
   renderTrips();
   renderMain();
+  syncStickyOffsets();
   drawMap();
   main.scrollTop = scroll;
   save();
@@ -1063,12 +1080,14 @@ function readForm() {
   };
 }
 
-map = L.map("map", { zoomControl: true });
-L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
-  maxZoom: 19,
-  attribution: 'Tiles &copy; Esri'
-}).addTo(map);
-map.setView([-25.5, 146.5], 4);
+if (window.L) {
+  map = L.map("map", { zoomControl: true });
+  L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+    maxZoom: 19,
+    attribution: 'Tiles &copy; Esri'
+  }).addTo(map);
+  map.setView([-25.5, 146.5], 4);
+}
 
 document.addEventListener("click", (event) => {
   const more = document.querySelector("#more-menu");
