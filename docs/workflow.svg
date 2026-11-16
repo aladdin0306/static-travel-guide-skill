@@ -36,9 +36,9 @@
     <rect width="198" height="152" rx="14" class="card"/>
     <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
     <text x="46" y="31" text-anchor="middle" class="step-num">STEP 02</text>
-    <text x="16" y="62" class="title">AI 追问 7 项偏好</text>
-    <text x="16" y="86" class="desc">多出发地对比 · 休闲/特种兵</text>
-    <text x="16" y="105" class="desc">必去景点 · 预算口径 · 同行人</text>
+    <text x="16" y="62" class="title">AI 追问 8 项偏好</text>
+    <text x="16" y="86" class="desc">多出发地 · 节奏 · 必去 · 预算</text>
+    <text x="16" y="105" class="desc">同行人 · 出境签证情况</text>
     <rect x="16" y="118" width="116" height="22" rx="11" class="tag"/>
     <text x="74" y="133" text-anchor="middle" class="tag-text">先问清楚再排线</text>
   </g>
@@ -50,8 +50,8 @@
     <rect x="16" y="16" width="60" height="22" rx="6" class="step-badge"/>
     <text x="46" y="31" text-anchor="middle" class="step-num">STEP 03</text>
     <text x="16" y="62" class="title">自动建站 &amp; 抓图</text>
-    <text x="16" y="86" class="desc">实景画廊 · 账本预算 · 蹲机票</text>
-    <text x="16" y="105" class="desc">小红书实况 · 天气 · 地图打点</text>
+    <text x="16" y="86" class="desc">实景画廊 · 账本 · 签证清单</text>
+    <text x="16" y="105" class="desc">蹲机票 · 小红书 · 地图打点</text>
     <rect x="16" y="118" width="116" height="22" rx="11" class="tag"/>
     <text x="74" y="133" text-anchor="middle" class="tag-text">零代码生成网页</text>
   </g>
