@@ -6,11 +6,11 @@ User: 「帮我做一趟日本网页，做好后我要发给朋友一起看和�
 
 Agent:
 
-1. Ask in one batch: departure, destination, pace, must-go sights, budget, dates, party.
-2. User answers: 「上海或北京，京都，休闲游，伏见稻荷必去，每人 1 万含机票，4 月 10–14 日，两人一间房。」
-3. Confirm constraints in a short summary (keeping both 上海 and 北京 in `origins`).
+1. Ask in one batch: departure, destination, pace, must-go sights, budget, dates, party, visa status.
+2. User answers: 「上海或北京，京都，休闲游，伏见稻荷必去，每人 1 万含机票，4 月 10–14 日，两人一间房，中国护照还没办日本签。」
+3. Confirm constraints in a short summary (keeping both 上海 and 北京 in `origins`, and noting visa prep).
 4. `bash scripts/new-site.sh ~/Sites/kyoto-2027`
-5. Write `data.js` with multi-origin budget, bookings, and coordinates.
+5. Write `data.js` with multi-origin budget, `visa` prep block, bookings, and coordinates.
 6. `bash scripts/fetch-place-photo.sh …` for major sights (retries + placeholder fallback).
 7. `bash scripts/serve.sh ~/Sites/kyoto-2027 8766` (run in background).
 8. Publish:
@@ -28,6 +28,14 @@ Agent:
 User: 「上海或北京都可以。」
 
 Agent keeps both in `budget.origins[]`. The generated budget block shows an interactive 上海 / 北京 selector; switching it changes flight estimate, total, and route note.
+
+## Visa prep
+
+User: 「澳洲玩一趟，中国护照，还没办签。」
+
+Agent writes `visa.status = "required"` with subclass 600 tourist guidance, official apply/guide links, docs checklist, timeline, and a matching `budget.extras` visa fee line. The page shows a「签证准备」block; checklist ticks stay in the local browser only.
+
+Wrong: putting passport numbers, ImmiAccount passwords, or bank-statement screenshots into `data.js`.
 
 ## Wrong — don’t do this
 

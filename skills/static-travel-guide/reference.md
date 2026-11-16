@@ -9,12 +9,58 @@
   start: "YYYY-MM-DD",
   end: "YYYY-MM-DD",
   summary: "",
+  visa: { /* VisaPrep — international trips */ },
   budget: { /* Budget */ },
   days: [ /* Day */ ]
 }
 ```
 
 > Leave `summary` as `""` — the trip header displays only the cover photo gallery, date range, title, and city hops without long intro paragraphs.
+
+## VisaPrep (`visa`)
+
+Shown as a collapsible「签证准备」block under the booking banner. Omit for pure domestic China trips, or set `status: "not_needed"`.
+
+| Field | Type | Notes |
+|-------|------|--------|
+| `status` | string | `required` \| `visa_free` \| `on_arrival` \| `eta` \| `already_have` \| `not_needed` |
+| `passport` | string | Nationality label only, e.g. `中国大陆护照` — **never** a passport number |
+| `type` | string | Visa product name, e.g. `Visitor visa (subclass 600) · Tourist stream` |
+| `applyUrl` | string | Official online application / ImmiAccount HTTPS link |
+| `guideUrl` | string | Official policy / visa listing HTTPS page |
+| `feeNote` | string | Fee estimate + “以官网为准” |
+| `timeline` | string | When to apply, e.g. `建议出发前 6–8 周递交` |
+| `docs[]` | array | Checklist rows: `{ id, label, note? }` |
+| `tips[]` | array | Short practical reminders (no personal data) |
+| `disclaimer` | string | One-line “not visa advice / follow official site” note |
+
+Example:
+
+```js
+visa: {
+  status: "required",
+  passport: "中国大陆护照",
+  type: "Visitor visa (subclass 600) · Tourist stream",
+  applyUrl: "https://online.immi.gov.au/lusc/login",
+  guideUrl: "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600",
+  feeNote: "约 A$250/人（以官网实时费用为准）",
+  timeline: "建议出发前 6–8 周递交；旺季更早",
+  docs: [
+    { id: "passport", label: "护照有效期覆盖行程", note: "建议剩余有效期 6 个月以上" },
+    { id: "photo", label: "签证用近照" },
+    { id: "itinerary", label: "行程与酒店预订单", note: "可用本页「打印 / 导出 PDF 路书」" },
+    { id: "funds", label: "资金证明", note: "近几个月银行流水等" },
+    { id: "employment", label: "在职或学生证明" }
+  ],
+  tips: [
+    "填表信息与护照、材料保持一致",
+    "不要把护照号、签证申请号写进本页或云端共享"
+  ],
+  disclaimer: "政策、费用与审理时间以移民局官网为准；本页只作出行准备清单，不构成签证代理或获批承诺。"
+}
+```
+
+Checklist tick state lives in the browser only (`visaChecks` inside local storage) and is not uploaded to the cloud.
 
 ## Budget
 

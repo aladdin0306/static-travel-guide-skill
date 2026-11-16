@@ -26,6 +26,27 @@ window.SEED_TRIPS = [
     start: "2027-04-29",
     end: "2027-05-05",
     summary: "",
+    visa: {
+      status: "required",
+      passport: "中国大陆护照",
+      type: "Visitor visa (subclass 600) · Tourist stream",
+      applyUrl: "https://online.immi.gov.au/lusc/login",
+      guideUrl: "https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/visitor-600",
+      feeNote: "约 A$250/人（以官网实时费用为准）",
+      timeline: "建议出发前 6–8 周递交；旺季更早",
+      docs: [
+        { id: "passport", label: "护照有效期覆盖行程", note: "建议剩余有效期 6 个月以上" },
+        { id: "photo", label: "签证用近照" },
+        { id: "itinerary", label: "行程与酒店预订单", note: "可用本页「打印 / 导出 PDF 路书」" },
+        { id: "funds", label: "资金证明", note: "近几个月银行流水等" },
+        { id: "employment", label: "在职或学生证明" }
+      ],
+      tips: [
+        "填表信息与护照、材料保持一致",
+        "不要把护照号、签证申请号写进本页或云端共享"
+      ],
+      disclaimer: "政策、费用与审理时间以移民局官网为准；本页只作出行准备清单，不构成签证代理或获批承诺。"
+    },
     budget: {
       currency: "AUD",
       party: "两人同住一间",

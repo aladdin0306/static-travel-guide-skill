@@ -35,6 +35,10 @@ Do not start selecting sights or writing `data.js` until these are known:
 5. **预算范围**：金额、币种、按人还是总计、是否含国际机票
 6. **日期 / 天数**：具体日期，或月份 + 总天数
 7. **同行人数**：成人 / 儿童、房间安排
+8. **签证情况**（出境游必问；纯国内游可跳过）：
+   - 持照身份（默认「中国大陆护照」，可改）
+   - 是否已有有效签证 / 免签 / 落地签 / ETA
+   - 出行目的（旅游 / 探亲 / 商务）——影响签证类型说明
 
 Also ask only when relevant: diet, accessibility, shopping, hiking, nightlife, hotel level, open-jaw flights.
 
@@ -52,6 +56,7 @@ Also ask only when relevant: diet, accessibility, shopping, hiking, nightlife, h
 必去：伏见稻荷、清水寺
 预算：每人 ¥8,000–12,000，含机票
 日期/人数：4月10–14日，2位成人同住一间
+签证：中国大陆护照 · 尚未办理 · 旅游目的
 ```
 
 Then proceed without another approval round unless constraints conflict.
@@ -64,6 +69,17 @@ Detailed question wording: [intake.md](intake.md).
 - Multiple possible cities → create one entry per city and show the interactive departure selector in the budget block.
 - Each origin must have its own flight estimate, route note, and any budget adjustment.
 - If the user says “上海或北京都可以”, keep **both**; do not silently choose one.
+
+### How visa prep maps to the webpage
+
+For international trips, always write a `visa` object on the trip (see [reference.md](reference.md)):
+
+- Infer `status` from the user’s answer: `required` / `visa_free` / `on_arrival` / `eta` / `already_have` / `not_needed`.
+- Fill `type`, official `applyUrl` / `guideUrl`, `feeNote`, `timeline`, and a short `docs[]` checklist.
+- Put estimated visa fee into `budget.extras[]` with `cat: "other"` when a paid visa is needed.
+- Never write passport numbers, visa application IDs, or bank-statement screenshots into `data.js`.
+- Pure domestic China trips: omit `visa`, or set `status: "not_needed"`.
+- Always include a one-line `disclaimer` that policy/fees follow the official immigration site; the page is a prep checklist only, not visa agency advice.
 
 ## Agent pipeline (every time)
 
@@ -191,8 +207,9 @@ When you hand over the URLs, say once that this default cloud is a free communit
 - [ ] 地图有坐标点，窄屏（~390px）布局对齐不乱
 - [ ] 若有多个 `origins`，切换出发地时航班与总预算联动变化
 - [ ] 导出 JSON 后再导入不报错
+- [ ] 出境游行程含 `visa` 准备块（类型、官网入口、材料清单、时间线、免责声明）；纯国内游可省略
 - [ ] 共享发布后：公开链接只读且带「复制并修改」；编辑链接改动自动保存，分享弹窗可查看最近 10 个历史版本、重置密钥，并可用「彻底删除云端行程」
-- [ ] `data.js` 与云端行程中没有身份证号、护照号、手机号、邮箱、PNR/预订确认号，也没有同行人真实全名
+- [ ] `data.js` 与云端行程中没有身份证号、护照号、手机号、邮箱、PNR/预订确认号、签证申请号，也没有同行人真实全名
 
 ### Disclaimer
 
@@ -215,4 +232,5 @@ Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
 - Don’t force Australia
 - Don’t leave broken photo refs
 - Don’t stop at a folder path without openable URLs
-- Don’t write ID numbers, passport numbers, phone numbers, emails, PNR / booking codes, or companions’ real full names into `data.js` or the published trip
+- Don’t write ID numbers, passport numbers, phone numbers, emails, PNR / booking codes, visa application IDs, or companions’ real full names into `data.js` or the published trip
+- Don’t promise visa approval or fill ImmiAccount forms for the user; only provide a prep checklist + official links

@@ -62,7 +62,8 @@ const ICONS = {
   food: '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>',
   bus: '<path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>',
   bed: '<path d="M2 4v16"/><path d="M2 8h18a2 2 0 0 1 2 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/>',
-  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>'
+  wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+  passport: '<path d="M2 7a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2Z"/><path d="M12 5v16"/><path d="M6 10h2"/><path d="M6 14h2"/><circle cx="16" cy="12" r="2"/>'
 };
 
 function icon(name) {
@@ -79,6 +80,7 @@ let markers = [];
 let dayFilter = "all";
 let bookingsOpen = false;
 let budgetOpen = false;
+let visaOpen = false;
 let editing = null;
 const weatherCache = new Map();
 
@@ -97,6 +99,7 @@ let lastItineraryY = 0;
 function load() {
   const seed = structuredClone(window.SEED_TRIPS);
   let booked = {};
+  let visaChecks = {};
   let tripId = seed[0].id;
   let origin = "";
   let trips = seed;
@@ -104,6 +107,7 @@ function load() {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
     if (saved) {
       booked = saved.booked || {};
+      visaChecks = saved.visaChecks && typeof saved.visaChecks === "object" ? saved.visaChecks : {};
       tripId = saved.tripId || tripId;
       origin = saved.origin || "";
       if (Array.isArray(saved.trips) && saved.trips.length) {
@@ -115,7 +119,7 @@ function load() {
       }
     }
   } catch (_) { /* keep the seed trip */ }
-  return { trips, booked, tripId, origin };
+  return { trips, booked, visaChecks, tripId, origin };
 }
 
 function upgrade(trips) {
@@ -130,11 +134,89 @@ function save() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
       trips: state.trips,
       booked: state.booked,
+      visaChecks: state.visaChecks || {},
       tripId: state.tripId,
       origin: state.origin
     }));
   }
   window.dispatchEvent(new CustomEvent("travelguide:save"));
+}
+
+const VISA_STATUS = {
+  required: { label: "需要提前办签", tone: "due" },
+  visa_free: { label: "免签 / 过境免签", tone: "done" },
+  on_arrival: { label: "落地签", tone: "due" },
+  eta: { label: "电子旅行许可 / ETA", tone: "due" },
+  already_have: { label: "已有有效签证", tone: "done" },
+  not_needed: { label: "无需签证", tone: "done" }
+};
+
+function visaChecksFor(tripId) {
+  if (!state.visaChecks || typeof state.visaChecks !== "object") state.visaChecks = {};
+  if (!state.visaChecks[tripId] || typeof state.visaChecks[tripId] !== "object") {
+    state.visaChecks[tripId] = {};
+  }
+  return state.visaChecks[tripId];
+}
+
+function renderVisa(current) {
+  const visa = current && current.visa;
+  if (!visa || typeof visa !== "object") return "";
+  const statusKey = String(visa.status || "required");
+  if (statusKey === "not_needed") return "";
+  const meta = VISA_STATUS[statusKey] || VISA_STATUS.required;
+  const docs = Array.isArray(visa.docs) ? visa.docs.filter((doc) => doc && doc.label) : [];
+  const tips = Array.isArray(visa.tips) ? visa.tips.filter(Boolean) : [];
+  const checks = visaChecksFor(current.id);
+  const doneCount = docs.filter((doc) => checks[doc.id || doc.label]).length;
+  const allDone = docs.length > 0 && doneCount === docs.length;
+  const tone = allDone && docs.length ? "done" : meta.tone;
+  const applyUrl = safeUrl(visa.applyUrl);
+  const guideUrl = safeUrl(visa.guideUrl);
+  const title = visa.type || meta.label;
+  const subtitleParts = [
+    visa.passport,
+    visa.timeline,
+    docs.length ? `材料 ${doneCount}/${docs.length}` : ""
+  ].filter(Boolean);
+  return `
+    <button type="button" class="visa-banner ${tone}" id="toggle-visa" aria-expanded="${visaOpen}">
+      <span class="banner-icon">${icon("passport")}</span>
+      <span class="banner-text">
+        <b>签证准备 · ${esc(title)}</b>
+        <small>${esc(subtitleParts.join(" · ") || meta.label)}</small>
+      </span>
+      <span class="banner-cta">${visaOpen ? "收起" : "看清单"}<span class="chev${visaOpen ? " up" : ""}">${icon("chevron")}</span></span>
+    </button>
+    ${visaOpen ? `<section class="visa-panel">
+      <div class="visa-meta">
+        ${visa.passport ? `<p><b>持照</b><span>${esc(visa.passport)}</span></p>` : ""}
+        ${visa.type ? `<p><b>类型</b><span>${esc(visa.type)}</span></p>` : ""}
+        ${visa.feeNote ? `<p><b>费用</b><span>${esc(visa.feeNote)}</span></p>` : ""}
+        ${visa.timeline ? `<p><b>时间</b><span>${esc(visa.timeline)}</span></p>` : ""}
+      </div>
+      ${(applyUrl || guideUrl) ? `<div class="visa-actions">
+        ${applyUrl ? `<a class="btn btn-sm btn-primary" href="${esc(applyUrl)}" target="_blank" rel="noopener">${icon("external")}官方申请入口</a>` : ""}
+        ${guideUrl ? `<a class="btn btn-sm" href="${esc(guideUrl)}" target="_blank" rel="noopener">${icon("external")}政策说明页</a>` : ""}
+      </div>` : ""}
+      ${docs.length ? `<h3 class="section-title">材料清单</h3>
+      <ul class="visa-docs">
+        ${docs.map((doc) => {
+          const id = String(doc.id || doc.label);
+          const checked = Boolean(checks[id]);
+          return `<li>
+            <label class="visa-doc${checked ? " on" : ""}">
+              <input type="checkbox" data-visa-check="${esc(id)}" ${checked ? "checked" : ""} />
+              <span><b>${esc(doc.label)}</b>${doc.note ? `<small>${esc(doc.note)}</small>` : ""}</span>
+            </label>
+          </li>`;
+        }).join("")}
+      </ul>` : ""}
+      ${tips.length ? `<h3 class="section-title">提醒</h3>
+      <ul class="visa-tips">${tips.map((tip) => `<li>${esc(tip)}</li>`).join("")}</ul>` : ""}
+      <p class="visa-note">${esc(visa.disclaimer || "政策、费用与审理时间以移民局官网为准；本页只作出行准备清单，不构成签证代理或获批承诺。")}</p>
+    </section>` : ""}
+  `;
 }
 
 function trip() {
@@ -808,6 +890,8 @@ function renderMain() {
         </div>`).join("") : `<p class="muted">这趟没有还要处理的预约。</p>`}
     </section>` : ""}
 
+    ${renderVisa(current)}
+
     ${renderBudget(current)}
 
     <nav class="day-tabs" aria-label="选择哪一天">
@@ -1352,13 +1436,16 @@ if (printBtn) {
   printBtn.addEventListener("click", () => {
     const prevDay = dayFilter;
     const prevBudget = budgetOpen;
+    const prevVisa = visaOpen;
     dayFilter = "all";
     budgetOpen = true;
+    visaOpen = true;
     render();
     setTimeout(() => {
       window.print();
       dayFilter = prevDay;
       budgetOpen = prevBudget;
+      visaOpen = prevVisa;
       render();
     }, 180);
   });
@@ -1662,6 +1749,10 @@ main.addEventListener("click", (event) => {
     bookingsOpen = !bookingsOpen;
     return render();
   }
+  if (event.target.closest("#toggle-visa")) {
+    visaOpen = !visaOpen;
+    return render();
+  }
   if (event.target.closest("#add-day")) {
     return openDayEditor(null);
   }
@@ -1698,10 +1789,18 @@ main.addEventListener("click", (event) => {
 
 main.addEventListener("change", (event) => {
   const box = event.target.closest("[data-booked]");
-  if (!box) return;
-  if (box.checked) state.booked[box.dataset.booked] = true;
-  else delete state.booked[box.dataset.booked];
-  render();
+  if (box) {
+    if (box.checked) state.booked[box.dataset.booked] = true;
+    else delete state.booked[box.dataset.booked];
+    return render();
+  }
+  const visaBox = event.target.closest("[data-visa-check]");
+  if (visaBox) {
+    const checks = visaChecksFor(trip().id);
+    if (visaBox.checked) checks[visaBox.dataset.visaCheck] = true;
+    else delete checks[visaBox.dataset.visaCheck];
+    return render();
+  }
 });
 
 tripList.addEventListener("click", (event) => {
@@ -1710,6 +1809,7 @@ tripList.addEventListener("click", (event) => {
   state.tripId = button.dataset.trip;
   dayFilter = "all";
   bookingsOpen = false;
+  visaOpen = false;
   returnScrollY = null;
   returnStopId = "";
   render();
@@ -1730,6 +1830,7 @@ window.TRAVEL_GUIDE_APP = {
     dayFilter = "all";
     bookingsOpen = false;
     budgetOpen = false;
+    visaOpen = false;
     returnScrollY = null;
     returnStopId = "";
     render();

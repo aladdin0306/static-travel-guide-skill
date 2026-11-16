@@ -23,6 +23,7 @@ const COMMONS_UA = "static-travel-guide-skill/1.3 (https://github.com/aladdin030
 const ALLOWED_KINDS = new Set(["sight", "food", "transport", "stay"]);
 const ALLOWED_RESERVATIONS = new Set(["none", "recommended", "required"]);
 const ALLOWED_CATS = new Set(["flight", "stay", "transport", "sight", "food", "other"]);
+const ALLOWED_VISA_STATUS = new Set(["required", "visa_free", "on_arrival", "eta", "already_have", "not_needed"]);
 const ALLOWED_IMAGE_HOSTS = new Set(["commons.wikimedia.org", "upload.wikimedia.org"]);
 
 export default {
@@ -374,6 +375,48 @@ function cleanBudget(raw) {
   return budget;
 }
 
+function cleanVisa(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const status = ALLOWED_VISA_STATUS.has(raw.status) ? raw.status : "required";
+  if (status === "not_needed") return { status };
+  const visa = { status };
+  const passport = cleanStr(raw.passport, 80);
+  if (passport) visa.passport = passport;
+  const type = cleanStr(raw.type, 160);
+  if (type) visa.type = type;
+  const applyUrl = cleanHttpsUrl(raw.applyUrl, 600);
+  if (applyUrl) visa.applyUrl = applyUrl;
+  const guideUrl = cleanHttpsUrl(raw.guideUrl, 600);
+  if (guideUrl) visa.guideUrl = guideUrl;
+  const feeNote = cleanStr(raw.feeNote, 200);
+  if (feeNote) visa.feeNote = feeNote;
+  const timeline = cleanStr(raw.timeline, 200);
+  if (timeline) visa.timeline = timeline;
+  const disclaimer = cleanStr(raw.disclaimer, 400);
+  if (disclaimer) visa.disclaimer = disclaimer;
+  if (Array.isArray(raw.docs)) {
+    visa.docs = raw.docs.slice(0, 20).map((doc, idx) => {
+      if (!doc || typeof doc !== "object" || Array.isArray(doc)) return null;
+      const label = cleanStr(doc.label, 140);
+      if (!label) return null;
+      const row = {
+        id: cleanStr(doc.id, 60) || `doc-${idx + 1}`,
+        label
+      };
+      const note = cleanStr(doc.note, 240);
+      if (note) row.note = note;
+      return row;
+    }).filter(Boolean);
+  }
+  if (Array.isArray(raw.tips)) {
+    visa.tips = raw.tips
+      .slice(0, 12)
+      .map((tip) => cleanStr(tip, 200))
+      .filter(Boolean);
+  }
+  return visa;
+}
+
 function cleanCost(raw) {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const candidate = Number.isFinite(raw.amount) ? raw.amount : raw.aud;
@@ -473,6 +516,8 @@ function normalizePayload(input, requestOrigin) {
   if (coverPhoto) cleanTrip.coverPhoto = coverPhoto;
   const budget = cleanBudget(trip.budget);
   if (budget) cleanTrip.budget = budget;
+  const visa = cleanVisa(trip.visa);
+  if (visa) cleanTrip.visa = visa;
 
   const cleanBooked = {};
   if (input.booked && typeof input.booked === "object" && !Array.isArray(input.booked)) {
