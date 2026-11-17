@@ -120,8 +120,10 @@ In the online editor, click **「自动搜图」** to query Wikimedia Commons, o
 
 ## Local Storage
 
-- Key: `travel-guides-v2`
-- Value: `{ trips, booked, tripId, origin }`
+- Key: `travel-guides-v3:<pathname>` (path-isolated so sibling trip subdirectories under the same GitHub Pages domain never leak trips into each other)
+- Value: `{ customTrips, editedTrips, deletedSeedIds, booked, visaChecks, tripId, origin }`
+- `window.SEED_TRIPS` in `data.js` stays the source of truth unless the user explicitly edits a trip in the browser UI; unedited seed trips are read fresh from `data.js` on every load so Git/Pages updates appear immediately on refresh. If a locally edited trip also changes upstream, the header offers **「线上已更新 · 用最新版」** (and **「恢复默认线上内容」** in `···`).
+- Supports deep-linking to a specific trip via `?trip=<id>` or `#trip=<id>`.
 - Export downloads JSON; import restores trips and booked states.
 
 ## Cloud Shared Storage & Collaborative Editing

@@ -10,7 +10,7 @@
     }
   </script>
   <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4" />
-  <link rel="stylesheet" href="styles.css?v=38" />
+  <link rel="stylesheet" href="styles.css?v=39" />
 </head>
 <body>
   <header class="top">
@@ -20,6 +20,7 @@
     </div>
     <div class="top-actions">
       <span id="share-status" class="share-status" hidden></span>
+      <button type="button" class="btn btn-sm" id="seed-update-btn" hidden><span data-icon="refresh"></span>线上已更新 · 用最新版</button>
       <button type="button" class="btn btn-sm" id="conflict-reload-btn" hidden><span data-icon="refresh"></span>加载最新内容</button>
       <button type="button" class="btn readonly-only" id="fork-btn"><span data-icon="copy"></span>复制并修改</button>
       <button type="button" class="btn btn-primary" id="share-btn"><span data-icon="share"></span>分享</button>
@@ -27,6 +28,7 @@
         <summary class="btn btn-icon-more" aria-label="更多功能" title="打印路书、导入或导出备份"><span data-icon="more"></span></summary>
         <div class="more-popover">
           <button type="button" class="menu-item" id="print-btn"><span data-icon="printer"></span>打印 / 导出 PDF 路书</button>
+          <button type="button" class="menu-item edit-only" id="reset-local-btn" hidden><span data-icon="refresh"></span>恢复默认线上内容</button>
           <button type="button" class="menu-item edit-only" id="import-btn"><span data-icon="upload"></span>导入 JSON 备份</button>
           <button type="button" class="menu-item" id="export-btn"><span data-icon="download"></span>导出 JSON 备份</button>
         </div>
@@ -187,8 +189,8 @@
     </form>
   </dialog>
 
-  <script src="data.js?v=38"></script>
-  <script src="app.js?v=38"></script>
+  <script src="data.js?v=39"></script>
+  <script src="app.js?v=39"></script>
   <script src="share.js?v=11"></script>
 </body>
 </html>

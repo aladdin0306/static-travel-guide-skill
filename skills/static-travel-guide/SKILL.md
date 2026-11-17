@@ -75,6 +75,7 @@ Detailed question wording: [intake.md](intake.md).
 For international trips, always write a `visa` object on the trip (see [reference.md](reference.md)):
 
 - Infer `status` from the user’s answer: `required` / `visa_free` / `on_arrival` / `eta` / `already_have` / `not_needed`.
+- **Always live-search current official embassy / immigration visa fees and rules before writing `feeNote` or `budget.extras`** — never rely on training-data memory (for example, Japan hiked China visa fees on 2026-07-01 from ¥145/¥285 to ¥715 single / ¥1,430 multiple, plus agency service fees; Australia, Schengen, UK, and US fees also adjust frequently). Separate official consulate fee + mandatory agency/VFS service fee in the note when applicable.
 - Fill `type`, official `applyUrl` / `guideUrl`, `feeNote`, `timeline`, and a short `docs[]` checklist.
 - Put estimated visa fee into `budget.extras[]` with `cat: "other"` when a paid visa is needed.
 - Never write passport numbers, visa application IDs, or bank-statement screenshots into `data.js`.

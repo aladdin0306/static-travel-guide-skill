@@ -69,9 +69,10 @@ fi
 # Copy generated site into /$SLUG/ without clobbering sibling trips
 rm -rf "$REPO_DIR/$SLUG"
 mkdir -p "$REPO_DIR/$SLUG"
+touch "$REPO_DIR/.nojekyll"
 rsync_copy() {
   python3 - "$SITE" "$REPO_DIR/$SLUG" <<'PY'
-import shutil, sys
+import hashlib, re, shutil, sys
 from pathlib import Path
 src, dst = Path(sys.argv[1]), Path(sys.argv[2])
 for item in src.iterdir():
@@ -82,6 +83,21 @@ for item in src.iterdir():
         shutil.copytree(item, target, ignore=shutil.ignore_patterns(".DS_Store"))
     else:
         shutil.copy2(item, target)
+
+# Stamp content hashes onto local asset query strings so mobile browsers always load updated data.js
+idx = dst / "index.html"
+if idx.exists():
+    html = idx.read_text(encoding="utf-8")
+    for asset in ("styles.css", "data.js", "app.js", "share.js"):
+        ap = dst / asset
+        if ap.exists():
+            digest = hashlib.sha256(ap.read_bytes()).hexdigest()[:8]
+            html = re.sub(
+                rf'((?:href|src)="{re.escape(asset)})(?:\?[^"]*)?(")',
+                rf'\1?v={digest}\2',
+                html,
+            )
+    idx.write_text(html, encoding="utf-8")
 PY
 }
 rsync_copy

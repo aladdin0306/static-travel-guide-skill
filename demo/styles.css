@@ -1874,12 +1874,14 @@ html.shared-loading body { visibility: hidden; }
   }
 }
 
-#conflict-reload-btn {
+#conflict-reload-btn,
+#seed-update-btn {
   border-color: var(--coral);
   color: var(--coral-dark);
   background: var(--coral-soft);
 }
-#conflict-reload-btn:hover {
+#conflict-reload-btn:hover,
+#seed-update-btn:hover {
   background: var(--coral);
   color: #fff;
 }

@@ -1,4 +1,11 @@
-const STORAGE_KEY = "travel-guides-v2";
+function storageScopeKey() {
+  const raw = String(location.pathname || "/")
+    .replace(/\/index\.html$/i, "/")
+    .replace(/\/+$/, "") || "/";
+  return `travel-guides-v3:${raw}`;
+}
+const STORAGE_KEY = storageScopeKey();
+const LEGACY_STORAGE_KEY = "travel-guides-v2";
 const KIND = { sight: "景点", food: "餐厅", transport: "交通", stay: "住宿" };
 const FLAG = { required: "必须预约", recommended: "建议预约", none: "不用预约" };
 const KIND_ICON = { sight: "camera", food: "food", transport: "bus", stay: "bed" };
@@ -91,35 +98,109 @@ const form = document.querySelector("#editor-form");
 const dayEditor = document.querySelector("#day-editor");
 const dayForm = document.querySelector("#day-editor-form");
 const mapFab = document.querySelector("#mobile-map-fab");
+const seedUpdateBtn = document.querySelector("#seed-update-btn");
+const resetLocalBtn = document.querySelector("#reset-local-btn");
 let editingDayId = null;
 let returnScrollY = null;
 let returnStopId = "";
 let lastItineraryY = 0;
 
+function seedHash(obj) {
+  const str = JSON.stringify(obj);
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i += 1) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return (h >>> 0).toString(36);
+}
+
+const SEED_LIST = upgrade(structuredClone(window.SEED_TRIPS || []));
+const SEED_BY_ID = new Map(SEED_LIST.map((item) => [item.id, item]));
+const SEED_HASHES = new Map(SEED_LIST.map((item) => [item.id, seedHash(item)]));
+
+function urlRequestedTripId() {
+  try {
+    const fromQuery = new URLSearchParams(location.search).get("trip");
+    if (fromQuery) return fromQuery;
+    const hash = location.hash.replace(/^#/, "");
+    if (hash.startsWith("trip=")) return new URLSearchParams(hash).get("trip") || "";
+  } catch (_) {}
+  return "";
+}
+
 function load() {
-  const seed = structuredClone(window.SEED_TRIPS);
+  const seed = upgrade(structuredClone(window.SEED_TRIPS || []));
+  const seedIds = new Set(seed.map((item) => item.id));
+  const validStopIds = new Set(seed.flatMap((t) => (t.days || []).flatMap((d) => (d.items || []).map((it) => it.id))));
   let booked = {};
   let visaChecks = {};
-  let tripId = seed[0].id;
+  let editedTrips = {};
+  let deletedSeedIds = [];
+  let tripId = seed[0] ? seed[0].id : "";
   let origin = "";
   let trips = seed;
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (saved) {
-      booked = saved.booked || {};
+    if (saved && typeof saved === "object") {
+      booked = saved.booked && typeof saved.booked === "object" ? saved.booked : {};
       visaChecks = saved.visaChecks && typeof saved.visaChecks === "object" ? saved.visaChecks : {};
-      tripId = saved.tripId || tripId;
+      editedTrips = saved.editedTrips && typeof saved.editedTrips === "object" ? saved.editedTrips : {};
+      deletedSeedIds = Array.isArray(saved.deletedSeedIds) ? saved.deletedSeedIds : [];
       origin = saved.origin || "";
-      if (Array.isArray(saved.trips) && saved.trips.length) {
-        const savedById = new Map(upgrade(saved.trips).map((item) => [item.id, item]));
-        const mergedSeed = seed.map((item) => savedById.get(item.id) || item);
-        const seedIds = new Set(seed.map((item) => item.id));
-        const extras = [...savedById.values()].filter((item) => !seedIds.has(item.id));
-        trips = [...mergedSeed, ...extras];
+      const deletedSet = new Set(deletedSeedIds);
+      const customList = upgrade(Array.isArray(saved.customTrips) ? saved.customTrips : []);
+      const customById = new Map(customList.map((item) => [item.id, item]));
+      const userCreated = customList.filter((item) => !seedIds.has(item.id));
+      const mergedSeed = [];
+      for (const item of seed) {
+        if (deletedSet.has(item.id)) continue;
+        if (editedTrips[item.id] && customById.has(item.id)) {
+          mergedSeed.push(customById.get(item.id));
+        } else {
+          delete editedTrips[item.id];
+          mergedSeed.push(item);
+        }
+      }
+      const nextTrips = [...userCreated, ...mergedSeed];
+      trips = nextTrips.length ? nextTrips : seed;
+      if (saved.tripId && trips.some((item) => item.id === saved.tripId)) {
+        tripId = saved.tripId;
+      }
+    } else {
+      // Migrate only checkbox ticks for matching IDs from legacy v2 storage (never stale trip bodies)
+      const legacy = JSON.parse(localStorage.getItem(LEGACY_STORAGE_KEY) || "null");
+      if (legacy && typeof legacy === "object") {
+        if (legacy.booked && typeof legacy.booked === "object") {
+          for (const [k, v] of Object.entries(legacy.booked)) {
+            if (v === true && validStopIds.has(k)) booked[k] = true;
+          }
+        }
+        if (legacy.visaChecks && typeof legacy.visaChecks === "object") {
+          for (const id of seedIds) {
+            if (legacy.visaChecks[id] && typeof legacy.visaChecks[id] === "object") {
+              visaChecks[id] = legacy.visaChecks[id];
+            }
+          }
+        }
       }
     }
   } catch (_) { /* keep the seed trip */ }
-  return { trips, booked, visaChecks, tripId, origin };
+  const reqTrip = urlRequestedTripId();
+  if (reqTrip && trips.some((item) => item.id === reqTrip)) {
+    tripId = reqTrip;
+  } else if (!trips.some((item) => item.id === tripId) && trips[0]) {
+    tripId = trips[0].id;
+  }
+  return { trips, booked, visaChecks, editedTrips, deletedSeedIds, tripId, origin };
+}
+
+function markTripEdited(id) {
+  if (!id) return;
+  if (!state.editedTrips || typeof state.editedTrips !== "object") state.editedTrips = {};
+  if (SEED_BY_ID.has(id) && !state.editedTrips[id]) {
+    state.editedTrips[id] = SEED_HASHES.get(id) || "edited";
+  }
 }
 
 function upgrade(trips) {
@@ -131,8 +212,12 @@ function upgrade(trips) {
 
 function save() {
   if (!(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute())) {
+    const edited = state.editedTrips || {};
+    const customTrips = state.trips.filter((item) => !SEED_BY_ID.has(item.id) || Boolean(edited[item.id]));
     localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      trips: state.trips,
+      customTrips,
+      editedTrips: edited,
+      deletedSeedIds: state.deletedSeedIds || [],
       booked: state.booked,
       visaChecks: state.visaChecks || {},
       tripId: state.tripId,
@@ -1312,12 +1397,49 @@ if (mapFab) {
   });
 }
 
+function syncLocalSeedButtons() {
+  const current = trip();
+  const isShared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
+  const baseHash = current && !isShared && SEED_BY_ID.has(current.id) && state.editedTrips
+    ? state.editedTrips[current.id]
+    : "";
+  const hasLocalEdit = Boolean(baseHash);
+  const hasSeedUpdate = Boolean(hasLocalEdit && baseHash !== SEED_HASHES.get(current.id));
+  if (seedUpdateBtn) seedUpdateBtn.hidden = !hasSeedUpdate;
+  if (resetLocalBtn) resetLocalBtn.hidden = !hasLocalEdit;
+}
+
+function resetCurrentTripToSeed(promptText) {
+  const current = trip();
+  if (!current || !SEED_BY_ID.has(current.id)) return;
+  if (!window.confirm(promptText)) return;
+  const idx = state.trips.findIndex((item) => item.id === current.id);
+  if (idx >= 0) state.trips[idx] = structuredClone(SEED_BY_ID.get(current.id));
+  if (state.editedTrips) delete state.editedTrips[current.id];
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
+  render();
+}
+
+if (seedUpdateBtn) {
+  seedUpdateBtn.addEventListener("click", () => {
+    resetCurrentTripToSeed("线上路书已更新。要用最新线上内容覆盖你在这台浏览器里的本地修改吗？（已订好和签证清单打勾会保留）");
+  });
+}
+
+if (resetLocalBtn) {
+  resetLocalBtn.addEventListener("click", () => {
+    resetCurrentTripToSeed("恢复成线上默认路书内容，清除当前浏览器对这趟行程的本地修改？（已订好和签证清单打勾会保留）");
+  });
+}
+
 function render() {
   if (!state.trips.length) return;
   if (!trip()) state.tripId = state.trips[0].id;
   const scroll = main.scrollTop;
   renderTrips();
   renderMain();
+  syncLocalSeedButtons();
   syncStickyOffsets();
   drawMap();
   main.scrollTop = scroll;
@@ -1463,6 +1585,9 @@ document.querySelector("#import-file").addEventListener("change", async (event) 
   const trips = Array.isArray(data) ? data : data.trips;
   if (!Array.isArray(trips) || !trips.length) return;
   state.trips = upgrade(trips);
+  for (const item of state.trips) {
+    if (SEED_BY_ID.has(item.id)) markTripEdited(item.id);
+  }
   state.booked = data.booked || {};
   state.tripId = trips[0].id;
   dayFilter = "all";
@@ -1540,6 +1665,7 @@ dayForm.addEventListener("submit", (event) => {
     });
   }
   syncTripDates(current);
+  markTripEdited(current.id);
   dayEditor.close();
   render();
 });
@@ -1659,6 +1785,7 @@ form.addEventListener("submit", (event) => {
   } else {
     day.items.push({ id: `p-${Date.now()}`, ...data });
   }
+  markTripEdited(current.id);
   editor.close();
   render();
 });
@@ -1689,6 +1816,7 @@ main.addEventListener("click", (event) => {
     current.days = current.days.filter((item) => item.id !== day.id);
     if (dayFilter === day.id) dayFilter = "all";
     syncTripDates(current);
+    markTripEdited(current.id);
     return render();
   }
   const edit = event.target.closest("[data-edit]");
@@ -1707,6 +1835,7 @@ main.addEventListener("click", (event) => {
     if (idx < 0 || targetIdx < 0 || targetIdx >= day.items.length) return;
     const [moved] = day.items.splice(idx, 1);
     day.items.splice(targetIdx, 0, moved);
+    markTripEdited(trip().id);
     return render();
   }
   const del = event.target.closest("[data-del]");
@@ -1717,6 +1846,7 @@ main.addEventListener("click", (event) => {
     if (!window.confirm(`删除「${target ? target.name : "这一站"}」？`)) return;
     day.items = day.items.filter((item) => item.id !== itemId);
     delete state.booked[itemId];
+    markTripEdited(trip().id);
     return render();
   }
   const jump = event.target.closest(".plan-row a, .ribbon-pill");
@@ -1770,17 +1900,24 @@ main.addEventListener("click", (event) => {
       window.alert("请输入 Wikimedia 或本站 /api/img 图片地址");
       return;
     }
+    markTripEdited(current.id);
     return render();
   }
   if (event.target.closest("#rename-trip")) {
     const title = window.prompt("行程名称", trip().title);
     if (!title) return;
     trip().title = title.trim();
+    markTripEdited(trip().id);
     return render();
   }
   if (event.target.closest("#delete-trip")) {
+    const targetId = state.tripId;
     if (!window.confirm(`删除「${trip().title}」？`)) return;
-    state.trips = state.trips.filter((item) => item.id !== state.tripId);
+    if (SEED_BY_ID.has(targetId)) {
+      state.deletedSeedIds = [...new Set([...(state.deletedSeedIds || []), targetId])];
+      if (state.editedTrips) delete state.editedTrips[targetId];
+    }
+    state.trips = state.trips.filter((item) => item.id !== targetId);
     state.tripId = state.trips[0].id;
     dayFilter = "all";
     return render();
