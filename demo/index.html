@@ -149,9 +149,13 @@
     </form>
   </dialog>
 
-  <dialog id="stop-detail" class="stop-detail">
-    <div id="detail-content"></div>
-  </dialog>
+  <div id="stop-detail" class="panel-root" hidden aria-hidden="true">
+    <div class="panel-backdrop" data-detail-close></div>
+    <aside class="panel-sheet" role="dialog" aria-modal="true" aria-labelledby="dp-title">
+      <div class="sheet-grabber" aria-hidden="true"><span></span></div>
+      <div id="detail-content" class="panel-inner"></div>
+    </aside>
+  </div>
 
   <dialog id="stop-sheet" class="stop-sheet">
     <form method="dialog">
