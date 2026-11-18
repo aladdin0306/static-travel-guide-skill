@@ -59,8 +59,8 @@ const ICONS = {
   share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" x2="15.42" y1="13.51" y2="17.49"/><line x1="15.41" x2="8.59" y1="6.51" y2="10.49"/>',
   copy: '<rect width="14" height="14" x="8" y="8" rx="2" ry="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>',
   refresh: '<path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M8 16H3v5"/>',
-  arrowUp: '<path d="m18 15-6-6-6 6"/>',
-  arrowDown: '<path d="m6 9 6 6 6-6"/>',
+  arrowUp: '<path d="M12 19V5"/><path d="m5 12 7-7 7 7"/>',
+  arrowDown: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
   printer: '<path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/>',
   sparkles: '<path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z"/>',
   bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
@@ -327,6 +327,7 @@ function safeUrl(url) {
 
 function isMobileMaps() {
   return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+    window.matchMedia("(max-width: 720px)").matches ||
     (navigator.maxTouchPoints > 1 && window.matchMedia("(max-width: 820px)").matches);
 }
 
@@ -950,6 +951,9 @@ function tripRange(current) {
 }
 
 function renderTrips() {
+  document.body.classList.toggle("single-trip", state.trips.length <= 1);
+  const delMenuBtn = document.querySelector("#menu-delete-trip");
+  if (delMenuBtn) delMenuBtn.hidden = state.trips.length <= 1;
   tripList.innerHTML = state.trips.map((item) => {
     const left = pending(item).filter((row) => row.item.reservation === "required").length;
     const cover = firstPhoto(item);
@@ -1193,8 +1197,13 @@ function renderDay(day, number, current = trip()) {
       <div class="day-tools">
         ${mapControl}
         <button type="button" class="btn edit-only" data-add="${esc(day.id)}">${icon("plus")}加一站</button>
-        <button type="button" class="icon-btn edit-only" data-edit-day="${esc(day.id)}" title="编辑当天日期、城市和主题" aria-label="编辑当天">${icon("pencil")}</button>
-        ${current.days.length > 1 ? `<button type="button" class="icon-btn danger edit-only" data-del-day="${esc(day.id)}" title="删除这一天" aria-label="删除这一天">${icon("trash")}</button>` : ""}
+        <details class="more-menu day-more-menu edit-only">
+          <summary class="icon-btn" title="管理这一天" aria-label="管理这一天">${icon("more")}</summary>
+          <div class="more-popover">
+            <button type="button" class="menu-item" data-edit-day="${esc(day.id)}">${icon("pencil")}编辑当天日期与主题</button>
+            ${current.days.length > 1 ? `<button type="button" class="menu-item danger-item" data-del-day="${esc(day.id)}">${icon("trash")}删除这一天</button>` : ""}
+          </div>
+        </details>
       </div>
     </header>
     ${day.items.length ? `
@@ -1230,10 +1239,13 @@ function renderItem(day, item, index) {
   const mapHref = domestic ? amapUrl(item) : googleUrl(item);
   const mapLabel = domestic ? "高德打点" : "谷歌打点";
   const editBtns = `<div class="stop-edit edit-only">
-    ${index > 0 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移" aria-label="上移">${icon("arrowUp")}</button>` : ""}
-    ${index < day.items.length - 1 ? `<button type="button" class="icon-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移" aria-label="下移">${icon("arrowDown")}</button>` : ""}
-    <button type="button" class="icon-btn" data-edit="${esc(day.id)}:${esc(item.id)}" title="修改这一站" aria-label="修改这一站">${icon("pencil")}</button>
-    <button type="button" class="icon-btn danger" data-del="${esc(day.id)}:${esc(item.id)}" title="删除这一站" aria-label="删除这一站">${icon("trash")}</button>
+    <div class="stop-edit-desktop">
+      ${index > 0 ? `<button type="button" class="stop-chip-btn" data-move="${esc(day.id)}:${esc(item.id)}:-1" title="上移一站">${icon("arrowUp")}<span>上移</span></button>` : ""}
+      ${index < day.items.length - 1 ? `<button type="button" class="stop-chip-btn" data-move="${esc(day.id)}:${esc(item.id)}:1" title="下移一站">${icon("arrowDown")}<span>下移</span></button>` : ""}
+      <button type="button" class="icon-btn" data-edit="${esc(day.id)}:${esc(item.id)}" title="编辑这一站" aria-label="编辑这一站">${icon("pencil")}</button>
+      <button type="button" class="icon-btn danger" data-del="${esc(day.id)}:${esc(item.id)}" title="删除这一站" aria-label="删除这一站">${icon("trash")}</button>
+    </div>
+    <button type="button" class="stop-more-btn" data-stop-menu="${esc(day.id)}:${esc(item.id)}" title="调整顺序、编辑或删除" aria-label="管理这一站">${icon("more")}</button>
   </div>`;
 
   if (item.kind === "transport" && !pic) {
@@ -1248,14 +1260,14 @@ function renderItem(day, item, index) {
             ${priceChip(item)}
             ${needs ? `<span class="flag ${esc(item.reservation)}${booked ? " is-booked" : ""}">${booked ? "已订" : FLAG[item.reservation]}</span>` : ""}
           </div>
-          <div class="transit-right">
-            ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
-            ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet chip-map" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
-            <a class="link-quiet chip-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("pin")}${mapLabel}</a>
-            ${editBtns}
-          </div>
+          ${editBtns}
         </div>
         ${parts.lead ? `<p class="transit-lead">${esc(parts.lead)}</p>` : ""}
+        <div class="transit-chips">
+          ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}预订</a>` : ""}
+          <a class="link-quiet chip-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("pin")}${mapLabel}</a>
+          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="link-quiet btn-link-quiet chip-map" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
+        </div>
         ${hasTransitMore ? `<details class="stop-more">
           <summary>乘车细节与说明</summary>
           <div class="stop-more-body">
@@ -1294,7 +1306,8 @@ function renderItem(day, item, index) {
         ${parts.lead ? `<p class="how">${icon("navigation")}<span>${esc(parts.lead)}</span></p>` : ""}
         ${needs ? `<div class="book-inline ${esc(item.reservation)}${booked ? " is-booked" : ""}">
           <span class="flag ${esc(item.reservation)}">${booked ? "已订好" : FLAG[item.reservation]}</span>
-          <span>${esc(item.reservationNote || "")}</span>
+          <span class="book-inline-note">${esc(item.reservationNote || "")}</span>
+          <label class="booked-inline-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订` : "标为已订"}</label>
         </div>` : ""}
         ${hasMore ? `<details class="stop-more">
           <summary>实用贴士与费用说明</summary>
@@ -1305,10 +1318,9 @@ function renderItem(day, item, index) {
         </details>` : ""}
         <div class="stop-actions">
           ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
-          <a class="btn btn-sm btn-action btn-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("external")}${mapLabel}</a>
-          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-action btn-map-focus" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}页内定位</button>` : ""}
+          <a class="btn btn-sm btn-action btn-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("pin")}${mapLabel}</a>
           ${item.kind !== "transport" ? `<a class="btn btn-sm btn-action btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" data-xhs-kw="${esc(xhsKeyword(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
-          ${needs ? `<label class="booked-toggle edit-only${booked ? " on" : ""}"><input type="checkbox" data-booked="${esc(item.id)}" ${booked ? "checked" : ""} />${booked ? `${icon("check")}已订好` : "标记已订"}</label>` : ""}
+          ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-action btn-map-focus" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}地图定位</button>` : ""}
         </div>
       </div>
     </article>
@@ -1571,13 +1583,16 @@ if (window.L) {
 }
 
 document.addEventListener("click", (event) => {
-  const more = document.querySelector("#more-menu");
-  if (more && more.open && !event.target.closest("#more-menu")) {
-    more.open = false;
-  }
+  document.querySelectorAll(".more-menu[open]").forEach((menu) => {
+    if (!event.target.closest(".more-menu") || event.target.closest(".more-menu") !== menu) {
+      menu.open = false;
+    }
+  });
 });
 
-document.querySelector("#new-trip").addEventListener("click", () => {
+function createNewTripPrompt() {
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
   const id = `trip-${Date.now()}`;
   const title = window.prompt("这趟叫什么", "新行程");
   if (!title) return;
@@ -1592,7 +1607,148 @@ document.querySelector("#new-trip").addEventListener("click", () => {
   state.tripId = id;
   dayFilter = "all";
   render();
+}
+
+document.querySelector("#new-trip").addEventListener("click", createNewTripPrompt);
+const menuNewTrip = document.querySelector("#menu-new-trip");
+if (menuNewTrip) menuNewTrip.addEventListener("click", createNewTripPrompt);
+
+function promptEditCover() {
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
+  const current = trip();
+  const curSrc = (current.coverPhoto && current.coverPhoto.src) || "";
+  const next = window.prompt("自定义顶部封面图：云端只保存 Wikimedia 或本站 /api/img 链接，留空则用首个景点配图", curSrc);
+  if (next == null) return;
+  const trimmed = next.trim();
+  if (!trimmed) {
+    delete current.coverPhoto;
+  } else if (normalizePhotoUrl(trimmed)) {
+    current.coverPhoto = { src: normalizePhotoUrl(trimmed), credit: "", link: trimmed, caption: current.title };
+  } else {
+    window.alert("请输入 Wikimedia 或本站 /api/img 图片地址");
+    return;
+  }
+  markTripEdited(current.id);
+  render();
+}
+
+function promptRenameTrip() {
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
+  const title = window.prompt("行程名称", trip().title);
+  if (!title) return;
+  trip().title = title.trim();
+  markTripEdited(trip().id);
+  render();
+}
+
+function promptDeleteTrip() {
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
+  if (state.trips.length <= 1) return;
+  const targetId = state.tripId;
+  if (!window.confirm(`删除「${trip().title}」？`)) return;
+  if (SEED_BY_ID.has(targetId)) {
+    state.deletedSeedIds = [...new Set([...(state.deletedSeedIds || []), targetId])];
+    if (state.editedTrips) delete state.editedTrips[targetId];
+  }
+  state.trips = state.trips.filter((item) => item.id !== targetId);
+  state.tripId = state.trips[0].id;
+  dayFilter = "all";
+  render();
+}
+
+document.querySelector("#menu-add-day")?.addEventListener("click", () => {
+  const more = document.querySelector("#more-menu");
+  if (more) more.open = false;
+  openDayEditor(null);
 });
+document.querySelector("#menu-rename-trip")?.addEventListener("click", promptRenameTrip);
+document.querySelector("#menu-edit-cover")?.addEventListener("click", promptEditCover);
+document.querySelector("#menu-delete-trip")?.addEventListener("click", promptDeleteTrip);
+
+const stopSheet = document.querySelector("#stop-sheet");
+const pinSheet = document.querySelector("#pin-sheet");
+let activeStopMenu = null;
+
+function syncStopSheet() {
+  if (!stopSheet || !activeStopMenu) return false;
+  const day = trip().days.find((d) => d.id === activeStopMenu.dayId);
+  const idx = day ? day.items.findIndex((it) => it.id === activeStopMenu.itemId) : -1;
+  if (!day || idx < 0) return false;
+  const item = day.items[idx];
+  const posEl = document.querySelector("#stop-sheet-pos");
+  const titleEl = document.querySelector("#stop-sheet-title");
+  const upBtn = document.querySelector("#sheet-move-up");
+  const downBtn = document.querySelector("#sheet-move-down");
+  if (posEl) posEl.textContent = `${monthDay(day.date) || day.city || "当天"} · 第 ${idx + 1} / ${day.items.length} 站`;
+  if (titleEl) titleEl.textContent = `${item.time ? `${item.time} · ` : ""}${item.name}`;
+  if (upBtn) upBtn.disabled = idx <= 0;
+  if (downBtn) downBtn.disabled = idx >= day.items.length - 1;
+  return true;
+}
+
+function openStopSheet(dayId, itemId) {
+  activeStopMenu = { dayId, itemId };
+  if (!syncStopSheet() || !stopSheet) return;
+  stopSheet.showModal();
+}
+
+function moveStopBy(dayId, itemId, delta) {
+  const day = trip().days.find((d) => d.id === dayId);
+  if (!day) return false;
+  const idx = day.items.findIndex((it) => it.id === itemId);
+  const targetIdx = idx + delta;
+  if (idx < 0 || targetIdx < 0 || targetIdx >= day.items.length) return false;
+  const [moved] = day.items.splice(idx, 1);
+  day.items.splice(targetIdx, 0, moved);
+  markTripEdited(trip().id);
+  render();
+  return true;
+}
+
+if (stopSheet) {
+  document.querySelector("#sheet-move-up")?.addEventListener("click", () => {
+    if (!activeStopMenu) return;
+    if (moveStopBy(activeStopMenu.dayId, activeStopMenu.itemId, -1)) {
+      syncStopSheet();
+    }
+  });
+  document.querySelector("#sheet-move-down")?.addEventListener("click", () => {
+    if (!activeStopMenu) return;
+    if (moveStopBy(activeStopMenu.dayId, activeStopMenu.itemId, 1)) {
+      syncStopSheet();
+    }
+  });
+  document.querySelector("#sheet-edit-stop")?.addEventListener("click", () => {
+    if (!activeStopMenu) return;
+    const { dayId, itemId } = activeStopMenu;
+    stopSheet.close();
+    const day = trip().days.find((d) => d.id === dayId);
+    const target = day && day.items.find((it) => it.id === itemId);
+    if (target) openEditor(dayId, target);
+  });
+  document.querySelector("#sheet-del-stop")?.addEventListener("click", () => {
+    if (!activeStopMenu) return;
+    const { dayId, itemId } = activeStopMenu;
+    const day = trip().days.find((d) => d.id === dayId);
+    const target = day && day.items.find((it) => it.id === itemId);
+    if (!day || !window.confirm(`删除「${target ? target.name : "这一站"}」？`)) return;
+    stopSheet.close();
+    day.items = day.items.filter((it) => it.id !== itemId);
+    delete state.booked[itemId];
+    markTripEdited(trip().id);
+    render();
+  });
+}
+
+for (const dlg of [stopSheet, pinSheet]) {
+  if (!dlg) continue;
+  dlg.addEventListener("click", (event) => {
+    if (event.target === dlg) dlg.close();
+  });
+}
 
 document.querySelector("#export-btn").addEventListener("click", () => {
   const blob = new Blob([JSON.stringify({ trips: state.trips, booked: state.booked }, null, 2)], { type: "application/json" });
@@ -1865,6 +2021,11 @@ main.addEventListener("click", (event) => {
     window.location.href = xhsAppUrl(kw);
     return;
   }
+  const stopMenuBtn = event.target.closest("[data-stop-menu]");
+  if (stopMenuBtn) {
+    const [dId, iId] = stopMenuBtn.dataset.stopMenu.split(":");
+    return openStopSheet(dId, iId);
+  }
   const pins = event.target.closest("[data-pins]");
   if (pins) return openPinSheet(pins.dataset.pins);
   const focusPin = event.target.closest("[data-focus-pin]");
@@ -1876,12 +2037,16 @@ main.addEventListener("click", (event) => {
   if (add) return openEditor(add.dataset.add, null);
   const editDay = event.target.closest("[data-edit-day]");
   if (editDay) {
+    const openMenu = editDay.closest(".more-menu");
+    if (openMenu) openMenu.open = false;
     const day = trip().days.find((item) => item.id === editDay.dataset.editDay);
     if (day) openDayEditor(day);
     return;
   }
   const delDay = event.target.closest("[data-del-day]");
   if (delDay) {
+    const openMenu = delDay.closest(".more-menu");
+    if (openMenu) openMenu.open = false;
     const current = trip();
     if (current.days.length <= 1) return;
     const day = current.days.find((item) => item.id === delDay.dataset.delDay);
@@ -1961,40 +2126,13 @@ main.addEventListener("click", (event) => {
     return openDayEditor(null);
   }
   if (event.target.closest("#edit-cover")) {
-    const current = trip();
-    const curSrc = (current.coverPhoto && current.coverPhoto.src) || "";
-    const next = window.prompt("自定义顶部封面图：云端只保存 Wikimedia 或本站 /api/img 链接，留空则用首个景点配图", curSrc);
-    if (next == null) return;
-    const trimmed = next.trim();
-    if (!trimmed) {
-      delete current.coverPhoto;
-    } else if (normalizePhotoUrl(trimmed)) {
-      current.coverPhoto = { src: normalizePhotoUrl(trimmed), credit: "", link: trimmed, caption: current.title };
-    } else {
-      window.alert("请输入 Wikimedia 或本站 /api/img 图片地址");
-      return;
-    }
-    markTripEdited(current.id);
-    return render();
+    return promptEditCover();
   }
   if (event.target.closest("#rename-trip")) {
-    const title = window.prompt("行程名称", trip().title);
-    if (!title) return;
-    trip().title = title.trim();
-    markTripEdited(trip().id);
-    return render();
+    return promptRenameTrip();
   }
   if (event.target.closest("#delete-trip")) {
-    const targetId = state.tripId;
-    if (!window.confirm(`删除「${trip().title}」？`)) return;
-    if (SEED_BY_ID.has(targetId)) {
-      state.deletedSeedIds = [...new Set([...(state.deletedSeedIds || []), targetId])];
-      if (state.editedTrips) delete state.editedTrips[targetId];
-    }
-    state.trips = state.trips.filter((item) => item.id !== targetId);
-    state.tripId = state.trips[0].id;
-    dayFilter = "all";
-    return render();
+    return promptDeleteTrip();
   }
 });
 

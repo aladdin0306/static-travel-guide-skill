@@ -27,6 +27,12 @@
       <details class="more-menu" id="more-menu">
         <summary class="btn btn-icon-more" aria-label="更多功能" title="打印路书、导入或导出备份"><span data-icon="more"></span></summary>
         <div class="more-popover">
+          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-add-day"><span data-icon="plus"></span>添加新的一天</button>
+          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-rename-trip"><span data-icon="pencil"></span>修改行程名称</button>
+          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-edit-cover"><span data-icon="camera"></span>更换顶部封面</button>
+          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-new-trip"><span data-icon="plus"></span>新建另一趟行程</button>
+          <button type="button" class="menu-item edit-only mobile-only-menu-item danger-item" id="menu-delete-trip"><span data-icon="trash"></span>删除当前行程</button>
+          <hr class="menu-sep edit-only mobile-only-menu-item" />
           <button type="button" class="menu-item" id="print-btn"><span data-icon="printer"></span>打印 / 导出 PDF 路书</button>
           <button type="button" class="menu-item edit-only" id="reset-local-btn" hidden><span data-icon="refresh"></span>恢复默认线上内容</button>
           <button type="button" class="menu-item edit-only" id="import-btn"><span data-icon="upload"></span>导入 JSON 备份</button>
@@ -133,6 +139,26 @@
       <div id="pin-sheet-list" class="pin-sheet-list"></div>
       <div class="dialog-actions">
         <button type="submit" class="btn" value="cancel">关闭</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="stop-sheet" class="stop-sheet">
+    <form method="dialog">
+      <div class="stop-sheet-head">
+        <p id="stop-sheet-pos" class="stop-sheet-pos"></p>
+        <h3 id="stop-sheet-title">管理这一站</h3>
+      </div>
+      <div class="stop-sheet-moves" role="group" aria-label="调整先后顺序">
+        <button type="button" class="btn stop-move-btn" id="sheet-move-up"><span data-icon="arrowUp"></span>上移一站</button>
+        <button type="button" class="btn stop-move-btn" id="sheet-move-down"><span data-icon="arrowDown"></span>下移一站</button>
+      </div>
+      <div class="stop-sheet-actions">
+        <button type="button" class="sheet-row-btn" id="sheet-edit-stop"><span data-icon="pencil"></span><span><b>编辑地点信息</b><small>修改时间、名称、费用、备注或配图</small></span></button>
+        <button type="button" class="sheet-row-btn danger" id="sheet-del-stop"><span data-icon="trash"></span><span><b>删除这一站</b><small>从当天行程中移除</small></span></button>
+      </div>
+      <div class="dialog-actions">
+        <button type="submit" class="btn btn-sheet-done" value="cancel">完成</button>
       </div>
     </form>
   </dialog>

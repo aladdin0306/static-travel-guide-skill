@@ -3032,8 +3032,76 @@ h1 {
   color: #1e40af;
 }
 
-/* Hover-reveal edit tools on desktop so reading feels uncluttered */
+/* Stop management: labeled desktop hover bar vs single quiet mobile '...' trigger */
+.stop-edit {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+.stop-edit-desktop {
+  display: none;
+  align-items: center;
+  gap: 5px;
+}
+.stop-chip-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 28px;
+  padding: 0 8px;
+  border-radius: 7px;
+  border: 1px solid var(--edge);
+  background: #fff;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.stop-chip-btn .icon {
+  width: 13px;
+  height: 13px;
+}
+.stop-chip-btn:hover {
+  border-color: var(--sea);
+  color: var(--sea);
+  background: var(--sea-soft);
+}
+.stop-more-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin: -4px -6px -4px 0;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.stop-more-btn:hover,
+.stop-more-btn:active {
+  background: rgba(23, 35, 31, 0.06);
+  color: var(--ink);
+}
+.transit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+}
+.transit-chips:empty {
+  display: none;
+}
+
 @media (hover: hover) and (min-width: 820px) {
+  .stop-edit-desktop {
+    display: inline-flex;
+  }
+  .stop-more-btn {
+    display: none;
+  }
   .stop-edit {
     opacity: 0;
     transition: opacity 0.15s ease;
@@ -3043,6 +3111,184 @@ h1 {
     opacity: 1;
   }
 }
+
+/* Stop management bottom sheet */
+.stop-sheet {
+  width: min(420px, calc(100vw - 24px));
+}
+.stop-sheet form {
+  padding: 18px 18px 16px;
+  gap: 12px;
+}
+.stop-sheet-head {
+  display: grid;
+  gap: 3px;
+}
+.stop-sheet-pos {
+  margin: 0;
+  color: var(--sea);
+  font-size: 12px;
+  font-weight: 700;
+}
+.stop-sheet h3 {
+  margin: 0;
+  font-size: 16.5px;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.stop-sheet-moves {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.stop-move-btn {
+  height: 42px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 650;
+  background: #faf9f5;
+  border-color: var(--edge);
+}
+.stop-move-btn:not(:disabled):active {
+  background: var(--sea-soft);
+  border-color: var(--sea);
+  color: var(--sea-dark);
+}
+.stop-sheet-actions {
+  display: grid;
+  gap: 6px;
+}
+.sheet-row-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.sheet-row-btn:active {
+  background: #f5f4ef;
+}
+.sheet-row-btn .icon {
+  width: 18px;
+  height: 18px;
+  color: var(--muted);
+}
+.sheet-row-btn span {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.sheet-row-btn b {
+  font-size: 14px;
+  font-weight: 650;
+}
+.sheet-row-btn small {
+  font-size: 12px;
+  color: var(--muted);
+}
+.sheet-row-btn.danger {
+  color: var(--coral-dark);
+  border-color: #f4d5cb;
+  background: #fffaf8;
+}
+.sheet-row-btn.danger .icon {
+  color: var(--coral);
+}
+.sheet-row-btn.danger small {
+  color: #b45a42;
+}
+.btn-sheet-done {
+  width: 100%;
+  height: 40px;
+  border-radius: 12px;
+}
+.menu-sep {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 4px 6px;
+}
+.menu-item.danger-item {
+  color: var(--coral-dark);
+}
+.menu-item.danger-item:hover {
+  background: var(--coral-soft);
+  color: var(--coral-dark);
+}
+@media (min-width: 721px) {
+  .mobile-only-menu-item {
+    display: none;
+  }
+}
+
+.day-more-menu summary.icon-btn {
+  display: inline-grid;
+}
+.day-more-menu .more-popover {
+  min-width: 184px;
+}
+
+.book-inline {
+  align-items: center;
+}
+.book-inline-note {
+  flex: 1 1 180px;
+  min-width: 0;
+}
+.booked-inline-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px dashed var(--edge);
+  background: #fff;
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.booked-inline-toggle input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+  pointer-events: none;
+}
+.booked-inline-toggle .icon {
+  width: 12px;
+  height: 12px;
+}
+.booked-inline-toggle.on {
+  border-style: solid;
+  border-color: #bfe3cc;
+  background: var(--ok-soft);
+  color: var(--ok);
+}
+
+/* Unified, calm stop-action pills (colored icons instead of 5 competing colored boxes) */
+.stop-actions .btn-gmaps,
+.stop-actions .btn-map-focus,
+.stop-actions .btn-xhs-quiet {
+  background: #f7f6f1;
+  border-color: #e4e0d6;
+  color: var(--ink);
+  box-shadow: none;
+}
+.stop-actions .btn-gmaps .icon { color: #1d4ed8; }
+.stop-actions .btn-map-focus .icon { color: var(--sea); }
+.stop-actions .btn-xhs-quiet .icon { color: #d92d4b; }
+.stop-actions .btn-gmaps:hover { border-color: #93c5fd; background: #eff6ff; color: #1e40af; }
+.stop-actions .btn-map-focus:hover { border-color: var(--sea); background: var(--sea-soft); color: var(--sea-dark); }
+.stop-actions .btn-xhs-quiet:hover { border-color: #f09aa7; background: #fff4f5; color: #a9162e; }
 
 /* Cleaner right map card */
 .map-panel {
@@ -3064,6 +3310,65 @@ h1 {
     grid-template-columns: minmax(0, 1fr);
     height: auto;
   }
+  /* Compact horizontal trip switcher on mobile instead of giant stacked cards */
+  body.single-trip .rail {
+    display: none;
+  }
+  .rail {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 0 4px;
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .rail::-webkit-scrollbar {
+    display: none;
+  }
+  .rail-head {
+    order: 2;
+    flex-shrink: 0;
+  }
+  .rail-head h2,
+  .rail-note,
+  .trip-thumb,
+  .trip-meta span,
+  .trip-meta em,
+  .trip-meta .ok {
+    display: none;
+  }
+  #trip-list {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+  .trip-card {
+    width: auto;
+    margin-top: 0;
+    border-radius: 999px;
+    border: 1px solid var(--edge);
+    background: #fff;
+    box-shadow: 0 1px 2px rgba(20, 32, 28, 0.04);
+    flex-shrink: 0;
+  }
+  .trip-card.active {
+    background: var(--sea);
+    border-color: var(--sea);
+    color: #fff;
+  }
+  .trip-meta {
+    padding: 7px 14px;
+  }
+  .trip-meta b {
+    font-size: 13.5px;
+    font-weight: 650;
+    white-space: nowrap;
+  }
   .day-tabs {
     top: var(--top-h, 59px);
   }
@@ -3073,7 +3378,7 @@ h1 {
 }
 
 @media (max-width: 720px) {
-  :root { --pad: 18px; --gap: 12px; }
+  :root { --pad: 16px; --gap: 12px; }
   .top {
     padding: 10px 12px;
     gap: 8px;
@@ -3094,8 +3399,11 @@ h1 {
   .shared-readonly .share-status.public { display: none; }
   .layout,
   .shared-route .layout {
-    padding: 12px 12px 20px;
-    gap: 12px;
+    padding: 10px 12px 24px;
+    gap: 10px;
+  }
+  .rail-head {
+    display: none;
   }
   .day-tabs {
     top: var(--top-h, 59px);
@@ -3112,51 +3420,116 @@ h1 {
     right: 10px;
     bottom: auto;
   }
-  .hero-stage.count-1 { height: 228px; }
+  .hero-stage.count-1 { height: 216px; }
   .hero-stage.count-2 {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: 220px 92px;
+    grid-template-rows: 206px 84px;
   }
   .hero-stage.count-3 {
     grid-template-columns: 1fr 1fr;
-    grid-template-rows: 220px 88px;
+    grid-template-rows: 206px 82px;
   }
   .hero-stage.count-3 .slot-1 {
     grid-column: 1 / -1;
     grid-row: 1;
   }
-  .hero-overlay { left: 16px; right: 16px; bottom: 14px; }
-  .hero-overlay h2 { font-size: 24px; margin: 6px 0 8px; }
-  .hero-foot { padding: 10px 14px; }
-  .booking-banner { padding: 12px 14px; }
-  .budget { padding: 18px 16px; gap: 14px; }
+  .hero-overlay { left: 14px; right: 14px; bottom: 12px; }
+  .hero-overlay h2 { font-size: 22px; margin: 4px 0 8px; }
+  .hero-route { gap: 5px; }
+  .hop { padding: 3px 9px; font-size: 12px; gap: 4px; }
+  .hop small { font-size: 11px; }
+  .hero-foot {
+    display: none;
+  }
+  .booking-banner,
+  .visa-banner {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+  .banner-text b { font-size: 14px; line-height: 1.35; }
+  .banner-text small { font-size: 12px; display: block; margin-top: 2px; line-height: 1.4; }
+  .banner-cta { height: 30px; padding: 0 10px; font-size: 12px; }
+  .budget { padding: 16px; gap: 14px; }
   .budget-amount { font-size: 26px; }
   .budget-ledger,
   .budget-ledger.single-col {
     grid-template-columns: minmax(0, 1fr);
   }
-  .day { padding: 18px 16px 10px; }
-  .day-head { flex-wrap: wrap; align-items: flex-start; gap: 10px; }
-  .day h2 { font-size: 20px; }
-  .stop { grid-template-columns: 28px minmax(0, 1fr); gap: 10px; }
-  .stop-card { padding: 16px 0; }
+  .day { padding: 16px 14px 10px; }
+  .day-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+    padding-bottom: 12px;
+  }
+  .day h2 { font-size: 19px; line-height: 1.3; }
+  .day-tools {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .day-tools > :first-child {
+    margin-right: auto;
+  }
+  .day-tools .btn {
+    height: 33px;
+    padding: 0 11px;
+    font-size: 13px;
+  }
+  .day-tools .icon-btn {
+    width: 33px;
+    height: 33px;
+  }
+  .stop { grid-template-columns: 26px minmax(0, 1fr); gap: 10px; }
+  .stop-rail { padding-top: 18px; }
+  .stop-num { width: 24px; height: 24px; font-size: 11.5px; }
+  .stop-card { padding: 15px 0; }
+  .stop-card h4 { font-size: 16.5px; line-height: 1.35; }
   .stop-card.has-photo {
     grid-template-columns: minmax(0, 1fr);
-    gap: 12px;
+    gap: 10px;
   }
   .stop-photo {
     order: -1;
     aspect-ratio: 16 / 10;
   }
+  .transit-bar {
+    align-items: flex-start;
+    flex-wrap: nowrap;
+    gap: 6px;
+  }
+  .transit-title {
+    gap: 5px 8px;
+    font-size: 13.5px;
+    line-height: 1.4;
+  }
   .stop-actions {
-    gap: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
   }
   .btn-action {
-    padding: 0 8px;
+    height: 32px;
+    padding: 0 10px;
     gap: 4px;
-    font-size: 12px;
+    font-size: 12.5px;
+    border-radius: 8px;
   }
-  .map-panel { height: 340px; padding: 14px; }
+  .map-panel { height: 340px; padding: 12px; }
+  /* Native bottom-sheet feel on phones */
+  .stop-sheet,
+  .pin-sheet {
+    margin: auto 0 0 0;
+    width: 100%;
+    max-width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+  .stop-sheet form,
+  .pin-sheet form {
+    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  }
 }
 
 /* Pin sheet dual domestic actions (Amap + Apple Maps) */
