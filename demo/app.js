@@ -1218,11 +1218,13 @@ function renderItem(day, item, index) {
 
   if (item.kind === "transport" && !pic) {
     const hasTransitMore = Boolean(parts.rest || (hasCost(item) && item.cost.amount > 0 && item.cost.note) || (needs && item.reservationNote));
+    const isFlight = /飞|航班|[A-Z]{2}\s*\d{2,4}/i.test(item.name || "");
     return `<li class="stop stop-transit kind-transport${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
-      <div class="stop-rail"><span class="stop-dot" aria-hidden="true">${icon("bus")}</span></div>
+      <div class="stop-rail"><span class="stop-dot" aria-hidden="true">${icon(isFlight ? "plane" : "bus")}</span></div>
       <div class="transit-row">
         <div class="transit-bar">
           <div class="transit-title">
+            <span class="transit-badge">${isFlight ? "航班" : "交通"}</span>
             ${item.time ? `<time>${esc(item.time)}</time>` : ""}
             <b>${esc(item.name)}</b>
             ${priceChip(item)}
