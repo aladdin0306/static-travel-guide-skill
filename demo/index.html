@@ -5,22 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>行程库</title>
   <script>
-    try {
-      if (localStorage.getItem("travel-guides-theme") === "dark") {
-        document.documentElement.dataset.theme = "dark";
-      }
-    } catch (_) {}
     if (/^\/t\/[A-Za-z0-9_-]+(?:\/edit)?\/?$/.test(location.pathname)) {
       document.documentElement.classList.add("shared-loading");
     }
   </script>
   <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4" />
-  <link rel="stylesheet" href="styles.css?v=39" />
+  <link rel="stylesheet" href="styles.css?v=40" />
 </head>
 <body>
   <header class="top">
     <div class="brand">
-      <span class="brand-mark"><span data-icon="compass"></span></span>
+      <span class="brand-badge">TRIP COMIC</span>
       <h1>行程库</h1>
     </div>
     <div class="top-actions">
@@ -28,7 +23,6 @@
       <button type="button" class="btn btn-sm" id="seed-update-btn" hidden><span data-icon="refresh"></span>线上已更新 · 用最新版</button>
       <button type="button" class="btn btn-sm" id="conflict-reload-btn" hidden><span data-icon="refresh"></span>加载最新内容</button>
       <button type="button" class="btn readonly-only" id="fork-btn"><span data-icon="copy"></span>复制并修改</button>
-      <button type="button" class="btn btn-sm theme-toggle" id="theme-btn" title="切换浅色纸本 / 深色夜航主题"></button>
       <button type="button" class="btn btn-primary" id="share-btn"><span data-icon="share"></span>分享</button>
       <details class="more-menu" id="more-menu">
         <summary class="btn btn-icon-more" aria-label="更多功能" title="打印路书、导入或导出备份"><span data-icon="more"></span></summary>

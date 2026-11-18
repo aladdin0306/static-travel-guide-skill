@@ -949,71 +949,49 @@ function renderMain() {
   const suggested = todo.length - required.length;
   const days = dayFilter === "all" ? current.days : current.days.filter((day) => day.id === (chosen && chosen.id));
   const routeCities = cityRun(current.days).map((run) => run.city).join(" → ");
-  const heroPic = firstPhoto(current);
   const plan = budgetOf(current);
   const home = isHomeCurrency(current);
   const rate = home ? 0 : Number(current.budget && current.budget.cnyRate);
   const budgetPillText = plan.total
-    ? `预算约 ${rate ? cny(plan.total) : local(plan.total)}/人`
+    ? `💰 预算 ${rate ? cny(plan.total) : local(plan.total)}`
     : "";
   const visaInfo = visaSummary(current);
   const bookPillText = required.length
-    ? `${required.length} 项必须提前订`
-    : (suggested ? `${suggested} 项建议预约` : "预约已齐");
+    ? `📅 必订 ${required.length}`
+    : (suggested ? `📅 待订 ${suggested}` : `✓ 预约已齐`);
 
   main.innerHTML = `
-    <div class="stage-shell">
-      <header class="stage-hero${heroPic ? " has-bg" : ""}"${heroPic ? ` style="--hero-img:url('${esc(heroPic.src)}')"` : ""}>
-        <div class="stage-hero-scrim"></div>
-        <div class="stage-hero-body">
-          <div class="stage-hero-copy">
+    <div class="manga-feed">
+      <section class="m-title-card">
+        <div class="m-title-top">
+          <div>
             <h2>${esc(current.title)}</h2>
-            <p class="stage-sub">${esc(tripRange(current))}${routeCities ? ` · ${esc(routeCities)}` : ""}</p>
+            <p class="m-sub">${esc(tripRange(current))}${routeCities ? ` · ${esc(routeCities)}` : ""}</p>
           </div>
-          <div class="stage-hero-tools edit-only">
-            <button type="button" class="btn btn-sm btn-hero-primary" id="add-day">${icon("plus")}加一天</button>
+          <div class="m-title-tools edit-only">
+            <button type="button" class="btn btn-sm" id="add-day">${icon("plus")}加一天</button>
             <details class="more-menu hero-more-menu">
-              <summary class="btn btn-sm btn-hero-more" aria-label="管理行程" title="改名、换封面或删除">${icon("more")}</summary>
+              <summary class="btn btn-sm btn-icon-more" aria-label="管理行程" title="改名、换封面或删除">${icon("more")}</summary>
               <div class="more-popover">
                 <button type="button" class="menu-item" id="rename-trip">${icon("pencil")}修改行程名称</button>
-                <button type="button" class="menu-item" id="edit-cover">${icon("camera")}更换顶部封面</button>
+                <button type="button" class="menu-item" id="edit-cover">${icon("camera")}更换封面图</button>
                 ${state.trips.length > 1 ? `<button type="button" class="menu-item danger-item" id="delete-trip">${icon("trash")}删除当前行程</button>` : ""}
               </div>
             </details>
           </div>
         </div>
-        ${heroPic && heroPic.credit ? `<a class="hero-credit" href="${esc(safeUrl(heroPic.link))}" target="_blank" rel="noopener">${esc(heroPic.credit)}</a>` : ""}
-      </header>
-
-      <div class="stage-sticky">
-        <nav class="day-tabs" aria-label="选择哪一天">
-          ${current.days.map((day, index) => {
-            const [, m, d] = (day.date || "--").split("-");
-            return `<button type="button" class="day-tab${dayFilter !== "all" && chosen && day.id === chosen.id ? " active" : ""}" data-day="${esc(day.id)}">
-              <span class="dt-top">${day.date ? `${Number(m)}月 周${weekday(day.date)}` : `第${index + 1}天`}</span>
-              <span class="dt-num">${day.date ? Number(d) : index + 1}</span>
-              <span class="dt-city">${esc(day.city || "未定")}</span>
-            </button>`;
-          }).join("")}
-          <button type="button" class="day-tab all${dayFilter === "all" ? " active" : ""}" data-day="all">
-            <span class="dt-top">全程</span>
-            <span class="dt-num">${current.days.length}天</span>
-            <span class="dt-city">全部展开</span>
-          </button>
-        </nav>
-
-        <div class="quick-pills">
-          ${budgetPillText ? `<button type="button" class="q-pill${budgetOpen ? " open" : ""}" id="toggle-budget" aria-expanded="${budgetOpen}">
-            ${icon("wallet")}<span>${esc(budgetPillText)}</span><span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span>
+        <div class="m-pills">
+          ${budgetPillText ? `<button type="button" class="m-pill hi${budgetOpen ? " open" : ""}" id="toggle-budget" aria-expanded="${budgetOpen}">
+            <span>${esc(budgetPillText)}</span><span class="chev${budgetOpen ? " up" : ""}">${icon("chevron")}</span>
           </button>` : ""}
-          ${visaInfo ? `<button type="button" class="q-pill ${visaInfo.tone}${visaOpen ? " open" : ""}" id="toggle-visa" aria-expanded="${visaOpen}">
-            ${icon("passport")}<span>${esc(visaInfo.shortLabel)}</span><span class="chev${visaOpen ? " up" : ""}">${icon("chevron")}</span>
+          ${visaInfo ? `<button type="button" class="m-pill${visaOpen ? " open" : ""}" id="toggle-visa" aria-expanded="${visaOpen}">
+            <span>🛂 ${esc(visaInfo.shortLabel)}</span><span class="chev${visaOpen ? " up" : ""}">${icon("chevron")}</span>
           </button>` : ""}
-          <button type="button" class="q-pill ${required.length ? "due" : "done"}${bookingsOpen ? " open" : ""}" id="toggle-books" aria-expanded="${bookingsOpen}">
-            ${icon(required.length ? "calendar" : "check")}<span>${esc(bookPillText)}</span><span class="chev${bookingsOpen ? " up" : ""}">${icon("chevron")}</span>
+          <button type="button" class="m-pill${required.length ? " warn" : ""}${bookingsOpen ? " open" : ""}" id="toggle-books" aria-expanded="${bookingsOpen}">
+            <span>${esc(bookPillText)}</span><span class="chev${bookingsOpen ? " up" : ""}">${icon("chevron")}</span>
           </button>
         </div>
-      </div>
+      </section>
 
       ${bookingsOpen ? `<section class="drawer-panel book-list">
         <div class="drawer-head">
@@ -1024,13 +1002,27 @@ function renderMain() {
           <div class="book-row">
             <span class="flag ${esc(item.reservation)}">${FLAG[item.reservation]}</span>
             <span class="book-name"><b>${esc(item.name)}</b><small>${esc(monthDay(day.date))} · ${esc(day.city)}</small></span>
-            ${safeUrl(item.bookingUrl) ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(safeUrl(item.bookingUrl))}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
+            ${safeUrl(item.bookingUrl) ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(safeUrl(item.bookingUrl))}" target="_blank" rel="noopener">去预约 ↗</a>` : ""}
           </div>`).join("") : `<p class="muted" style="margin:6px 0 2px;font-size:13px;">这趟没有还要处理的预约。</p>`}
       </section>` : ""}
 
       ${visaOpen ? renderVisaPanel(current) : ""}
 
       ${budgetOpen ? renderBudgetPanel(current) : ""}
+
+      <nav class="day-tabs" aria-label="选择哪一天">
+        ${current.days.map((day, index) => {
+          const shortCity = String(day.city || "未定").split(/[\/·・]/)[0].trim();
+          return `<button type="button" class="day-tab${dayFilter !== "all" && chosen && day.id === chosen.id ? " active" : ""}" data-day="${esc(day.id)}">
+            <b>D${index + 1}</b>
+            <span>${esc(shortCity)}</span>
+          </button>`;
+        }).join("")}
+        <button type="button" class="day-tab all${dayFilter === "all" ? " active" : ""}" data-day="all">
+          <b>ALL</b>
+          <span>全${current.days.length}天</span>
+        </button>
+      </nav>
 
       <div class="stage-days">
         ${days.map((day) => renderDay(day, current.days.indexOf(day) + 1, current)).join("")}
@@ -1202,7 +1194,10 @@ function renderDay(day, number, current = trip()) {
   return `<section class="day" id="${esc(day.id)}">
     <header class="day-head">
       <div class="day-head-info">
-        <p class="day-kicker"><b>DAY ${String(number).padStart(2, "0")}</b> · ${esc(monthDay(day.date) || "日期未定")}${day.date ? ` 周${weekday(day.date)}` : ""} · ${esc(day.city || "未定")}</p>
+        <div class="m-ch-row">
+          <span class="m-ch-badge">DAY ${number}</span>
+          <span class="m-ch-meta">${esc(monthDay(day.date) || "")}${day.date ? ` 周${weekday(day.date)}` : ""}${day.city ? ` · ${esc(day.city)}` : ""}</span>
+        </div>
         <h3>${esc(day.title || day.city)}</h3>
       </div>
       <div class="day-tools">
@@ -1268,38 +1263,68 @@ function renderItem(day, item) {
   const isTransit = item.kind === "transport" && !pic;
   const isFlight = isTransit && /飞|航班|[A-Z]{2}\s*\d{2,4}/i.test(item.name || "");
   const kindText = isTransit ? (isFlight ? "航班" : "交通") : (KIND[item.kind] || "地点");
-  const iconName = isTransit ? (isFlight ? "plane" : "bus") : (KIND_ICON[item.kind] || "pin");
   const priceStr = shortPriceText(item);
-  const tRange = splitTimeRange(item.time);
   const gist = isTransit ? "" : cardGist(item);
   const isSelected = Boolean(activeDetail && activeDetail.itemId === item.id);
   const urgentBook = needs && item.reservation === "required" && !booked;
+  const stickerText = [item.time, kindText, priceStr].filter(Boolean).join(" · ");
 
-  return `<li class="stop${isTransit ? " is-transit" : ""}${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
-    <div class="stop-time" aria-hidden="true">
-      <b>${esc(tRange.start)}</b>
-      ${tRange.end ? `<small>${esc(tRange.end)}</small>` : ""}
-    </div>
-    <div class="stop-node" aria-hidden="true">
-      <span class="node-dot"></span>
-    </div>
-    <article class="s-card${isSelected ? " is-active" : ""}${pic ? " has-thumb" : ""}" data-open-stop="${esc(day.id)}:${esc(item.id)}" tabindex="0" role="button" aria-label="查看 ${esc(item.name)} 详情">
-      <div class="s-card-main">
-        <div class="s-card-top">
-          <span class="s-tag">${icon(iconName)}<span>${esc(kindText)}</span></span>
-          ${urgentBook ? `<span class="s-due">待预约</span>` : (booked && needs ? `<span class="s-booked">已订</span>` : "")}
-          ${priceStr ? `<span class="s-price">${esc(priceStr)}</span>` : ""}
+  const printNotes = `<div class="print-only-notes">
+    ${item.why ? `<p>${esc(item.why)}</p>` : ""}
+    ${item.note ? `<p>${esc(item.note)}</p>` : ""}
+    ${hasCost(item) && item.cost.note ? `<p>${esc(item.cost.note)}</p>` : ""}
+    ${needs && item.reservationNote ? `<p>${esc(FLAG[item.reservation])}：${esc(item.reservationNote)}</p>` : ""}
+  </div>`;
+
+  // Tier 1: Playful 1-line dashed comic transit capsule (weakens logistics noise)
+  if (isTransit) {
+    return `<li class="stop is-transit${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
+      <article class="s-card m-transit${isSelected ? " is-active" : ""}" data-open-stop="${esc(day.id)}:${esc(item.id)}" tabindex="0" role="button" aria-label="查看 ${esc(item.name)} 详情">
+        <span class="m-tr-ico" aria-hidden="true">${isFlight ? "✈️" : "🚆"}</span>
+        <span class="m-tr-text">
+          ${item.time ? `<b>${esc(item.time)}</b> · ` : ""}${esc(item.name)}
+        </span>
+        ${priceStr ? `<em class="m-tr-price">${esc(priceStr)}</em>` : ""}
+        <span class="m-tr-arrow" aria-hidden="true">→</span>
+        ${printNotes}
+      </article>
+    </li>`;
+  }
+
+  // Tier 2: Full Manga Storyboard Panel Card (when photo exists)
+  if (pic) {
+    return `<li class="stop has-panel${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
+      <article class="s-card m-panel${isSelected ? " is-active" : ""}" data-open-stop="${esc(day.id)}:${esc(item.id)}" tabindex="0" role="button" aria-label="查看 ${esc(item.name)} 详情">
+        <div class="m-panel-photo">
+          <img src="${esc(pic.src)}" alt="${esc(item.name)}" decoding="async" />
+          <span class="m-sticker">${esc(stickerText)}</span>
+          ${urgentBook ? `<span class="m-sticker-due">必订!</span>` : (booked && needs ? `<span class="m-sticker-ok">✓ 已订</span>` : "")}
         </div>
-        <h4 class="s-card-title">${esc(item.name)}</h4>
-        ${gist ? `<p class="s-card-gist">${esc(gist)}</p>` : ""}
-        <div class="print-only-notes">
-          ${item.why ? `<p>${esc(item.why)}</p>` : ""}
-          ${item.note ? `<p>${esc(item.note)}</p>` : ""}
-          ${hasCost(item) && item.cost.note ? `<p>${esc(item.cost.note)}</p>` : ""}
-          ${needs && item.reservationNote ? `<p>${esc(FLAG[item.reservation])}：${esc(item.reservationNote)}</p>` : ""}
+        <div class="m-panel-body">
+          <div class="m-panel-copy">
+            <h4 class="m-panel-title">${esc(item.name)}</h4>
+            ${gist ? `<p class="m-speech">💬 ${esc(gist)}</p>` : ""}
+            ${printNotes}
+          </div>
+          <span class="m-go-btn" aria-hidden="true">→</span>
         </div>
+      </article>
+    </li>`;
+  }
+
+  // Tier 3: Compact Manga Card (place without photo)
+  return `<li class="stop${isOptional(item) ? " optional" : ""}" id="item-${esc(item.id)}">
+    <article class="s-card m-compact kind-${esc(item.kind)}${isSelected ? " is-active" : ""}" data-open-stop="${esc(day.id)}:${esc(item.id)}" tabindex="0" role="button" aria-label="查看 ${esc(item.name)} 详情">
+      <div class="m-panel-copy">
+        <div class="m-compact-tags">
+          <span class="m-tag-chip">${esc(stickerText)}</span>
+          ${urgentBook ? `<span class="m-due-chip">必订!</span>` : (booked && needs ? `<span class="m-ok-chip">✓ 已订</span>` : "")}
+        </div>
+        <h4 class="m-panel-title">${esc(item.name)}</h4>
+        ${gist ? `<p class="m-speech">💬 ${esc(gist)}</p>` : ""}
+        ${printNotes}
       </div>
-      ${pic ? `<span class="s-card-thumb"><img src="${esc(pic.src)}" alt="" decoding="async" /></span>` : `<span class="s-card-arrow" aria-hidden="true">${icon("chevronRight")}</span>`}
+      <span class="m-go-btn" aria-hidden="true">→</span>
     </article>
   </li>`;
 }
@@ -1359,8 +1384,7 @@ function drawMap() {
       bounds.push([item.lat, item.lng]);
     });
     if (line.length > 1) {
-      const routeColor = document.documentElement.dataset.theme === "dark" ? "#22d3ee" : "#0e7c86";
-      markers.push(L.polyline(line, { color: routeColor, weight: 3, opacity: 0.82, dashArray: "6 8" }).addTo(map));
+      markers.push(L.polyline(line, { color: "#111111", weight: 3, opacity: 0.85, dashArray: "6 8" }).addTo(map));
     }
     for (const group of groups.values()) {
       const label = dayFilter === "all" ? `${dayNo}` : group.nums.join("·");
@@ -1973,7 +1997,7 @@ document.querySelector("#photo-search-btn").addEventListener("click", async () =
 document.addEventListener("error", (event) => {
   const img = event.target;
   if (!(img instanceof HTMLImageElement)) return;
-  const fig = img.closest(".stop-photo, .cd-thumb, .s-card-thumb");
+  const fig = img.closest(".stop-photo, .cd-thumb, .s-card-thumb, .m-panel-photo");
   if (fig) {
     fig.remove();
     return;
