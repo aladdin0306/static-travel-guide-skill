@@ -3240,8 +3240,28 @@ h1 {
   text-align: center;
 }
 
+.app-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(74px + env(safe-area-inset-bottom, 0px));
+  transform: translateX(-50%);
+  z-index: 1200;
+  max-width: min(92vw, 420px);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(23, 35, 31, 0.92);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.45;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(15, 23, 20, 0.24);
+  backdrop-filter: blur(8px);
+}
+
 @media print {
-  .mobile-map-fab {
+  .mobile-map-fab,
+  .app-toast {
     display: none !important;
   }
 }
