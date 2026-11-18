@@ -331,6 +331,11 @@ function isMobileMaps() {
     (navigator.maxTouchPoints > 1 && window.matchMedia("(max-width: 820px)").matches);
 }
 
+function isMobileDevice() {
+  return /Android|iPhone|iPad|iPod|HarmonyOS/i.test(navigator.userAgent) ||
+    (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+
 function xhsKeyword(day, item) {
   const rawCity = String((day && day.city) || (trip() && trip().title) || "")
     .split(/[\/·・|]/)[0]
@@ -348,48 +353,11 @@ function xhsKeyword(day, item) {
 
 function xhsUrl(day, item) {
   const kw = xhsKeyword(day, item);
+  if (isMobileDevice()) {
+    const deeplink = `xhsdiscover://search/result?keyword=${encodeURIComponent(kw)}`;
+    return `https://oia.xiaohongshu.com/oia?deeplink=${encodeURIComponent(deeplink)}&enableGuideModal=true`;
+  }
   return `https://www.xiaohongshu.com/search_result/?keyword=${encodeURIComponent(kw)}&source=web_explore_feed`;
-}
-
-function xhsAppUrl(kw) {
-  return `xhsdiscover://search/result?keyword=${encodeURIComponent(kw)}`;
-}
-
-function copyTextSilent(text) {
-  if (!text) return;
-  if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
-    navigator.clipboard.writeText(text).catch(() => {});
-  }
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    ta.style.pointerEvents = "none";
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand("copy");
-    ta.remove();
-  } catch (_) {}
-}
-
-let toastTimer = 0;
-function showToast(message) {
-  let el = document.querySelector("#app-toast");
-  if (!el) {
-    el = document.createElement("div");
-    el.id = "app-toast";
-    el.className = "app-toast";
-    el.setAttribute("role", "status");
-    document.body.appendChild(el);
-  }
-  el.textContent = message;
-  el.hidden = false;
-  clearTimeout(toastTimer);
-  toastTimer = window.setTimeout(() => {
-    el.hidden = true;
-  }, 3000);
 }
 
 const CN_PLACE_RE = /中国|北京|上海|天津|重庆|广州|深圳|成都|杭州|南京|苏州|西安|长沙|武汉|厦门|青岛|大连|哈尔滨|长春|沈阳|三亚|海口|昆明|大理|丽江|香格里拉|西双版纳|腾冲|拉萨|林芝|日喀则|乌鲁木齐|喀什|伊犁|阿勒泰|吐鲁番|敦煌|嘉峪关|张掖|西宁|兰州|银川|贵阳|荔波|镇远|桂林|阳朔|北海|张家界|凤凰|黄山|宏村|婺源|景德镇|九寨沟|黄龙|稻城|亚丁|川西|康定|新都桥|理塘|四姑娘山|色达|甘南|呼伦贝尔|阿尔山|漠河|延吉|长白山|威海|烟台|泉州|福州|平潭|宁波|舟山|绍兴|乌镇|西塘|扬州|无锡|常州|洛阳|开封|大同|平遥|太原|郑州|济南|泰山|合肥|南昌|庐山|武夷山|潮州|汕头|珠海|佛山|东莞|南宁|崇左|新疆|西藏|云南|四川|青海|甘肃|宁夏|陕西|山西|内蒙古|黑龙江|吉林|辽宁|福建|浙江|江苏|广东|海南|湖南|湖北|江西|安徽|山东|河南|河北|广西|贵州/;
@@ -1319,7 +1287,7 @@ function renderItem(day, item, index) {
         <div class="stop-actions">
           ${book && needs ? `<a class="btn btn-sm btn-book ${esc(item.reservation)}" href="${esc(book)}" target="_blank" rel="noopener">${icon("calendar")}去预约</a>` : ""}
           <a class="btn btn-sm btn-action btn-gmaps" href="${esc(mapHref)}" target="_blank" rel="noopener">${icon("pin")}${mapLabel}</a>
-          ${item.kind !== "transport" ? `<a class="btn btn-sm btn-action btn-xhs-quiet" href="${esc(xhsUrl(day, item))}" data-xhs-kw="${esc(xhsKeyword(day, item))}" target="_blank" rel="noopener">${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
+          ${item.kind !== "transport" ? `<a class="btn btn-sm btn-action btn-xhs-quiet" href="${esc(xhsUrl(day, item))}"${isMobileDevice() ? "" : ' target="_blank" rel="noopener"'}>${icon("sparkles")}${item.kind === "food" ? "小红书点单" : item.kind === "stay" ? "小红书评价" : "小红书实况"}</a>` : ""}
           ${Number.isFinite(item.lat) && Number.isFinite(item.lng) ? `<button type="button" class="btn btn-sm btn-action btn-map-focus" data-focus-pin="${esc(day.id)}:${esc(item.id)}">${icon("map")}地图定位</button>` : ""}
         </div>
       </div>
@@ -1997,30 +1965,6 @@ form.addEventListener("submit", (event) => {
 });
 
 main.addEventListener("click", (event) => {
-  const xhsBtn = event.target.closest("[data-xhs-kw]");
-  if (xhsBtn && isMobileMaps()) {
-    event.preventDefault();
-    const kw = xhsBtn.dataset.xhsKw || "";
-    copyTextSilent(kw);
-    if (/MicroMessenger/i.test(navigator.userAgent)) {
-      showToast(`已复制「${kw}」，打开小红书粘贴即可（或点右上角用浏览器打开直达）`);
-      return;
-    }
-    const fallbackTimer = window.setTimeout(() => {
-      if (document.visibilityState === "visible") {
-        showToast(`已复制「${kw}」，若未拉起 App 可打开小红书直接粘贴`);
-      }
-    }, 1600);
-    const clearFallback = () => {
-      if (document.visibilityState === "hidden") {
-        window.clearTimeout(fallbackTimer);
-        document.removeEventListener("visibilitychange", clearFallback);
-      }
-    };
-    document.addEventListener("visibilitychange", clearFallback);
-    window.location.href = xhsAppUrl(kw);
-    return;
-  }
   const stopMenuBtn = event.target.closest("[data-stop-menu]");
   if (stopMenuBtn) {
     const [dId, iId] = stopMenuBtn.dataset.stopMenu.split(":");
