@@ -5,34 +5,56 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>行程库</title>
   <script>
-    if (/^\/t\/[A-Za-z0-9_-]+(?:\/edit)?\/?$/.test(location.pathname)) {
-      document.documentElement.classList.add("shared-loading");
-    }
+    (function () {
+      if (/^\/t\/[A-Za-z0-9_-]+(?:\/edit)?\/?$/.test(location.pathname)) {
+        document.documentElement.classList.add("shared-loading");
+      }
+      var valid = { paper: 1, dark: 1, manga: 1 };
+      var theme = "";
+      try {
+        var q = new URLSearchParams(location.search).get("theme");
+        if (q && valid[q]) theme = q;
+        if (!theme) {
+          var saved = localStorage.getItem("travel-guides-theme");
+          if (saved === "light") saved = "paper";
+          if (saved && valid[saved]) theme = saved;
+        }
+      } catch (_) {}
+      document.documentElement.dataset.theme = theme || "paper";
+    })();
   </script>
   <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4" />
-  <link rel="stylesheet" href="styles.css?v=40" />
+  <link rel="stylesheet" href="styles.css?v=41" />
 </head>
 <body>
   <header class="top">
     <div class="brand">
-      <span class="brand-badge">TRIP COMIC</span>
-      <h1>行程库</h1>
+      <h1 id="brand-static-title">行程库</h1>
+      <details class="trip-picker" id="mobile-trip-picker" hidden>
+        <summary class="trip-picker-btn" aria-label="切换行程"><b>行程库</b><span id="mobile-trip-count"></span><svg class="picker-caret" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+        <div class="trip-picker-popover" id="mobile-trip-menu"></div>
+      </details>
     </div>
     <div class="top-actions">
       <span id="share-status" class="share-status" hidden></span>
-      <button type="button" class="btn btn-sm" id="seed-update-btn" hidden><span data-icon="refresh"></span>线上已更新 · 用最新版</button>
-      <button type="button" class="btn btn-sm" id="conflict-reload-btn" hidden><span data-icon="refresh"></span>加载最新内容</button>
-      <button type="button" class="btn readonly-only" id="fork-btn"><span data-icon="copy"></span>复制并修改</button>
-      <button type="button" class="btn btn-primary" id="share-btn"><span data-icon="share"></span>分享</button>
+      <button type="button" class="btn btn-sm" id="seed-update-btn" hidden><span data-icon="refresh"></span>用最新版</button>
+      <button type="button" class="btn btn-sm" id="conflict-reload-btn" hidden><span data-icon="refresh"></span>加载最新</button>
+      <div class="theme-switch" id="theme-switch" role="group" aria-label="界面风格">
+        <button type="button" class="theme-opt" data-set-theme="paper">纸本</button>
+        <button type="button" class="theme-opt" data-set-theme="dark">暗黑</button>
+        <button type="button" class="theme-opt" data-set-theme="manga">动漫</button>
+      </div>
+      <button type="button" class="btn btn-sm readonly-only" id="fork-btn"><span data-icon="copy"></span>复制修改</button>
+      <button type="button" class="btn btn-sm" id="share-btn"><span data-icon="share"></span><span class="btn-label-share">分享</span></button>
       <details class="more-menu" id="more-menu">
-        <summary class="btn btn-icon-more" aria-label="更多功能" title="打印路书、导入或导出备份"><span data-icon="more"></span></summary>
+        <summary class="btn btn-sm btn-icon-more" aria-label="更多功能" title="管理行程、打印或备份"><span data-icon="more"></span></summary>
         <div class="more-popover">
-          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-add-day"><span data-icon="plus"></span>添加新的一天</button>
-          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-rename-trip"><span data-icon="pencil"></span>修改行程名称</button>
-          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-edit-cover"><span data-icon="camera"></span>更换顶部封面</button>
-          <button type="button" class="menu-item edit-only mobile-only-menu-item" id="menu-new-trip"><span data-icon="plus"></span>新建另一趟行程</button>
-          <button type="button" class="menu-item edit-only mobile-only-menu-item danger-item" id="menu-delete-trip"><span data-icon="trash"></span>删除当前行程</button>
-          <hr class="menu-sep edit-only mobile-only-menu-item" />
+          <button type="button" class="menu-item edit-only" id="menu-add-day"><span data-icon="plus"></span>添加新的一天</button>
+          <button type="button" class="menu-item edit-only" id="menu-rename-trip"><span data-icon="pencil"></span>修改行程名称</button>
+          <button type="button" class="menu-item edit-only" id="menu-edit-cover"><span data-icon="camera"></span>更换封面图</button>
+          <button type="button" class="menu-item edit-only" id="menu-new-trip"><span data-icon="plus"></span>新建另一趟行程</button>
+          <button type="button" class="menu-item edit-only danger-item" id="menu-delete-trip"><span data-icon="trash"></span>删除当前行程</button>
+          <hr class="menu-sep edit-only" />
           <button type="button" class="menu-item" id="print-btn"><span data-icon="printer"></span>打印 / 导出 PDF 路书</button>
           <button type="button" class="menu-item edit-only" id="reset-local-btn" hidden><span data-icon="refresh"></span>恢复默认线上内容</button>
           <button type="button" class="menu-item edit-only" id="import-btn"><span data-icon="upload"></span>导入 JSON 备份</button>
@@ -236,8 +258,8 @@
     </form>
   </dialog>
 
-  <script src="data.js?v=39"></script>
-  <script src="app.js?v=39"></script>
-  <script src="share.js?v=11"></script>
+  <script src="data.js?v=41"></script>
+  <script src="app.js?v=41"></script>
+  <script src="share.js?v=41"></script>
 </body>
 </html>
