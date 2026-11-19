@@ -5,7 +5,7 @@
 ```js
 {
   id: "slug",
-  title: "Display title",
+  title: "北海道", // Default to concise place name ONLY (e.g. "澳洲", "京都", "釜山 · 首尔" — no "5日"/"休闲游")
   start: "YYYY-MM-DD",
   end: "YYYY-MM-DD",
   summary: "",
@@ -15,7 +15,7 @@
 }
 ```
 
-> Leave `summary` as `""` — the trip header displays only the cover photo gallery, date range, title, and city hops without long intro paragraphs.
+> Keep `title` as the concise destination place name only (date range, day count, and city hops are rendered automatically below it), and leave `summary` as `""`.
 
 ## VisaPrep (`visa`)
 

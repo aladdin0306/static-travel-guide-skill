@@ -924,6 +924,17 @@ function tripRange(current) {
   return `${monthDay(current.start)} – ${monthDay(current.end || current.start)} · ${days} 天`;
 }
 
+function tripDisplayTitle(item) {
+  const raw = String((item && item.title) || "").trim();
+  if (raw && raw !== "新行程") return raw;
+  const cities = [];
+  for (const d of (item && item.days) || []) {
+    const c = String(d.city || "").split(/[\/·・]/)[0].trim();
+    if (c && !cities.includes(c)) cities.push(c);
+  }
+  return cities.slice(0, 2).join(" · ") || raw || "未命名目的地";
+}
+
 function renderTrips() {
   const isShared = Boolean(window.TRAVEL_SHARE && window.TRAVEL_SHARE.isSharedRoute());
   document.body.classList.toggle("single-trip", state.trips.length <= 1);
@@ -934,11 +945,15 @@ function renderTrips() {
     const left = pending(item).filter((row) => row.item.reservation === "required").length;
     const cover = firstPhoto(item);
     const active = item.id === trip().id;
+    const label = tripDisplayTitle(item);
     return `<button type="button" class="trip-card${active ? " active" : ""}" data-trip="${esc(item.id)}">
       <span class="trip-thumb"${cover ? ` style="background-image:url('${esc(cover.src)}')"` : ""}>${cover ? "" : icon("compass")}</span>
       <span class="trip-meta">
-        <b>${esc(item.title)}</b>
-        <span>${esc(tripRange(item))}${left ? ` · <em>${left} 项必订</em>` : ""}</span>
+        <span class="trip-title-row">
+          <b>${esc(label)}</b>
+          ${left ? `<em class="trip-due">${left} 必订</em>` : ""}
+        </span>
+        <span class="trip-dates">${esc(tripRange(item))}</span>
       </span>
     </button>`;
   }).join("");
@@ -957,7 +972,7 @@ function renderTrips() {
       mobileMenu.innerHTML = state.trips.map((item) => {
         const active = item.id === trip().id;
         return `<button type="button" class="trip-pick-item${active ? " active" : ""}" data-trip="${esc(item.id)}">
-          <span><b>${esc(item.title)}</b><small>${esc(tripRange(item))}</small></span>
+          <span><b>${esc(tripDisplayTitle(item))}</b><small>${esc(tripRange(item))}</small></span>
           ${active ? `<span class="trip-pick-check">当前</span>` : ""}
         </button>`;
       }).join("");
@@ -992,7 +1007,7 @@ function renderMain() {
   main.innerHTML = `
     <div class="zine-feed">
       <header class="zine-masthead">
-        <h2>${esc(current.title)}</h2>
+        <h2>${esc(tripDisplayTitle(current))}</h2>
         <p class="m-sub">${esc(tripRange(current))}${routeCities ? ` · ${esc(routeCities)}` : ""}</p>
         <div class="m-meta-bar">
           ${budgetPillText ? `<button type="button" class="m-meta-chip${budgetOpen ? " open" : ""}" id="toggle-budget" aria-expanded="${budgetOpen}">
@@ -1663,15 +1678,16 @@ function createNewTripPrompt() {
   const more = document.querySelector("#more-menu");
   if (more) more.open = false;
   const id = `trip-${Date.now()}`;
-  const title = window.prompt("这趟叫什么", "新行程");
-  if (!title) return;
+  const title = window.prompt("目的地地名（如：北海道、京都、澳洲）", "");
+  if (title == null) return;
+  const place = title.trim() || "新目的地";
   state.trips.unshift({
     id,
-    title: title.trim(),
+    title: place,
     start: "",
     end: "",
     summary: "",
-    days: [{ id: `${id}-d1`, date: "", city: "", title: "第一天", items: [] }]
+    days: [{ id: `${id}-d1`, date: "", city: title.trim(), title: "第一天", items: [] }]
   });
   state.tripId = id;
   dayFilter = "";

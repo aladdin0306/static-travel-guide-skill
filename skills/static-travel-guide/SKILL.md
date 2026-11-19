@@ -227,6 +227,7 @@ Schema: [reference.md](reference.md). Examples: [examples.md](examples.md).
 
 ## Don’t
 
+- Don’t stuff day counts, nights, or theme slogans into `trip.title` — `trip.title` must default to **just the concise destination place name** (e.g. `"北海道"`, `"澳洲"`, `"京都"`, `"釜山 · 首尔"`, never `"北海道 · 札幌休闲看雪 5 日"` or `"5天4夜"`, because date range, total days, and city route are already shown right underneath)
 - Don’t put intro/summary paragraphs in the trip header (`summary: ""` — keep the top cover purely visual with dates, title, and city hops; put practical reminders on the relevant stops)
 - Don’t ask users to edit `data.js` or deploy servers themselves
 - Don’t deliver JSON-only when they want a webpage
