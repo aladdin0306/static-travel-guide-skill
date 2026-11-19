@@ -99,14 +99,16 @@ Checklist tick state lives in the browser only (`visaChecks` inside local storag
 | `id` | Unique in trip |
 | `time` | Display string |
 | `kind` | `sight` \| `food` \| `transport` \| `stay` |
-| `name` | Required |
+| `name` | Clean place/restaurant/transit name (no `"方案 A ·"` prefixes) |
+| `alt` | Optional boolean (`true` marks mutually exclusive backup route stops, auto-collapsed under `day.altTitle`) |
 | `address` | For search / Maps |
 | `lat`, `lng` | Map pin |
 | `reservation` | `none` \| `recommended` \| `required` |
-| `reservationNote` | Why / how |
+| `reservationNote` | Short booking rule / timing |
 | `bookingUrl` | External `https://` link |
 | `cost` | `{ amount, note, cat?, optional? }` |
-| `note` | Directions / tips |
+| `why` | **Required on `sight` / `food` / `stay`** — 15–36 chars shown on the outer card summarizing the highlight in natural human Chinese |
+| `note` | Concrete on-the-ground directions & tips shown in the detail sheet (supports `\n` paragraphs; zero AI meta-talk) |
 | `photo` | Optional `{ src, credit, link }` (or `photo("id")`) |
 
 ## Photos

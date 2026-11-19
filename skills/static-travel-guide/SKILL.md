@@ -82,6 +82,22 @@ For international trips, always write a `visa` object on the trip (see [referenc
 - Pure domestic China trips: omit `visa`, or set `status: "not_needed"`.
 - Always include a one-line `disclaimer` that policy/fees follow the official immigration site; the page is a prep checklist only, not visa agency advice.
 
+### Copywriting & Human Tone Rules (Required — 「说人话、去 AI 腔」)
+
+The UI separates **card preview (`why`)** from **detail drawer directions (`note`)**. Write every field like a well-traveled friend handing over a clean pocket notebook — **never** like an internal PRD or prompt-compliance checklist:
+
+1. **Every non-transit stop (`sight`, `food`, `stay`) MUST have its own `why` (15–36 Chinese chars)**:
+   - `why` is shown directly on the outer card. Write the single concrete scene, dish, or convenience that makes this stop worth going (e.g. `“窄巷里一字排开十几家老牌拉面铺，落地先喝碗滚烫的黄油玉米味噌拉面最解乏”`).
+   - Do **not** omit `why` on hotels or restaurants — otherwise the UI has to fall back to slicing the first clause of `note`, which exposes dry logistics on the card face.
+2. **`note` is strictly on-the-ground practical guidance (opened on tap)**:
+   - Write concrete, natural spoken Chinese: which station/exit or bus line to take, where to store luggage, what dish to order, or weather/footwear reminders. Use `\n` when separating distinct paragraphs.
+   - Verify real local station names and common Chinese travel names (e.g. `白天堂沙滩` instead of raw phonetic `怀特黑文`; Sapporo streetcar `ロープウェイ入口` instead of machine-garbled kanji).
+3. **Zero AI Meta-Commentary / Prompt Parroting**:
+   - **Never** repeat the user's intake constraints back at them inside stop notes (forbidden examples: `“休闲游故意留白”`, `“不租车”` repeated on every stop, `“压在总预算内的关键项”`, `“控制冲动消费”`, `“泡汤是目标，残雪是加分”`, `“本趟最稳保底”`, `“只在走某方案时吃这里”`).
+   - **Never** use stiff engineering/medical/urban-planning jargon (forbidden examples: `“预留体温回升时间”`, `“最轻松的散步轴”`, `“雪街/运河组合”`). Say `“刚泡完温泉别马上吹冷风，在休息区喝瓶冰牛奶缓一缓再出门”`.
+4. **Keep `item.name` as a clean place/activity name**:
+   - Do not prefix stop names with `“方案 A · ”` / `“方案 B · ”` or awkward qualifiers like `“悉尼歌剧院外面”`. For mutually exclusive backup routes on a day, set `"alt": true` on backup stops (and optional `day.altTitle` on the day) so the UI automatically groups them into a collapsible backup drawer.
+
 ## Agent pipeline (every time)
 
 ```text

@@ -453,6 +453,7 @@ function cleanStop(raw, fallbackId, requestOrigin) {
   };
   const why = cleanStr(raw.why, 400);
   if (why) stop.why = why;
+  if (raw.alt === true) stop.alt = true;
   const photo = cleanPhoto(raw.photo, requestOrigin);
   if (photo) stop.photo = photo;
   return stop;
@@ -495,13 +496,16 @@ function normalizePayload(input, requestOrigin) {
       validStopIds.add(cleaned.id);
       items.push(cleaned);
     }
-    return {
+    const dayObj = {
       id: cleanStr(rawDay.id, 80) || `d${dayIdx + 1}`,
       date: cleanStr(rawDay.date, 20),
       city: cleanStr(rawDay.city, 60),
       title: cleanStr(rawDay.title, 160),
       items
     };
+    const altTitle = cleanStr(rawDay.altTitle, 160);
+    if (altTitle) dayObj.altTitle = altTitle;
+    return dayObj;
   });
 
   const cleanTrip = {

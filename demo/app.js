@@ -769,7 +769,7 @@ function originLines(current) {
 }
 
 function dayCost(day) {
-  return day.items.reduce((sum, item) => sum + (hasCost(item) && !isOptional(item) ? item.cost.amount : 0), 0);
+  return day.items.reduce((sum, item) => sum + (hasCost(item) && !isOptional(item) && !isBackupRouteItem(item) ? item.cost.amount : 0), 0);
 }
 
 function budgetOf(current) {
@@ -779,7 +779,7 @@ function budgetOf(current) {
   const days = current.days.map((day) => {
     for (const item of day.items) {
       if (!hasCost(item)) continue;
-      if (isOptional(item)) {
+      if (isOptional(item) || isBackupRouteItem(item)) {
         if (item.cost.amount > 0) optional.push({ day, item });
         continue;
       }
@@ -1166,7 +1166,9 @@ function priceChip(item) {
 }
 
 function isBackupRouteItem(item) {
-  return /^(?:方案\s*[B-Z]|Plan\s*[B-Z]|Option\s*[B-Z])\b/i.test(String((item && item.name) || "").trim());
+  if (!item) return false;
+  if (item.alt === true) return true;
+  return /^(?:方案\s*[B-Z]|Plan\s*[B-Z]|Option\s*[B-Z])\b/i.test(String(item.name || "").trim());
 }
 
 function isPlainTransit(item) {
@@ -1250,7 +1252,7 @@ function renderDay(day, number, current = trip()) {
       ${primaryItems.length && backupItems.length ? `
         <details class="alt-route-fold" data-alt-day="${esc(day.id)}"${altOpen ? " open" : ""}>
           <summary class="alt-route-summary">
-            <span>备选路线（共 ${backupItems.length} 站）</span>
+            <span>${esc(day.altTitle || `备选路线（共 ${backupItems.length} 站）`)}</span>
             <span class="alt-route-hint">${altOpen ? "收起" : "展开查看"}</span>
           </summary>
           <ol class="stops alt-stops">
@@ -1276,10 +1278,15 @@ function shortPriceText(item) {
 }
 
 function cardGist(item) {
-  const source = String(item.why || item.note || "").trim();
-  if (!source) return "";
-  const first = source.split(/[。；！？\n]/)[0].trim();
-  return first.length > 46 ? `${first.slice(0, 45)}…` : first;
+  const why = String((item && item.why) || "").trim();
+  if (why) {
+    const clean = why.replace(/[。！]+$/, "");
+    return clean.length > 56 ? `${clean.slice(0, 55)}…` : clean;
+  }
+  const note = String((item && item.note) || "").trim();
+  if (!note) return "";
+  const first = note.split(/[。；！？\n]/)[0].trim();
+  return first.length > 52 ? `${first.slice(0, 51)}…` : first;
 }
 
 function renderPrintNotes(item, needs) {
@@ -2138,7 +2145,7 @@ function renderStopDetailPanel() {
         </div>
 
         ${item.why ? `<p class="dp-lead">${esc(item.why)}</p>` : ""}
-        ${item.note ? `<div class="dp-prose">${esc(item.note)}</div>` : ""}
+        ${item.note ? `<div class="dp-prose">${String(item.note).split(/\n+/).map((s) => s.trim()).filter(Boolean).map((p) => `<p>${esc(p)}</p>`).join("")}</div>` : ""}
 
         ${(hasCost(item) && item.cost.note) || needs || item.address ? `<dl class="dp-kv">
           ${hasCost(item) && item.cost.note ? `<div class="dp-kv-row">

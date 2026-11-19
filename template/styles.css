@@ -661,7 +661,8 @@ html[data-theme="manga"] .panel-sheet { box-shadow: 5px 5px 0 #181715; }
   background: var(--surface-soft); border-left: 3px solid var(--accent);
   font-size: 13.5px; font-weight: 650; line-height: 1.6;
 }
-.dp-prose { margin-top: 12px; font-size: 14px; line-height: 1.72; color: var(--ink-soft); }
+.dp-prose { margin-top: 12px; font-size: 14px; line-height: 1.72; color: var(--ink-soft); display: grid; gap: 8px; }
+.dp-prose p { margin: 0; }
 
 .dp-kv { margin: 15px 0 0; border-top: 1px solid var(--line); }
 .dp-kv-row {
