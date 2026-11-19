@@ -322,7 +322,25 @@ window.SEED_TRIPS = [
               "amount": 0,
               "note": "已含在当天封顶里。"
             },
-            "note": "坐 F1 渡轮原路回城，傍晚早点吃饭收拾行李，明天一早飞圣灵群岛。"
+            "note": "坐 F1 渡轮迎着夕阳光线回环形码头，下船往西走两步就是岩石区。"
+          },
+          {
+            "id": "au-d3-rocks",
+            "time": "16:45–19:30",
+            "kind": "food",
+            "name": "岩石区（The Rocks）石板老街漫步与海港晚餐",
+            "address": "The Rocks, Sydney NSW",
+            "lat": -33.8599,
+            "lng": 151.209,
+            "reservation": "none",
+            "reservationNote": "历史老酒馆与露天餐座随到随坐。",
+            "bookingUrl": "",
+            "cost": {
+              "amount": 0,
+              "note": "餐费已计入每日三餐预算。"
+            },
+            "why": "海港大桥正下方的百年砂岩老街区，傍晚逛手工小店，再找家百年酒馆露台吃牛排或炸鱼薯条。",
+            "note": "从环形码头西侧步行 5 分钟即达。The Glenmore 顶层露台正好平视歌剧院夜景，吃完慢慢走回酒店收拾行李，准备明早飞圣灵群岛。"
           }
         ]
       },
@@ -633,7 +651,7 @@ window.SEED_TRIPS = [
           },
           {
             "id": "au-d8-convent",
-            "time": "14:00",
+            "time": "14:00–16:15",
             "kind": "sight",
             "name": "Abbotsford Convent 老修道院艺术园",
             "address": "1 St Heliers Street, Abbotsford VIC",
@@ -648,7 +666,42 @@ window.SEED_TRIPS = [
             },
             "why": "亚拉河湾畔的百年修道院建筑群，大草坪、花园面包房与手工作坊安静得像世外桃源。",
             "photo": photo("au-d8-convent"),
-            "note": "从 Fitzroy 走到 Johnston Street 坐 200 或 207 路公交到终点 Clarke Street 下车（打车也只要 10 分钟）。逛完走 12 分钟到 Victoria Park 站坐火车回市中心。"
+            "note": "从 Fitzroy 走到 Johnston Street 坐 200 或 207 路公交到终点 Clarke Street 下车（打车也只要 10 分钟），顺着河岸步道还可以走到隔壁小农场看看。"
+          },
+          {
+            "id": "au-d8-back-city",
+            "time": "16:30–17:00",
+            "kind": "transport",
+            "name": "Victoria Park 站乘火车回市中心",
+            "address": "Victoria Park Station, Abbotsford",
+            "lat": -37.7995,
+            "lng": 144.9945,
+            "reservation": "none",
+            "reservationNote": "刷 myki 进站。",
+            "bookingUrl": "",
+            "cost": {
+              "amount": 0,
+              "note": "已含在当天 myki 封顶里。"
+            },
+            "note": "从修道院步行 12 分钟到车站，坐 Mernda 或 Hurstbridge 线约 10 分钟回到 Flinders Street。"
+          },
+          {
+            "id": "au-d8-southbank",
+            "time": "17:45–20:00",
+            "kind": "food",
+            "name": "雅拉河南岸（Southbank）日落散步与晚餐",
+            "address": "Southbank Promenade, Melbourne",
+            "lat": -37.8204,
+            "lng": 144.9647,
+            "reservation": "none",
+            "reservationNote": "河畔餐厅与唐人街/意大利街馆子选择极多，现场挑即可。",
+            "bookingUrl": "",
+            "cost": {
+              "amount": 0,
+              "note": "餐费已计入每日三餐预算。"
+            },
+            "why": "沿着王子桥与雅拉河岸看市中心高楼亮起灯火，找家河景餐厅或去 Lygon St 吃意面收尾。",
+            "note": "如果在澳洲的最后一晚想吃热乎中餐，从河边走两个街区就是 Little Bourke St 唐人街；若明天搭早班机回国，今晚吃完记得提前把箱子打包好。"
           },
           {
             "id": "au-d8-ngv",

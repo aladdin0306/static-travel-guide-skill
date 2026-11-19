@@ -97,6 +97,8 @@ The UI separates **card preview (`why`)** from **detail drawer directions (`note
    - **Never** use stiff engineering/medical/urban-planning jargon (forbidden examples: `“预留体温回升时间”`, `“最轻松的散步轴”`, `“雪街/运河组合”`). Say `“刚泡完温泉别马上吹冷风，在休息区喝瓶冰牛奶缓一缓再出门”`.
 4. **Keep `item.name` as a clean place/activity name**:
    - Do not prefix stop names with `“方案 A · ”` / `“方案 B · ”` or awkward qualifiers like `“悉尼歌剧院外面”`. For mutually exclusive backup routes on a day, set `"alt": true` on backup stops (and optional `day.altTitle` on the day) so the UI automatically groups them into a collapsible backup drawer.
+5. **Complete Full-Day Arc (Never Cut Off at Noon or 3 PM)**:
+   - Even on `休闲游` (relaxed pace), a full sightseeing day must have a natural morning → afternoon → dusk/dinner rhythm on the timeline (`18:30–20:00` close). Never stop the timeline at `12:30` lunch or `14:00` afternoon and hide the rest of the day inside a trailing `note` sentence (e.g. *“下午逛到四五点坐车回城吃晚饭即可”*). Use relaxed, low-cost afternoon/dusk stops (historic street stroll, café break, blue-hour canal/river walk, local dinner) so the day feels complete without feeling rushed.
 
 ## Agent pipeline (every time)
 
