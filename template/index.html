@@ -24,7 +24,7 @@
     })();
   </script>
   <link rel="stylesheet" href="vendor/leaflet.css?v=1.9.4" />
-  <link rel="stylesheet" href="styles.css?v=44" />
+  <link rel="stylesheet" href="styles.css?v=45" />
 </head>
 <body>
   <header class="top">
@@ -100,7 +100,7 @@
           <option value="stay">住宿</option>
         </select>
       </label>
-      <label>地址 <input name="address" placeholder="用来在谷歌上搜索" /></label>
+      <label>地址 <input name="address" placeholder="用于地图搜索与导航定位" /></label>
       <label>为什么去（亮点简介） <input name="why" placeholder="一句话说明为什么推荐这里" /></label>
       <div class="pair">
         <label>纬度 <input name="lat" inputmode="decimal" /></label>
@@ -117,7 +117,7 @@
       <label>预约说明 <input name="reservationNote" placeholder="为什么要订，订晚了会怎样" /></label>
       <label>预约链接 <input name="bookingUrl" placeholder="https://" /></label>
       <div class="pair">
-        <label>每人费用（当地货币） <input name="costAmount" inputmode="decimal" placeholder="免费填 0" /></label>
+        <label><span id="cost-currency-label">每人费用（人民币）</span> <input name="costAmount" inputmode="decimal" placeholder="免费填 0" /></label>
         <label>费用说明 <input name="costNote" placeholder="含什么，怎么算的" /></label>
       </div>
       <label>配图链接（Wikimedia 或本站 /api/img）
@@ -143,7 +143,7 @@
       <h3 id="day-editor-title">编辑这一天</h3>
       <div class="pair">
         <label>日期 <input name="date" placeholder="2027-05-01" /></label>
-        <label>城市 <input name="city" placeholder="京都 / 悉尼" /></label>
+        <label>城市 <input name="city" placeholder="厦门 / 京都 / 悉尼" /></label>
       </div>
       <label>当天主题 <input name="title" required placeholder="例如：伏见稻荷与清水寺漫步" /></label>
       <div class="dialog-actions">
@@ -258,8 +258,8 @@
     </form>
   </dialog>
 
-  <script src="data.js?v=44"></script>
-  <script src="app.js?v=44"></script>
-  <script src="share.js?v=44"></script>
+  <script src="data.js?v=45"></script>
+  <script src="app.js?v=45"></script>
+  <script src="share.js?v=45"></script>
 </body>
 </html>

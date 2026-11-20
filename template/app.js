@@ -713,6 +713,18 @@ function costCat(entry) {
   return COST_CAT[cat] ? cat : "other";
 }
 
+function isPureRailOrigin(origin) {
+  const text = origin ? `${origin.brief || ""} ${origin.note || ""}` : "";
+  return Boolean(text && /高铁|动车|火车/.test(text) && !/飞|航班|机场|机票/.test(text));
+}
+
+function costCatLabel(cat, current = trip()) {
+  if (!isDomesticTrip(current)) return COST_CAT[cat] || "其他";
+  if (cat === "flight") return isPureRailOrigin(pickOrigin(current)) ? "往返高铁" : "往返机票";
+  if (cat === "other") return "其他";
+  return COST_CAT[cat] || "其他";
+}
+
 function currency(current = trip()) {
   const code = String((current && current.budget && current.budget.currency) || "CNY").trim().toUpperCase();
   if (CURRENCY[code]) return CURRENCY[code];
@@ -763,7 +775,8 @@ function originLines(current) {
   if (Number.isFinite(origin.amount)) {
     lines.push({ label: `${origin.label}往返交通`, cat: "flight", amount: origin.amount, cny: origin.cny, note: origin.note || "" });
   } else if (Number.isFinite(origin.cny) && (home || rate > 0)) {
-    lines.push({ label: `${origin.label}往返机票`, cat: "flight", amount: home ? origin.cny : Math.round(origin.cny / rate), cny: origin.cny, note: origin.note || "" });
+    const modeLabel = isDomesticTrip(current) && isPureRailOrigin(origin) ? "往返高铁" : "往返机票";
+    lines.push({ label: `${origin.label}${modeLabel}`, cat: "flight", amount: home ? origin.cny : Math.round(origin.cny / rate), cny: origin.cny, note: origin.note || "" });
   }
   return lines.concat(origin.adjust || []);
 }
@@ -1099,7 +1112,7 @@ function renderBudgetPanel(current) {
         const rmb = cny(amt);
         const pct = plan.total ? ((amt / plan.total) * 100).toFixed(0) : "0";
         return `<div class="ledger-row cat-${cat}" role="row">
-          <span class="ledger-name" role="cell"><i aria-hidden="true"></i>${COST_CAT[cat]}<em>${pct}%</em></span>
+          <span class="ledger-name" role="cell"><i aria-hidden="true"></i>${esc(costCatLabel(cat, current))}<em>${pct}%</em></span>
           <span class="ledger-local" role="cell">${local(amt)}</span>
           ${home ? "" : `<span class="ledger-cny" role="cell">${rmb || "—"}</span>`}
         </div>`;
@@ -1130,6 +1143,9 @@ function renderBudgetPanel(current) {
 
 function renderFlightWatch(current, origin) {
   if (origin && !Number.isFinite(origin.amount) && !Number.isFinite(origin.cny) && /已出|已买|已订/.test(`${origin.brief || ""} ${origin.note || ""}`)) {
+    return "";
+  }
+  if (isDomesticTrip(current) && isPureRailOrigin(origin)) {
     return "";
   }
   const fw = flightWatchUrls(current, origin);
@@ -1547,6 +1563,8 @@ function openEditor(dayId, item) {
   editing = { dayId, id: item ? item.id : null };
   form.reset();
   document.querySelector("#editor-title").textContent = item ? "修改地点" : "添加地点";
+  const costLabel = document.querySelector("#cost-currency-label");
+  if (costLabel) costLabel.textContent = `每人费用（${currency(trip()).unit}）`;
   if (item) {
     for (const key of ["time", "name", "kind", "address", "why", "reservation", "reservationNote", "bookingUrl", "note"]) {
       form.elements[key].value = item[key] || (key === "kind" ? "sight" : key === "reservation" ? "none" : "");
@@ -1685,7 +1703,7 @@ function createNewTripPrompt() {
   const more = document.querySelector("#more-menu");
   if (more) more.open = false;
   const id = `trip-${Date.now()}`;
-  const title = window.prompt("目的地地名（如：北海道、京都、澳洲）", "");
+  const title = window.prompt("目的地地名（如：厦门 · 泉州、北海道、澳洲）", "");
   if (title == null) return;
   const place = title.trim() || "新目的地";
   state.trips.unshift({
