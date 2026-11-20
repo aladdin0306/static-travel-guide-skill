@@ -10,7 +10,8 @@ if [[ -e "$DEST" ]]; then
 fi
 mkdir -p "$(dirname "$DEST")"
 cp -R "$ROOT/template" "$DEST"
-# leave photos; agent will replace data.js
+# Start photos/ clean so user sites don't carry sample demo JPGs
+rm -f "$DEST/photos"/*.jpg "$DEST/photos"/*.jpeg "$DEST/photos"/*.png "$DEST/photos"/*.webp
 echo "Created $DEST"
 echo "Next: overwrite $DEST/data.js with the user's SEED_TRIPS, then:"
 echo "  cd $DEST && python3 -m http.server 8766 --bind 0.0.0.0"

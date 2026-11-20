@@ -40,12 +40,14 @@ if leaflet_css and img_dir.is_dir():
             b64 = base64.b64encode(png.read_bytes()).decode("ascii")
             leaflet_css = leaflet_css.replace(f"images/{png.name}", f"data:image/png;base64,{b64}")
 
-# Inline local photos/ references as base64 data URIs so offline HTML carries its images
+# Inline local photos/ references that are actually used in data.js so offline HTML stays lean
 photo_map = {}
 for p_dir in [site / "photos"]:
     if p_dir.is_dir():
         for img in sorted(p_dir.iterdir()):
             if img.is_file() and img.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp"):
+                if img.name not in data_js and f'"{img.stem}"' not in data_js and f"'{img.stem}'" not in data_js:
+                    continue
                 mime = "image/png" if img.suffix.lower() == ".png" else "image/webp" if img.suffix.lower() == ".webp" else "image/jpeg"
                 b64 = base64.b64encode(img.read_bytes()).decode("ascii")
                 photo_map[f"photos/{img.name}"] = f"data:{mime};base64,{b64}"

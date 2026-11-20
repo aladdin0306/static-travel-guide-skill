@@ -373,7 +373,7 @@ function isMainlandCoord(lat, lng) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false;
   if (lat < 18.0 || lat > 53.6 || lng < 73.5 || lng > 135.1) return false;
   if (lat < 39.8 && lng > 124.2) return false;
-  if (lat >= 21.8 && lat <= 25.4 && lng >= 119.5 && lng <= 122.2) return false;
+  if (lat >= 21.8 && lat <= 25.4 && lng >= 120.0 && lng <= 122.2) return false;
   if (lat >= 22.1 && lat <= 22.6 && lng >= 113.4 && lng <= 114.5) return false;
   if (lat < 21.2 && !(lat >= 18.0 && lat <= 20.3 && lng >= 108.5 && lng <= 111.3)) return false;
   if (lat < 27.6 && lng < 92.0) return false;
